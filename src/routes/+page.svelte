@@ -56,7 +56,7 @@
 				enemyMaxHealth={gameState.enemyMaxHealth}
 				enemiesKilled={gameState.enemiesKilled}
 				gold={gameState.gold}
-				lastHit={gameState.lastHit}
+				hits={gameState.hits}
 				onAttack={gameState.attack}
 			/>
 		</div>
@@ -65,6 +65,7 @@
 	<LevelUpModal
 		show={gameState.showLevelUp}
 		choices={gameState.upgradeChoices}
+		pendingCount={gameState.pendingLevelUps}
 		onSelect={gameState.selectUpgrade}
 	/>
 
@@ -89,6 +90,7 @@
 				>Daniel Diggle - Sunnyside World</a
 			>
 		</p>
+		<a href="mailto:ianhogers@gmail.com?subject=Rogue%20Arena" class="contact-btn">Contact</a>
 	</footer>
 </div>
 
@@ -100,6 +102,8 @@
 		font-family: system-ui, sans-serif;
 		display: flex;
 		flex-direction: column;
+		user-select: none;
+		-webkit-user-select: none;
 	}
 
 	header {
@@ -254,6 +258,23 @@
 
 	footer a:hover {
 		text-decoration: underline;
+	}
+
+	.contact-btn {
+		display: inline-block;
+		margin-top: 8px;
+		padding: 6px 16px;
+		background: rgba(167, 139, 250, 0.2);
+		border: 1px solid #a78bfa;
+		border-radius: 4px;
+		color: #a78bfa;
+		text-decoration: none;
+		transition: background 0.2s;
+	}
+
+	.contact-btn:hover {
+		background: rgba(167, 139, 250, 0.3);
+		text-decoration: none;
 	}
 
 	@media (max-width: 768px) {

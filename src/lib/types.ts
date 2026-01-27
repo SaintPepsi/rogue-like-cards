@@ -11,8 +11,10 @@ export type PlayerStats = {
 	critChance: number;
 	critMultiplier: number;
 	xpMultiplier: number;
+	damageMultiplier: number; // Final damage multiplier (applies to all damage including poison)
 	// New mechanics
 	poison: number; // Damage per second
+	poisonCritChance: number; // Chance for poison to crit
 	multiStrike: number; // Extra attacks per click
 	overkill: boolean; // Excess damage carries over
 	executeThreshold: number; // Instant kill below this % health
@@ -37,8 +39,11 @@ export type Effect = {
 	description: string;
 };
 
+export type HitType = 'normal' | 'crit' | 'execute' | 'poison' | 'poisonCrit';
+
 export type HitInfo = {
 	damage: number;
-	crit: boolean;
+	type: HitType;
 	id: number;
+	index: number; // For positioning multiple hits
 };

@@ -1,4 +1,4 @@
-import type { PlayerStats, Upgrade, Effect, HitInfo } from '$lib/types';
+import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
 import { getRandomUpgrades } from '$lib/data/upgrades';
 
 function createGameState() {
@@ -8,7 +8,9 @@ function createGameState() {
 		critChance: 0,
 		critMultiplier: 1.5,
 		xpMultiplier: 1,
+		damageMultiplier: 1,
 		poison: 0,
+		poisonCritChance: 0,
 		multiStrike: 0,
 		overkill: false,
 		executeThreshold: 0,
@@ -43,6 +45,7 @@ function createGameState() {
 
 	// UI state
 	let showLevelUp = $state(false);
+	let pendingLevelUps = $state(0);
 	let showGameOver = $state(false);
 	let showChestLoot = $state(false);
 	let chestGold = $state(0);
@@ -50,7 +53,7 @@ function createGameState() {
 	let levelingUp = $state(false);
 
 	// Hit display
-	let lastHit = $state<HitInfo | null>(null);
+	let hits = $state<HitInfo[]>([]);
 	let hitId = $state(0);
 
 	// Derived values
@@ -59,39 +62,58 @@ function createGameState() {
 	let greedMultiplier = $derived(1 + playerStats.greed);
 	let bossTimerMax = $derived(baseBossTime + playerStats.bonusBossTime);
 
+	function addHits(newHits: HitInfo[]) {
+		hits = [...hits, ...newHits];
+		// Clean up old hits after animation completes
+		const hitIds = newHits.map((h) => h.id);
+		setTimeout(() => {
+			hits = hits.filter((h) => !hitIds.includes(h.id));
+		}, 700);
+	}
+
 	function attack() {
-		if (showLevelUp || showGameOver || levelingUp) return;
+		if (showGameOver || levelingUp) return;
 
 		const strikes = 1 + playerStats.multiStrike;
 		let totalDamage = 0;
-		let wasCrit = false;
+		const newHits: HitInfo[] = [];
 
-		for (let i = 0; i < strikes; i++) {
-			const isCrit = Math.random() < playerStats.critChance;
-			if (isCrit) wasCrit = true;
-
-			let damage = isCrit
-				? Math.floor(playerStats.damage * playerStats.critMultiplier)
-				: playerStats.damage;
-
-			// Add overkill damage from previous kill
-			if (i === 0 && overkillDamage > 0) {
-				damage += overkillDamage;
-				overkillDamage = 0;
-			}
-
-			totalDamage += damage;
-		}
-
-		// Check execute threshold
+		// Check execute threshold first
 		const healthPercent = enemyHealth / enemyMaxHealth;
-		if (playerStats.executeThreshold > 0 && healthPercent <= playerStats.executeThreshold) {
-			totalDamage = enemyHealth; // Instant kill
+		const isExecute = playerStats.executeThreshold > 0 && healthPercent <= playerStats.executeThreshold;
+
+		if (isExecute) {
+			// Execute: instant kill
+			totalDamage = enemyHealth;
+			hitId++;
+			newHits.push({ damage: totalDamage, type: 'execute', id: hitId, index: 0 });
+		} else {
+			// Normal attack with possible crits and multi-strike
+			for (let i = 0; i < strikes; i++) {
+				const isCrit = Math.random() < playerStats.critChance;
+				const hitType: HitType = isCrit ? 'crit' : 'normal';
+
+				let damage = isCrit
+					? Math.floor(playerStats.damage * playerStats.critMultiplier)
+					: playerStats.damage;
+
+				// Add overkill damage from previous kill
+				if (i === 0 && overkillDamage > 0) {
+					damage += overkillDamage;
+					overkillDamage = 0;
+				}
+
+				// Apply final damage multiplier
+				damage = Math.floor(damage * playerStats.damageMultiplier);
+
+				totalDamage += damage;
+				hitId++;
+				newHits.push({ damage, type: hitType, id: hitId, index: i });
+			}
 		}
 
 		enemyHealth -= totalDamage;
-		hitId++;
-		lastHit = { damage: totalDamage, crit: wasCrit, id: hitId };
+		addHits(newHits);
 
 		if (enemyHealth <= 0) {
 			// Calculate overkill
@@ -103,8 +125,18 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (playerStats.poison > 0 && enemyHealth > 0 && !showLevelUp && !showGameOver) {
-			enemyHealth -= playerStats.poison;
+		if (playerStats.poison > 0 && enemyHealth > 0 && !showGameOver && !levelingUp) {
+			const isPoisonCrit = Math.random() < playerStats.poisonCritChance;
+			let poisonDamage = isPoisonCrit
+				? Math.floor(playerStats.poison * playerStats.critMultiplier)
+				: playerStats.poison;
+			// Apply final damage multiplier
+			poisonDamage = Math.floor(poisonDamage * playerStats.damageMultiplier);
+			const hitType: HitType = isPoisonCrit ? 'poisonCrit' : 'poison';
+
+			enemyHealth -= poisonDamage;
+			hitId++;
+			addHits([{ damage: poisonDamage, type: hitType, id: hitId, index: 0 }]);
 			if (enemyHealth <= 0) {
 				killEnemy();
 			}
@@ -145,9 +177,13 @@ function createGameState() {
 			isBoss = false;
 		}
 
+		// Check for level up (non-blocking - game continues)
 		if (xp >= xpToNextLevel) {
 			startLevelUp();
-		} else if (!isBoss && waveKills >= killsPerWave) {
+		}
+
+		// Always spawn next target (game continues during level up)
+		if (!isBoss && waveKills >= killsPerWave) {
 			spawnBoss();
 		} else {
 			spawnNextTarget();
@@ -171,6 +207,17 @@ function createGameState() {
 	}
 
 	function startLevelUp() {
+		// Queue this level up
+		pendingLevelUps++;
+
+		// If already showing level up or animating, just queue it
+		if (levelingUp || showLevelUp) {
+			// Consume the XP for this level
+			xp -= xpToNextLevel;
+			level++;
+			return;
+		}
+
 		levelingUp = true;
 		// Store overflow XP
 		const overflowXp = xp - xpToNextLevel;
@@ -220,15 +267,16 @@ function createGameState() {
 			return;
 		}
 
-		showLevelUp = false;
-
-		if (isBoss) {
-			// Continue boss fight
-		} else if (waveKills >= killsPerWave) {
-			spawnBoss();
-		} else {
-			spawnEnemy();
+		// Handle queued level ups
+		pendingLevelUps--;
+		if (pendingLevelUps > 0) {
+			// Show next level up
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance);
+			return;
 		}
+
+		// Game continues in background, just close the modal
+		showLevelUp = false;
 	}
 
 	function spawnEnemy() {
@@ -273,7 +321,9 @@ function createGameState() {
 			critChance: 0,
 			critMultiplier: 1.5,
 			xpMultiplier: 1,
+			damageMultiplier: 1,
 			poison: 0,
+			poisonCritChance: 0,
 			multiStrike: 0,
 			overkill: false,
 			executeThreshold: 0,
@@ -357,8 +407,8 @@ function createGameState() {
 		get upgradeChoices() {
 			return upgradeChoices;
 		},
-		get lastHit() {
-			return lastHit;
+		get hits() {
+			return hits;
 		},
 		get gold() {
 			return gold;
@@ -371,6 +421,9 @@ function createGameState() {
 		},
 		get chestGold() {
 			return chestGold;
+		},
+		get pendingLevelUps() {
+			return pendingLevelUps;
 		},
 
 		// Actions

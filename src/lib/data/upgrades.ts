@@ -142,6 +142,32 @@ export const allUpgrades: Upgrade[] = [
 		apply: (s) => (s.poison += 5)
 	},
 
+	// === POISON CRIT UPGRADES ===
+	{
+		id: 'poisoncrit1',
+		title: 'Virulent Toxin',
+		rarity: 'uncommon',
+		image: poisonImg,
+		stats: [{ icon: '💀', label: 'Poison Crit', value: '+10%' }],
+		apply: (s) => (s.poisonCritChance += 0.1)
+	},
+	{
+		id: 'poisoncrit2',
+		title: 'Deadly Venom',
+		rarity: 'rare',
+		image: poisonImg,
+		stats: [{ icon: '💀', label: 'Poison Crit', value: '+20%' }],
+		apply: (s) => (s.poisonCritChance += 0.2)
+	},
+	{
+		id: 'poisoncrit3',
+		title: 'Necrotic Touch',
+		rarity: 'epic',
+		image: poisonImg,
+		stats: [{ icon: '💀', label: 'Poison Crit', value: '+30%' }],
+		apply: (s) => (s.poisonCritChance += 0.3)
+	},
+
 	// === MULTI-STRIKE UPGRADES ===
 	{
 		id: 'multi1',
@@ -268,6 +294,24 @@ export const allUpgrades: Upgrade[] = [
 		image: chestImg,
 		stats: [{ icon: '🍀', label: 'Rare Chance', value: '+25%' }],
 		apply: (s) => (s.luckyChance += 0.25)
+	},
+
+	// === DAMAGE MULTIPLIER ===
+	{
+		id: 'dmgmult1',
+		title: 'Power Surge',
+		rarity: 'epic',
+		image: fireImg,
+		stats: [{ icon: '🔥', label: 'Damage Mult', value: '+25%' }],
+		apply: (s) => (s.damageMultiplier += 0.25)
+	},
+	{
+		id: 'dmgmult2',
+		title: 'Overwhelming Force',
+		rarity: 'legendary',
+		image: fireImg,
+		stats: [{ icon: '🔥', label: 'Damage Mult', value: '+50%' }],
+		apply: (s) => (s.damageMultiplier += 0.5)
 	},
 
 	// === COMBO/LEGENDARY ===

@@ -35,6 +35,12 @@
 			<span>{stats.poison}/sec</span>
 		</div>
 	{/if}
+	{#if stats.poisonCritChance > 0}
+		<div class="stat-row poison">
+			<span>💀 Poison Crit</span>
+			<span>{Math.round(stats.poisonCritChance * 100)}%</span>
+		</div>
+	{/if}
 	{#if stats.multiStrike > 0}
 		<div class="stat-row">
 			<span>⚡ Multi-Strike</span>

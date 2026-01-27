@@ -2,6 +2,7 @@
 	import type { HitInfo } from '$lib/types';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest.png';
+	import HitNumber from './hits/HitNumber.svelte';
 
 	type Props = {
 		isBoss: boolean;
@@ -10,7 +11,7 @@
 		enemyMaxHealth: number;
 		enemiesKilled: number;
 		gold: number;
-		lastHit: HitInfo | null;
+		hits: HitInfo[];
 		onAttack: () => void;
 	};
 
@@ -21,7 +22,7 @@
 		enemyMaxHealth,
 		enemiesKilled,
 		gold,
-		lastHit,
+		hits,
 		onAttack
 	}: Props = $props();
 </script>
@@ -38,13 +39,9 @@
 			role="button"
 		>
 			<img class="enemy-sprite" src={isChest ? chestSprite : enemySprite} alt={isChest ? 'Chest' : 'Enemy'} draggable="false" />
-			{#if lastHit}
-				{#key lastHit.id}
-					<div class="damage-number" class:crit={lastHit.crit}>
-						{lastHit.crit ? '💥' : ''}{lastHit.damage}
-					</div>
-				{/key}
-			{/if}
+			{#each hits as hit (hit.id)}
+				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
+			{/each}
 		</div>
 		<div class="health-bar" class:boss-bar={isBoss}>
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
@@ -131,6 +128,16 @@
 		background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(0, 0, 0, 0.4));
 		border: 2px solid #fbbf24;
 		box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+		animation: chest-glow 1.5s ease-in-out infinite;
+	}
+
+	@keyframes chest-glow {
+		0%, 100% {
+			box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+		}
+		50% {
+			box-shadow: 0 0 35px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.3);
+		}
 	}
 
 	.enemy-sprite {
@@ -142,33 +149,6 @@
 
 	.enemy.boss .enemy-sprite {
 		transform: scale(3);
-	}
-
-	.damage-number {
-		position: absolute;
-		top: -10px;
-		right: -10px;
-		font-size: 1.5rem;
-		font-weight: bold;
-		color: #fbbf24;
-		animation: float-up 0.5s ease-out forwards;
-		pointer-events: none;
-	}
-
-	.damage-number.crit {
-		font-size: 2rem;
-		color: #ef4444;
-	}
-
-	@keyframes float-up {
-		0% {
-			opacity: 1;
-			transform: translateY(0);
-		}
-		100% {
-			opacity: 0;
-			transform: translateY(-30px);
-		}
 	}
 
 	.health-bar {

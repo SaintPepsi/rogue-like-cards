@@ -5,15 +5,19 @@
 	type Props = {
 		show: boolean;
 		choices: Upgrade[];
+		pendingCount: number;
 		onSelect: (upgrade: Upgrade) => void;
 	};
 
-	let { show, choices, onSelect }: Props = $props();
+	let { show, choices, pendingCount, onSelect }: Props = $props();
 </script>
 
 {#if show}
 	<div class="modal-overlay">
 		<div class="modal">
+			{#if pendingCount > 1}
+				<div class="pending-badge">+{pendingCount - 1} more</div>
+			{/if}
 			<h2>Level Up!</h2>
 			<p>Choose an upgrade:</p>
 			<div class="upgrade-choices">
@@ -49,6 +53,25 @@
 		border-radius: 16px;
 		text-align: center;
 		max-width: 90vw;
+		position: relative;
+	}
+
+	.pending-badge {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+		color: white;
+		padding: 6px 12px;
+		border-radius: 20px;
+		font-size: 0.9rem;
+		font-weight: bold;
+		animation: pulse-badge 1s ease-in-out infinite;
+	}
+
+	@keyframes pulse-badge {
+		0%, 100% { transform: scale(1); }
+		50% { transform: scale(1.05); }
 	}
 
 	.modal h2 {
