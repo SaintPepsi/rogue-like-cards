@@ -3,6 +3,9 @@
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
+	"engines": {
+		"node": ">=20"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -18,7 +21,6 @@
 	"devDependencies": {
 		"@eslint/compat": "^2.0.1",
 		"@eslint/js": "^9.39.2",
-		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/adapter-vercel": "^6.3.1",
 		"@sveltejs/kit": "^2.50.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
