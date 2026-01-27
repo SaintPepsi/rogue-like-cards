@@ -22,6 +22,7 @@ function createGameState() {
 	});
 
 	let effects = $state<Effect[]>([]);
+	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let xp = $state(0);
 	let level = $state(1);
 	let gold = $state(0);
@@ -237,6 +238,9 @@ function createGameState() {
 	function selectUpgrade(upgrade: Upgrade) {
 		upgrade.apply(playerStats);
 
+		// Track unlocked upgrades for collection
+		unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+
 		// Track special effects
 		const hasSpecialEffect = upgrade.stats.some(
 			(s) =>
@@ -424,6 +428,9 @@ function createGameState() {
 		},
 		get pendingLevelUps() {
 			return pendingLevelUps;
+		},
+		get unlockedUpgrades() {
+			return unlockedUpgrades;
 		},
 
 		// Actions

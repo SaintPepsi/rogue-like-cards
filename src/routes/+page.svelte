@@ -6,6 +6,9 @@
 	import LevelUpModal from '$lib/components/LevelUpModal.svelte';
 	import GameOverModal from '$lib/components/GameOverModal.svelte';
 	import ChestLootModal from '$lib/components/ChestLootModal.svelte';
+	import UpgradesModal from '$lib/components/UpgradesModal.svelte';
+
+	let showUpgradesModal = $state(false);
 
 	onMount(() => {
 		gameState.init();
@@ -19,7 +22,10 @@
 <div class="game">
 	<header>
 		<h1>Rogue Arena</h1>
-		<button class="reset-btn" onclick={gameState.resetGame}>Reset</button>
+		<div class="header-buttons">
+			<button class="upgrades-btn" onclick={() => showUpgradesModal = true}>Upgrades</button>
+			<button class="reset-btn" onclick={gameState.resetGame}>Reset</button>
+		</div>
 	</header>
 
 	<div class="game-container">
@@ -84,6 +90,12 @@
 		onSelect={gameState.selectUpgrade}
 	/>
 
+	<UpgradesModal
+		show={showUpgradesModal}
+		unlockedUpgrades={gameState.unlockedUpgrades}
+		onClose={() => showUpgradesModal = false}
+	/>
+
 	<footer>
 		<p>
 			Assets by <a href="https://danieldiggle.itch.io/sunnyside" target="_blank" rel="noopener"
@@ -117,6 +129,24 @@
 	header h1 {
 		margin: 0;
 		font-size: 1.5rem;
+	}
+
+	.header-buttons {
+		display: flex;
+		gap: 12px;
+	}
+
+	.upgrades-btn {
+		padding: 8px 16px;
+		background: #8b5cf6;
+		border: none;
+		border-radius: 4px;
+		color: white;
+		cursor: pointer;
+	}
+
+	.upgrades-btn:hover {
+		background: #7c3aed;
 	}
 
 	.reset-btn {
