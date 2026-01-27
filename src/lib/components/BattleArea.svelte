@@ -1,0 +1,208 @@
+<script lang="ts">
+	import type { HitInfo } from '$lib/types';
+	import enemySprite from '$lib/assets/images/enemy.png';
+	import chestSprite from '$lib/assets/images/chest.png';
+
+	type Props = {
+		isBoss: boolean;
+		isChest: boolean;
+		enemyHealth: number;
+		enemyMaxHealth: number;
+		enemiesKilled: number;
+		gold: number;
+		lastHit: HitInfo | null;
+		onAttack: () => void;
+	};
+
+	let {
+		isBoss,
+		isChest,
+		enemyHealth,
+		enemyMaxHealth,
+		enemiesKilled,
+		gold,
+		lastHit,
+		onAttack
+	}: Props = $props();
+</script>
+
+<div class="battle-area">
+	<div class="enemy-section">
+		<div
+			class="enemy"
+			class:boss={isBoss}
+			class:chest={isChest}
+			onclick={onAttack}
+			onkeydown={(e) => e.key === ' ' && onAttack()}
+			tabindex="0"
+			role="button"
+		>
+			<img class="enemy-sprite" src={isChest ? chestSprite : enemySprite} alt={isChest ? 'Chest' : 'Enemy'} draggable="false" />
+			{#if lastHit}
+				{#key lastHit.id}
+					<div class="damage-number" class:crit={lastHit.crit}>
+						{lastHit.crit ? '💥' : ''}{lastHit.damage}
+					</div>
+				{/key}
+			{/if}
+		</div>
+		<div class="health-bar" class:boss-bar={isBoss}>
+			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
+		</div>
+		<span class="health-text">{enemyHealth}/{enemyMaxHealth}</span>
+		<p class="hint">Click the enemy to attack!</p>
+	</div>
+
+	<div class="battle-stats">
+		<p class="kills">Enemies Killed: {enemiesKilled}</p>
+		{#if gold > 0}
+			<p class="gold">Gold: {gold}</p>
+		{/if}
+	</div>
+</div>
+
+<style>
+	.battle-area {
+		display: grid;
+		grid-template-columns: 3fr 1fr;
+		gap: 24px;
+		align-items: start;
+	}
+
+	.battle-stats {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 16px;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 8px;
+	}
+
+	.kills {
+		font-size: 1.1rem;
+		color: #4ade80;
+		margin: 0;
+	}
+
+	.gold {
+		font-size: 1.1rem;
+		color: #fbbf24;
+		margin: 0;
+	}
+
+	.enemy-section {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.enemy {
+		width: 150px;
+		height: 150px;
+		background: rgba(0, 0, 0, 0.4);
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: transform 0.1s;
+		position: relative;
+		user-select: none;
+	}
+
+	.enemy:hover {
+		transform: scale(1.05);
+	}
+
+	.enemy:active {
+		transform: scale(0.95);
+	}
+
+	.enemy.boss {
+		width: 180px;
+		height: 180px;
+		background: linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(0, 0, 0, 0.4));
+		border: 2px solid #dc2626;
+		box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+	}
+
+	.enemy.chest {
+		background: linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(0, 0, 0, 0.4));
+		border: 2px solid #fbbf24;
+		box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+	}
+
+	.enemy-sprite {
+		width: 64px;
+		height: 64px;
+		image-rendering: pixelated;
+		transform: scale(2);
+	}
+
+	.enemy.boss .enemy-sprite {
+		transform: scale(3);
+	}
+
+	.damage-number {
+		position: absolute;
+		top: -10px;
+		right: -10px;
+		font-size: 1.5rem;
+		font-weight: bold;
+		color: #fbbf24;
+		animation: float-up 0.5s ease-out forwards;
+		pointer-events: none;
+	}
+
+	.damage-number.crit {
+		font-size: 2rem;
+		color: #ef4444;
+	}
+
+	@keyframes float-up {
+		0% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		100% {
+			opacity: 0;
+			transform: translateY(-30px);
+		}
+	}
+
+	.health-bar {
+		width: 150px;
+		height: 16px;
+		background: rgba(0, 0, 0, 0.5);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+
+	.health-bar.boss-bar {
+		width: 180px;
+		height: 20px;
+		border: 2px solid #dc2626;
+	}
+
+	.health-fill {
+		height: 100%;
+		background: linear-gradient(90deg, #ef4444, #f87171);
+		transition: width 0.2s ease;
+	}
+
+	.health-bar.boss-bar .health-fill {
+		background: linear-gradient(90deg, #dc2626, #f87171);
+	}
+
+	.health-text {
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.hint {
+		color: rgba(255, 255, 255, 0.5);
+		font-size: 0.9rem;
+		margin: 8px 0 0;
+	}
+</style>
