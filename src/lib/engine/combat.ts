@@ -50,3 +50,30 @@ export function calculateAttack(stats: PlayerStats, ctx: AttackContext): AttackR
 
 	return { totalDamage, hits, overkillDamageOut };
 }
+
+export interface PoisonContext {
+	rng: () => number;
+}
+
+export interface PoisonResult {
+	damage: number;
+	type: 'poison' | 'poisonCrit';
+}
+
+export function calculatePoison(stats: PlayerStats, ctx: PoisonContext): PoisonResult {
+	if (stats.poison <= 0) {
+		return { damage: 0, type: 'poison' };
+	}
+
+	const isPoisonCrit = ctx.rng() < stats.poisonCritChance;
+	let damage = isPoisonCrit
+		? Math.floor(stats.poison * stats.critMultiplier)
+		: stats.poison;
+
+	damage = Math.floor(damage * stats.damageMultiplier);
+
+	return {
+		damage,
+		type: isPoisonCrit ? 'poisonCrit' : 'poison'
+	};
+}

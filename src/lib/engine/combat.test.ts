@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { calculateAttack } from './combat';
+import { calculateAttack, calculatePoison } from './combat';
 import { createDefaultStats } from './stats';
 import type { PlayerStats } from '$lib/types';
 
@@ -137,5 +137,48 @@ describe('calculateAttack', () => {
 		});
 
 		expect(result.overkillDamageOut).toBe(0);
+	});
+});
+
+describe('calculatePoison', () => {
+	test('returns zero damage when poison is 0', () => {
+		const stats = createDefaultStats();
+		const result = calculatePoison(stats, { rng: () => 0.99 });
+		expect(result.damage).toBe(0);
+		expect(result.type).toBe('poison');
+	});
+
+	test('deals base poison damage', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			poison: 5,
+			damageMultiplier: 1
+		};
+		const result = calculatePoison(stats, { rng: () => 0.99 });
+		expect(result.damage).toBe(5);
+		expect(result.type).toBe('poison');
+	});
+
+	test('poison can crit', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			poison: 10,
+			poisonCritChance: 1,
+			critMultiplier: 2,
+			damageMultiplier: 1
+		};
+		const result = calculatePoison(stats, { rng: () => 0 });
+		expect(result.damage).toBe(20);
+		expect(result.type).toBe('poisonCrit');
+	});
+
+	test('damageMultiplier applies to poison', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			poison: 4,
+			damageMultiplier: 3
+		};
+		const result = calculatePoison(stats, { rng: () => 0.99 });
+		expect(result.damage).toBe(12);
 	});
 });
