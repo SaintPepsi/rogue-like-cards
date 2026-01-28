@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Upgrade } from '$lib/types';
 	import UpgradeCard from './UpgradeCard.svelte';
+	import CardCarousel from './CardCarousel.svelte';
 
 	type Props = {
 		show: boolean;
@@ -20,7 +21,7 @@
 			{/if}
 			<h2>Level Up!</h2>
 			<p>Choose an upgrade:</p>
-			<div class="upgrade-choices">
+			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade (upgrade.id)}
 					<button class="upgrade-btn" onclick={() => onSelect(upgrade)}>
 						<UpgradeCard
@@ -32,6 +33,18 @@
 					</button>
 				{/each}
 			</div>
+			<CardCarousel count={choices.length}>
+				{#each choices as upgrade (upgrade.id)}
+					<button class="upgrade-btn" onclick={() => onSelect(upgrade)}>
+						<UpgradeCard
+							title={upgrade.title}
+							rarity={upgrade.rarity}
+							image={upgrade.image}
+							stats={upgrade.stats}
+						/>
+					</button>
+				{/each}
+			</CardCarousel>
 		</div>
 	</div>
 {/if}
@@ -104,8 +117,8 @@
 	}
 
 	@media (max-width: 768px) {
-		.upgrade-choices {
-			grid-template-columns: 1fr;
+		.desktop-grid {
+			display: none;
 		}
 	}
 </style>
