@@ -4,10 +4,12 @@
 		stage: number;
 		level: number;
 		enemiesKilled: number;
+		gold: number;
 		onReset: () => void;
+		onOpenShop: () => void;
 	};
 
-	let { show, stage, level, enemiesKilled, onReset }: Props = $props();
+	let { show, stage, level, enemiesKilled, gold, onReset, onOpenShop }: Props = $props();
 </script>
 
 {#if show}
@@ -20,7 +22,11 @@
 				<p>Level: <strong>{level}</strong></p>
 				<p>Enemies Killed: <strong>{enemiesKilled}</strong></p>
 			</div>
-			<button class="play-again-btn" onclick={onReset}>Play Again</button>
+			<p class="gold-display">Gold: <span class="gold-amount">{gold}</span></p>
+			<div class="button-row">
+				<button class="shop-btn" onclick={onOpenShop}>Buy Cards</button>
+				<button class="play-again-btn" onclick={onReset}>Play Again</button>
+			</div>
 		</div>
 	</div>
 {/if}
@@ -72,8 +78,44 @@
 		color: #fbbf24;
 	}
 
+	.gold-display {
+		font-size: 1.1rem;
+		color: rgba(255, 255, 255, 0.8);
+		margin: 16px 0;
+	}
+
+	.gold-amount {
+		color: #fbbf24;
+		font-weight: bold;
+	}
+
+	.button-row {
+		display: flex;
+		justify-content: center;
+		gap: 12px;
+	}
+
+	.shop-btn {
+		padding: 12px 24px;
+		background: linear-gradient(90deg, #fbbf24, #f59e0b);
+		border: none;
+		border-radius: 8px;
+		color: #1a1a2e;
+		font-size: 1.1rem;
+		font-weight: bold;
+		cursor: pointer;
+		transition:
+			transform 0.2s,
+			box-shadow 0.2s;
+	}
+
+	.shop-btn:hover {
+		transform: scale(1.05);
+		box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+	}
+
 	.play-again-btn {
-		padding: 12px 32px;
+		padding: 12px 24px;
 		background: linear-gradient(90deg, #22c55e, #16a34a);
 		border: none;
 		border-radius: 8px;
