@@ -2,6 +2,17 @@ import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types'
 import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
+import {
+	KILLS_PER_WAVE,
+	BASE_BOSS_TIME,
+	getEnemyHealth,
+	getBossHealth,
+	getChestHealth,
+	shouldSpawnChest,
+	getXpReward,
+	getChestGoldReward,
+	getXpToNextLevel,
+} from '$lib/engine/waves';
 
 const STORAGE_KEY = 'roguelike-cards-save';
 const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
@@ -47,11 +58,9 @@ function createGameState() {
 	// Stage/Wave system
 	let stage = $state(1);
 	let waveKills = $state(0);
-	const killsPerWave = 5;
 	let isBoss = $state(false);
 	let isChest = $state(false);
 	let bossTimer = $state(0);
-	const baseBossTime = 30;
 	let bossInterval: ReturnType<typeof setInterval> | null = null;
 	let poisonInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -75,10 +84,8 @@ function createGameState() {
 	let hitId = $state(0);
 
 	// Derived values
-	let xpToNextLevel = $derived(Math.floor(10 * Math.pow(1.5, level - 1)));
-	let stageMultiplier = $derived(Math.pow(1.5, stage - 1));
-	let greedMultiplier = $derived(1 + playerStats.greed);
-	let bossTimerMax = $derived(baseBossTime + playerStats.bonusBossTime);
+	let xpToNextLevel = $derived(getXpToNextLevel(level));
+	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
 
 	function addHits(newHits: HitInfo[]) {
 		hits = [...hits, ...newHits];
@@ -140,7 +147,7 @@ function createGameState() {
 
 		if (isChest) {
 			// Chest gives gold + guaranteed upgrade
-			const goldReward = Math.floor((10 + stage * 5) * playerStats.goldMultiplier);
+			const goldReward = getChestGoldReward(stage, playerStats.goldMultiplier);
 			chestGold = goldReward;
 			gold += goldReward;
 			isChest = false;
@@ -154,7 +161,7 @@ function createGameState() {
 		waveKills++;
 
 		// XP scales with stage, boosted by greed
-		const xpGain = Math.floor((5 + stage * 3) * playerStats.xpMultiplier);
+		const xpGain = getXpReward(stage, playerStats.xpMultiplier);
 		xp += xpGain;
 
 		if (isBoss) {
@@ -170,7 +177,7 @@ function createGameState() {
 		}
 
 		// Always spawn next target (game continues during level up)
-		if (!isBoss && waveKills >= killsPerWave) {
+		if (!isBoss && waveKills >= KILLS_PER_WAVE) {
 			spawnBoss();
 		} else {
 			spawnNextTarget();
@@ -182,7 +189,7 @@ function createGameState() {
 
 	function spawnNextTarget() {
 		// Check for chest spawn (not during boss wave buildup)
-		if (!isBoss && waveKills < killsPerWave - 1 && Math.random() < playerStats.chestChance) {
+		if (!isBoss && waveKills < KILLS_PER_WAVE - 1 && shouldSpawnChest(playerStats.chestChance, Math.random)) {
 			spawnChest();
 		} else {
 			spawnEnemy();
@@ -191,8 +198,7 @@ function createGameState() {
 
 	function spawnChest() {
 		isChest = true;
-		// Chests have more health than regular enemies
-		enemyMaxHealth = Math.floor(20 * stageMultiplier * greedMultiplier);
+		enemyMaxHealth = getChestHealth(stage, playerStats.greed);
 		enemyHealth = enemyMaxHealth;
 	}
 
@@ -276,14 +282,14 @@ function createGameState() {
 	}
 
 	function spawnEnemy() {
-		enemyMaxHealth = Math.floor(10 * stageMultiplier * greedMultiplier);
+		enemyMaxHealth = getEnemyHealth(stage, playerStats.greed);
 		enemyHealth = enemyMaxHealth;
 		isBoss = false;
 	}
 
 	function spawnBoss() {
 		isBoss = true;
-		enemyMaxHealth = Math.floor(50 * stageMultiplier * greedMultiplier);
+		enemyMaxHealth = getBossHealth(stage, playerStats.greed);
 		enemyHealth = enemyMaxHealth;
 		startBossTimer();
 	}
@@ -511,7 +517,7 @@ function createGameState() {
 			return waveKills;
 		},
 		get killsPerWave() {
-			return killsPerWave;
+			return KILLS_PER_WAVE;
 		},
 		get isBoss() {
 			return isBoss;
