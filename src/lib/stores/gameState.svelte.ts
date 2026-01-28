@@ -1,7 +1,7 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
 import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
-import { calculateAttack } from '$lib/engine/combat';
+import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 
 const STORAGE_KEY = 'roguelike-cards-save';
 const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
@@ -116,21 +116,17 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (playerStats.poison > 0 && enemyHealth > 0 && !showGameOver && !levelingUp) {
-			const isPoisonCrit = Math.random() < playerStats.poisonCritChance;
-			let poisonDamage = isPoisonCrit
-				? Math.floor(playerStats.poison * playerStats.critMultiplier)
-				: playerStats.poison;
-			// Apply final damage multiplier
-			poisonDamage = Math.floor(poisonDamage * playerStats.damageMultiplier);
-			const hitType: HitType = isPoisonCrit ? 'poisonCrit' : 'poison';
+		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || levelingUp) return;
 
-			enemyHealth -= poisonDamage;
-			hitId++;
-			addHits([{ damage: poisonDamage, type: hitType, id: hitId, index: 0 }]);
-			if (enemyHealth <= 0) {
-				killEnemy();
-			}
+		const result = calculatePoison(playerStats, { rng: Math.random });
+		if (result.damage <= 0) return;
+
+		enemyHealth -= result.damage;
+		hitId++;
+		addHits([{ damage: result.damage, type: result.type, id: hitId, index: 0 }]);
+
+		if (enemyHealth <= 0) {
+			killEnemy();
 		}
 	}
 
