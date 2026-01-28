@@ -2,6 +2,7 @@ import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types'
 import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
 
 const STORAGE_KEY = 'roguelike-cards-save';
+const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
 
 interface SaveData {
 	playerStats: PlayerStats;
@@ -18,6 +19,11 @@ interface SaveData {
 	isBoss: boolean;
 	isChest: boolean;
 	timestamp: number;
+}
+
+interface PersistentData {
+	gold: number;
+	purchasedUpgradeIds: string[];
 }
 
 function createGameState() {
@@ -45,6 +51,12 @@ function createGameState() {
 	let xp = $state(0);
 	let level = $state(1);
 	let gold = $state(0);
+
+	// Persistent state (survives game over)
+	let persistentGold = $state(0);
+	let purchasedUpgrades = $state<Set<string>>(new Set());
+	let showShop = $state(false);
+	let shopChoices = $state<Upgrade[]>([]);
 
 	// Stage/Wave system
 	let stage = $state(1);
@@ -328,6 +340,9 @@ function createGameState() {
 			bossTimer--;
 			if (bossTimer <= 0) {
 				stopBossTimer();
+				// Transfer current gold to persistent gold
+				persistentGold += gold;
+				savePersistent();
 				showGameOver = true;
 				clearSave(); // Clear save on game over
 			}
@@ -403,6 +418,73 @@ function createGameState() {
 		}
 	}
 
+	function savePersistent() {
+		const data: PersistentData = {
+			gold: persistentGold,
+			purchasedUpgradeIds: [...purchasedUpgrades]
+		};
+		try {
+			localStorage.setItem(PERSISTENT_STORAGE_KEY, JSON.stringify(data));
+		} catch (e) {
+			console.warn('Failed to save persistent data:', e);
+		}
+	}
+
+	function loadPersistent() {
+		try {
+			const saved = localStorage.getItem(PERSISTENT_STORAGE_KEY);
+			if (!saved) return;
+
+			const data: PersistentData = JSON.parse(saved);
+			persistentGold = data.gold || 0;
+			purchasedUpgrades = new Set(data.purchasedUpgradeIds || []);
+		} catch (e) {
+			console.warn('Failed to load persistent data:', e);
+		}
+	}
+
+	function getCardPrice(cardIndex: number): number {
+		// Base price + increment based on total purchased
+		const basePrices = [10, 15, 25]; // Different base prices for each slot
+		const purchased = purchasedUpgrades.size;
+		return basePrices[cardIndex] + purchased * 5;
+	}
+
+	function openShop() {
+		// Generate 3 random upgrade choices for the shop
+		shopChoices = getRandomUpgrades(3, 0.2); // Slight lucky boost in shop
+		showShop = true;
+	}
+
+	function closeShop() {
+		showShop = false;
+	}
+
+	function buyUpgrade(upgrade: Upgrade, cardIndex: number): boolean {
+		const price = getCardPrice(cardIndex);
+		if (persistentGold < price) return false;
+
+		persistentGold -= price;
+		purchasedUpgrades = new Set([...purchasedUpgrades, upgrade.id]);
+		savePersistent();
+
+		// Refresh shop choices after purchase
+		shopChoices = getRandomUpgrades(3, 0.2);
+		return true;
+	}
+
+	function applyPurchasedUpgrades() {
+		// Apply all purchased upgrades at the start of a new game
+		for (const upgradeId of purchasedUpgrades) {
+			const upgrade = allUpgrades.find((u) => u.id === upgradeId);
+			if (upgrade) {
+				upgrade.apply(playerStats);
+				// Track in unlocked upgrades for collection
+				unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+			}
+		}
+	}
+
 	function resetGame() {
 		stopBossTimer();
 		if (poisonInterval) clearInterval(poisonInterval);
@@ -439,15 +521,25 @@ function createGameState() {
 		chestGold = 0;
 		showLevelUp = false;
 		showGameOver = false;
+		showShop = false;
 		levelingUp = false;
 		clearSave();
+
+		// Apply purchased upgrades from shop
+		applyPurchasedUpgrades();
+
 		spawnEnemy();
 		startPoisonTick();
 	}
 
 	function init() {
+		// Always load persistent data first
+		loadPersistent();
+
 		const loaded = loadGame();
 		if (!loaded) {
+			// Apply purchased upgrades for new game
+			applyPurchasedUpgrades();
 			spawnEnemy();
 		} else if (isBoss) {
 			// Resume boss timer if we were fighting a boss
@@ -527,12 +619,28 @@ function createGameState() {
 		get unlockedUpgrades() {
 			return unlockedUpgrades;
 		},
+		get persistentGold() {
+			return persistentGold;
+		},
+		get purchasedUpgrades() {
+			return purchasedUpgrades;
+		},
+		get showShop() {
+			return showShop;
+		},
+		get shopChoices() {
+			return shopChoices;
+		},
 
 		// Actions
 		attack,
 		selectUpgrade,
 		resetGame,
-		init
+		init,
+		openShop,
+		closeShop,
+		buyUpgrade,
+		getCardPrice
 	};
 }
 

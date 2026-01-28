@@ -8,6 +8,7 @@
 	import GameOverModal from '$lib/components/GameOverModal.svelte';
 	import ChestLootModal from '$lib/components/ChestLootModal.svelte';
 	import UpgradesModal from '$lib/components/UpgradesModal.svelte';
+	import ShopModal from '$lib/components/ShopModal.svelte';
 
 	let showUpgradesModal = $state(false);
 
@@ -77,11 +78,24 @@
 	/>
 
 	<GameOverModal
-		show={gameState.showGameOver}
+		show={gameState.showGameOver && !gameState.showShop}
 		stage={gameState.stage}
 		level={gameState.level}
 		enemiesKilled={gameState.enemiesKilled}
+		gold={gameState.persistentGold}
 		onReset={gameState.resetGame}
+		onOpenShop={gameState.openShop}
+	/>
+
+	<ShopModal
+		show={gameState.showShop}
+		gold={gameState.persistentGold}
+		choices={gameState.shopChoices}
+		purchasedUpgrades={gameState.purchasedUpgrades}
+		getPrice={gameState.getCardPrice}
+		onBuy={gameState.buyUpgrade}
+		onBack={gameState.closeShop}
+		onPlayAgain={gameState.resetGame}
 	/>
 
 	<ChestLootModal
