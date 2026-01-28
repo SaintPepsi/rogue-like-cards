@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - 'src/lib/version.ts'
 
 jobs:
   bump-version:
@@ -22,8 +20,12 @@ jobs:
 
       - name: Bump version
         run: |
-          # Extract current version
+          # Extract current version from version.ts (source of truth)
           CURRENT_VERSION=$(grep -oP "VERSION = '\K[^']+" src/lib/version.ts)
+          if [ -z "$CURRENT_VERSION" ]; then
+            echo "Error: Could not extract version from src/lib/version.ts"
+            exit 1
+          fi
           echo "Current version: $CURRENT_VERSION"
 
           # Split version into parts
@@ -40,8 +42,18 @@ jobs:
           # Update version.ts
           sed -i "s/VERSION = '.*'/VERSION = '$NEW_VERSION'/" src/lib/version.ts
 
-          # Also update package.json to keep in sync
+          # Update package.json to keep in sync
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
+
+          # Verify the updates were applied
+          VERIFY_TS=$(grep -oP "VERSION = '\K[^']+" src/lib/version.ts)
+          VERIFY_PKG=$(grep -oP '"version": "\K[^"]+' package.json)
+          if [ "$VERIFY_TS" != "$NEW_VERSION" ] || [ "$VERIFY_PKG" != "$NEW_VERSION" ]; then
+            echo "Error: Version update verification failed"
+            echo "  version.ts: $VERIFY_TS (expected $NEW_VERSION)"
+            echo "  package.json: $VERIFY_PKG (expected $NEW_VERSION)"
+            exit 1
+          fi
 
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
