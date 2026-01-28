@@ -1,6 +1,7 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
 import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
+import { calculateAttack } from '$lib/engine/combat';
 
 const STORAGE_KEY = 'roguelike-cards-save';
 const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
@@ -91,52 +92,25 @@ function createGameState() {
 	function attack() {
 		if (showGameOver || levelingUp) return;
 
-		const strikes = 1 + playerStats.multiStrike;
-		let totalDamage = 0;
-		const newHits: HitInfo[] = [];
+		const result = calculateAttack(playerStats, {
+			enemyHealth,
+			enemyMaxHealth,
+			overkillDamage,
+			rng: Math.random
+		});
 
-		// Check execute threshold first
-		const healthPercent = enemyHealth / enemyMaxHealth;
-		const isExecute = playerStats.executeThreshold > 0 && healthPercent <= playerStats.executeThreshold;
-
-		if (isExecute) {
-			// Execute: instant kill
-			totalDamage = enemyHealth;
+		// Assign hit IDs (UI concern)
+		const newHits: HitInfo[] = result.hits.map((h) => {
 			hitId++;
-			newHits.push({ damage: totalDamage, type: 'execute', id: hitId, index: 0 });
-		} else {
-			// Normal attack with possible crits and multi-strike
-			for (let i = 0; i < strikes; i++) {
-				const isCrit = Math.random() < playerStats.critChance;
-				const hitType: HitType = isCrit ? 'crit' : 'normal';
+			return { ...h, id: hitId };
+		});
 
-				let damage = isCrit
-					? Math.floor(playerStats.damage * playerStats.critMultiplier)
-					: playerStats.damage;
-
-				// Add overkill damage from previous kill
-				if (i === 0 && overkillDamage > 0) {
-					damage += overkillDamage;
-					overkillDamage = 0;
-				}
-
-				// Apply final damage multiplier
-				damage = Math.floor(damage * playerStats.damageMultiplier);
-
-				totalDamage += damage;
-				hitId++;
-				newHits.push({ damage, type: hitType, id: hitId, index: i });
-			}
-		}
-
-		enemyHealth -= totalDamage;
+		// Apply results to state
+		overkillDamage = result.overkillDamageOut;
+		enemyHealth -= result.totalDamage;
 		addHits(newHits);
 
 		if (enemyHealth <= 0) {
-			// Calculate overkill
-			if (playerStats.overkill && enemyHealth < 0) {
-				overkillDamage = Math.abs(enemyHealth);
-			}
 			killEnemy();
 		}
 	}
