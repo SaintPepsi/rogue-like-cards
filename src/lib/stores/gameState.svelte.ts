@@ -1,5 +1,24 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
-import { getRandomUpgrades } from '$lib/data/upgrades';
+import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
+
+const STORAGE_KEY = 'roguelike-cards-save';
+
+interface SaveData {
+	playerStats: PlayerStats;
+	effects: Effect[];
+	unlockedUpgradeIds: string[];
+	xp: number;
+	level: number;
+	gold: number;
+	stage: number;
+	waveKills: number;
+	enemiesKilled: number;
+	enemyHealth: number;
+	enemyMaxHealth: number;
+	isBoss: boolean;
+	isChest: boolean;
+	timestamp: number;
+}
 
 function createGameState() {
 	// Player stats
@@ -189,6 +208,9 @@ function createGameState() {
 		} else {
 			spawnNextTarget();
 		}
+
+		// Auto-save after each kill
+		saveGame();
 	}
 
 	function spawnNextTarget() {
@@ -268,6 +290,7 @@ function createGameState() {
 		if (showChestLoot) {
 			showChestLoot = false;
 			spawnNextTarget();
+			saveGame();
 			return;
 		}
 
@@ -276,11 +299,13 @@ function createGameState() {
 		if (pendingLevelUps > 0) {
 			// Show next level up
 			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance);
+			saveGame();
 			return;
 		}
 
 		// Game continues in background, just close the modal
 		showLevelUp = false;
+		saveGame();
 	}
 
 	function spawnEnemy() {
@@ -304,6 +329,7 @@ function createGameState() {
 			if (bossTimer <= 0) {
 				stopBossTimer();
 				showGameOver = true;
+				clearSave(); // Clear save on game over
 			}
 		}, 1000);
 	}
@@ -314,6 +340,67 @@ function createGameState() {
 			bossInterval = null;
 		}
 		bossTimer = 0;
+	}
+
+	function saveGame() {
+		const saveData: SaveData = {
+			playerStats: { ...playerStats },
+			effects: [...effects],
+			unlockedUpgradeIds: [...unlockedUpgrades],
+			xp,
+			level,
+			gold,
+			stage,
+			waveKills,
+			enemiesKilled,
+			enemyHealth,
+			enemyMaxHealth,
+			isBoss,
+			isChest,
+			timestamp: Date.now()
+		};
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+		} catch (e) {
+			console.warn('Failed to save game:', e);
+		}
+	}
+
+	function loadGame(): boolean {
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (!saved) return false;
+
+			const data: SaveData = JSON.parse(saved);
+
+			// Restore player stats
+			playerStats = { ...data.playerStats };
+			effects = [...data.effects];
+			unlockedUpgrades = new Set(data.unlockedUpgradeIds);
+			xp = data.xp;
+			level = data.level;
+			gold = data.gold;
+			stage = data.stage;
+			waveKills = data.waveKills;
+			enemiesKilled = data.enemiesKilled;
+			enemyHealth = data.enemyHealth;
+			enemyMaxHealth = data.enemyMaxHealth;
+			isBoss = data.isBoss;
+			isChest = data.isChest;
+
+			return true;
+		} catch (e) {
+			console.warn('Failed to load game:', e);
+			return false;
+		}
+	}
+
+	function clearSave() {
+		try {
+			localStorage.removeItem(STORAGE_KEY);
+		} catch (e) {
+			console.warn('Failed to clear save:', e);
+		}
 	}
 
 	function resetGame() {
@@ -338,6 +425,7 @@ function createGameState() {
 			goldMultiplier: 1
 		};
 		effects = [];
+		unlockedUpgrades = new Set();
 		xp = 0;
 		level = 1;
 		stage = 1;
@@ -352,12 +440,19 @@ function createGameState() {
 		showLevelUp = false;
 		showGameOver = false;
 		levelingUp = false;
+		clearSave();
 		spawnEnemy();
 		startPoisonTick();
 	}
 
 	function init() {
-		spawnEnemy();
+		const loaded = loadGame();
+		if (!loaded) {
+			spawnEnemy();
+		} else if (isBoss) {
+			// Resume boss timer if we were fighting a boss
+			startBossTimer();
+		}
 		startPoisonTick();
 	}
 
