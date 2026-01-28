@@ -9,8 +9,10 @@
 	import ChestLootModal from '$lib/components/ChestLootModal.svelte';
 	import UpgradesModal from '$lib/components/UpgradesModal.svelte';
 	import ShopModal from '$lib/components/ShopModal.svelte';
+	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 
 	let showUpgradesModal = $state(false);
+	let showChangelog = $state(false);
 
 	onMount(() => {
 		gameState.init();
@@ -118,8 +120,13 @@
 			>
 		</p>
 		<a href="mailto:ianhogers@gmail.com?subject=Rogue%20Arena" class="contact-btn">Contact</a>
-		<span class="version">v{VERSION}</span>
+		<button class="version-btn" onclick={() => showChangelog = true}>v{VERSION}</button>
 	</footer>
+
+	<ChangelogModal
+		show={showChangelog}
+		onClose={() => showChangelog = false}
+	/>
 </div>
 
 <style>
@@ -324,12 +331,23 @@
 		text-decoration: none;
 	}
 
-	.version {
+	.version-btn {
 		position: absolute;
 		right: 16px;
 		bottom: 16px;
 		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.4);
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 4px 8px;
+		border-radius: 4px;
+		transition: color 0.2s, background 0.2s;
+	}
+
+	.version-btn:hover {
+		color: rgba(255, 255, 255, 0.8);
+		background: rgba(255, 255, 255, 0.1);
 	}
 
 	@media (max-width: 768px) {
