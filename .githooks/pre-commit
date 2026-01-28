@@ -1,25 +1,15 @@
 #!/bin/sh
 #
 # Pre-commit hook: sets the patch version to the number of commits
-# ahead of master on the current branch.
+# on the current branch (ahead of master, or total if master doesn't exist).
 #
 # Version format: MAJOR.MINOR.PATCH
-#   PATCH = number of commits ahead of master (set here)
+#   PATCH = commit count (set here on every commit)
 #   MINOR = bumped by CI on merge to master
 #
 
 VERSION_FILE="src/lib/version.ts"
 PACKAGE_FILE="package.json"
-
-# Only run if we can compare against master
-if ! git rev-parse --verify origin/master >/dev/null 2>&1; then
-  if ! git rev-parse --verify master >/dev/null 2>&1; then
-    exit 0
-  fi
-  BASE_REF="master"
-else
-  BASE_REF="origin/master"
-fi
 
 # Get current version
 CURRENT_VERSION=$(grep -oP "VERSION = '\K[^']+" "$VERSION_FILE" 2>/dev/null)
@@ -31,8 +21,17 @@ fi
 MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
 MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
 
-# Count commits ahead of master + 1 (for the commit being made now)
-COMMIT_COUNT=$(git rev-list --count "$BASE_REF"..HEAD 2>/dev/null || echo "0")
+# Try to count commits ahead of master; fall back to total commit count
+if git rev-parse --verify origin/master >/dev/null 2>&1; then
+  COMMIT_COUNT=$(git rev-list --count origin/master..HEAD 2>/dev/null)
+elif git rev-parse --verify master >/dev/null 2>&1; then
+  COMMIT_COUNT=$(git rev-list --count master..HEAD 2>/dev/null)
+else
+  # No master branch available — use total commit count on current branch
+  COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null)
+fi
+
+# +1 for the commit being made right now
 PATCH=$((COMMIT_COUNT + 1))
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
