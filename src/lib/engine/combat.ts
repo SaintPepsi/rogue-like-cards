@@ -17,8 +17,7 @@ export function calculateAttack(stats: PlayerStats, ctx: AttackContext): AttackR
 	const hits: Omit<HitInfo, 'id'>[] = [];
 	let totalDamage = 0;
 
-	const healthPercent = ctx.enemyHealth / ctx.enemyMaxHealth;
-	const isExecute = stats.executeThreshold > 0 && healthPercent <= stats.executeThreshold;
+	const isExecute = stats.executeChance > 0 && ctx.rng() < stats.executeChance;
 
 	if (isExecute) {
 		totalDamage = ctx.enemyHealth;

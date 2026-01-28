@@ -13,7 +13,7 @@ describe('createDefaultStats', () => {
 		expect(stats.poisonCritChance).toBe(0);
 		expect(stats.multiStrike).toBe(0);
 		expect(stats.overkill).toBe(false);
-		expect(stats.executeThreshold).toBe(0);
+		expect(stats.executeChance).toBe(0);
 		expect(stats.bonusBossTime).toBe(0);
 		expect(stats.greed).toBe(0);
 		expect(stats.luckyChance).toBe(0);
