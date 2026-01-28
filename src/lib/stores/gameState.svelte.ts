@@ -1,5 +1,6 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
 import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
+import { createDefaultStats } from '$lib/engine/stats';
 
 const STORAGE_KEY = 'roguelike-cards-save';
 const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
@@ -28,23 +29,7 @@ interface PersistentData {
 
 function createGameState() {
 	// Player stats
-	let playerStats = $state<PlayerStats>({
-		damage: 1,
-		critChance: 0,
-		critMultiplier: 1.5,
-		xpMultiplier: 1,
-		damageMultiplier: 1,
-		poison: 0,
-		poisonCritChance: 0,
-		multiStrike: 0,
-		overkill: false,
-		executeThreshold: 0,
-		bonusBossTime: 0,
-		greed: 0,
-		luckyChance: 0,
-		chestChance: 0.05, // 5% base chance
-		goldMultiplier: 1
-	});
+	let playerStats = $state<PlayerStats>(createDefaultStats());
 
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
@@ -489,23 +474,7 @@ function createGameState() {
 		stopBossTimer();
 		if (poisonInterval) clearInterval(poisonInterval);
 
-		playerStats = {
-			damage: 1,
-			critChance: 0,
-			critMultiplier: 1.5,
-			xpMultiplier: 1,
-			damageMultiplier: 1,
-			poison: 0,
-			poisonCritChance: 0,
-			multiStrike: 0,
-			overkill: false,
-			executeThreshold: 0,
-			bonusBossTime: 0,
-			greed: 0,
-			luckyChance: 0,
-			chestChance: 0.05,
-			goldMultiplier: 1
-		};
+		playerStats = createDefaultStats();
 		effects = [];
 		unlockedUpgrades = new Set();
 		xp = 0;
