@@ -1,7 +1,7 @@
 {
 	"name": "rogue-like-cards",
 	"private": true,
-	"version": "0.1.0",
+	"version": "0.1.31",
 	"type": "module",
 	"engines": {
 		"node": ">=20"
@@ -10,7 +10,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
+		"prepare": "git config core.hooksPath .githooks && (svelte-kit sync || echo '')",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
