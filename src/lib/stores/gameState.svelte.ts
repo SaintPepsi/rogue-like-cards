@@ -13,6 +13,7 @@ import {
 	getChestGoldReward,
 	getXpToNextLevel,
 } from '$lib/engine/waves';
+import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 
 const STORAGE_KEY = 'roguelike-cards-save';
 const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
@@ -405,10 +406,7 @@ function createGameState() {
 	}
 
 	function getCardPrice(cardIndex: number): number {
-		// Base price + increment based on total purchased
-		const basePrices = [10, 15, 25]; // Different base prices for each slot
-		const purchased = purchasedUpgrades.size;
-		return basePrices[cardIndex] + purchased * 5;
+		return calculateCardPrice(cardIndex, purchasedUpgrades.size);
 	}
 
 	function openShop() {
