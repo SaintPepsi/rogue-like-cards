@@ -154,7 +154,7 @@ function createGameState() {
 			isChest = false;
 
 			// Show chest loot with higher rarity cards
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5); // +50% rarity boost
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance); // +50% rarity boost
 			showChestLoot = true;
 			return;
 		}
@@ -225,7 +225,7 @@ function createGameState() {
 		setTimeout(() => {
 			xp = overflowXp;
 			level++;
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance);
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance);
 			levelingUp = false;
 			showLevelUp = true;
 		}, 400);
@@ -272,7 +272,7 @@ function createGameState() {
 		pendingLevelUps--;
 		if (pendingLevelUps > 0) {
 			// Show next level up
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance);
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance);
 			saveGame();
 			return;
 		}
@@ -418,7 +418,7 @@ function createGameState() {
 
 	function openShop() {
 		// Generate 3 random upgrade choices for the shop
-		shopChoices = getRandomUpgrades(3, 0.2); // Slight lucky boost in shop
+		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance); // Slight lucky boost in shop
 		showShop = true;
 	}
 
@@ -435,7 +435,7 @@ function createGameState() {
 		savePersistent();
 
 		// Refresh shop choices after purchase
-		shopChoices = getRandomUpgrades(3, 0.2);
+		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance);
 		return true;
 	}
 
