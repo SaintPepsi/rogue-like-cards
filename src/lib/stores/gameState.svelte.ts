@@ -356,7 +356,7 @@ function createGameState() {
 			// Migrate old executeThreshold → executeChance
 			if ('executeThreshold' in saved && !('executeChance' in saved)) {
 				const threshold = saved.executeThreshold as number;
-				playerStats.executeChance = threshold > 0 ? 0.05 : 0;
+				playerStats.executeChance = threshold > 0 ? 0.005 : 0;
 			}
 			delete (playerStats as Record<string, unknown>).executeThreshold;
 			effects = [...data.effects];
