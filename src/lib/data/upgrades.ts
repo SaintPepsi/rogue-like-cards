@@ -210,24 +210,24 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Mercy Kill',
 		rarity: 'uncommon',
 		image: pickaxeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '+5% chance' }],
-		apply: (s) => (s.executeChance += 0.05)
+		stats: [{ icon: '⚰️', label: 'Execute', value: '+2% chance' }],
+		apply: (s) => (s.executeChance += 0.02)
 	},
 	{
 		id: 'execute2',
 		title: 'Culling Blade',
 		rarity: 'rare',
 		image: axeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '+10% chance' }],
-		apply: (s) => (s.executeChance += 0.1)
+		stats: [{ icon: '⚰️', label: 'Execute', value: '+4% chance' }],
+		apply: (s) => (s.executeChance += 0.04)
 	},
 	{
 		id: 'execute3',
 		title: 'Death Sentence',
 		rarity: 'epic',
 		image: axeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '+15% chance' }],
-		apply: (s) => (s.executeChance += 0.15)
+		stats: [{ icon: '⚰️', label: 'Execute', value: '+7% chance' }],
+		apply: (s) => (s.executeChance += 0.07)
 	},
 
 	// === BOSS TIMER ===
@@ -366,12 +366,12 @@ export const allUpgrades: Upgrade[] = [
 		image: fireImg,
 		stats: [
 			{ icon: '☠️', label: 'Poison', value: '+10/sec' },
-			{ icon: '⚰️', label: 'Execute', value: '+15% chance' },
+			{ icon: '⚰️', label: 'Execute', value: '+5% chance' },
 			{ icon: '⚡', label: 'Multi-Strike', value: '+2' }
 		],
 		apply: (s) => {
 			s.poison += 10;
-			s.executeChance += 0.15;
+			s.executeChance += 0.05;
 			s.multiStrike += 2;
 		}
 	},

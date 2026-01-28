@@ -350,8 +350,15 @@ function createGameState() {
 
 			const data: SaveData = JSON.parse(saved);
 
-			// Restore player stats
-			playerStats = { ...data.playerStats };
+			// Restore player stats, merging with defaults for forward-compat
+			const saved = data.playerStats as Record<string, unknown>;
+			playerStats = { ...createDefaultStats(), ...data.playerStats };
+			// Migrate old executeThreshold → executeChance
+			if ('executeThreshold' in saved && !('executeChance' in saved)) {
+				const threshold = saved.executeThreshold as number;
+				playerStats.executeChance = threshold > 0 ? 0.05 : 0;
+			}
+			delete (playerStats as Record<string, unknown>).executeThreshold;
 			effects = [...data.effects];
 			unlockedUpgrades = new Set(data.unlockedUpgradeIds);
 			xp = data.xp;
