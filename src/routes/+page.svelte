@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gameState } from '$lib/stores/gameState.svelte';
+	import { VERSION } from '$lib/version';
 	import StatsPanel from '$lib/components/StatsPanel.svelte';
 	import BattleArea from '$lib/components/BattleArea.svelte';
 	import LevelUpModal from '$lib/components/LevelUpModal.svelte';
@@ -103,6 +104,7 @@
 			>
 		</p>
 		<a href="mailto:ianhogers@gmail.com?subject=Rogue%20Arena" class="contact-btn">Contact</a>
+		<span class="version">v{VERSION}</span>
 	</footer>
 </div>
 
@@ -274,6 +276,7 @@
 	}
 
 	footer {
+		position: relative;
 		padding: 16px;
 		text-align: center;
 		background: rgba(0, 0, 0, 0.3);
@@ -305,6 +308,14 @@
 	.contact-btn:hover {
 		background: rgba(167, 139, 250, 0.3);
 		text-decoration: none;
+	}
+
+	.version {
+		position: absolute;
+		right: 16px;
+		bottom: 16px;
+		font-size: 0.75rem;
+		color: rgba(255, 255, 255, 0.4);
 	}
 
 	@media (max-width: 768px) {
