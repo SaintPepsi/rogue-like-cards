@@ -1,21 +1,21 @@
 name: Auto Version Bump
 
 on:
-  push:
+  pull_request:
+    types: [opened]
     branches:
       - master
 
 jobs:
   bump-version:
     runs-on: ubuntu-latest
-    # Skip if the commit was made by this workflow
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
-      - name: Checkout
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Bump version
@@ -57,10 +57,10 @@ jobs:
 
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
-      - name: Commit and push
+      - name: Commit and push to PR branch
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add src/lib/version.ts package.json
           git commit -m "chore: bump version to ${{ env.NEW_VERSION }} [skip ci]"
-          git push
+          git push origin HEAD:${{ github.head_ref }}
