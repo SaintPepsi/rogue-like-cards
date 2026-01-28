@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write
+
 jobs:
   # On merge to master: bump minor version, reset patch to 0
   bump-minor:
