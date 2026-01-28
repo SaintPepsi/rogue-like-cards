@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Upgrade } from '$lib/types';
 	import UpgradeCard from './UpgradeCard.svelte';
+	import CardCarousel from './CardCarousel.svelte';
 
 	type Props = {
 		show: boolean;
@@ -26,7 +27,7 @@
 			<h2>Card Shop</h2>
 			<p class="gold-display">Your Gold: <span class="gold-amount">{gold}</span></p>
 			<p class="shop-info">Purchased cards give permanent bonuses each run!</p>
-			<div class="upgrade-choices">
+			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, index (upgrade.id)}
 					{@const price = getPrice(index)}
 					{@const canAfford = gold >= price}
@@ -54,6 +55,34 @@
 					</div>
 				{/each}
 			</div>
+			<CardCarousel count={choices.length}>
+				{#each choices as upgrade, index (upgrade.id)}
+					{@const price = getPrice(index)}
+					{@const canAfford = gold >= price}
+					{@const alreadyOwned = purchasedUpgrades.has(upgrade.id)}
+					<div class="card-wrapper">
+						<UpgradeCard
+							title={upgrade.title}
+							rarity={upgrade.rarity}
+							image={upgrade.image}
+							stats={upgrade.stats}
+						/>
+						<button
+							class="buy-btn"
+							class:affordable={canAfford && !alreadyOwned}
+							class:owned={alreadyOwned}
+							disabled={!canAfford || alreadyOwned}
+							onclick={() => handleBuy(upgrade, index)}
+						>
+							{#if alreadyOwned}
+								Owned
+							{:else}
+								Buy for {price}g
+							{/if}
+						</button>
+					</div>
+				{/each}
+			</CardCarousel>
 			<div class="button-row">
 				<button class="back-btn" onclick={onBack}>Back</button>
 				<button class="play-btn" onclick={onPlayAgain}>Play Again</button>
@@ -190,8 +219,8 @@
 	}
 
 	@media (max-width: 768px) {
-		.upgrade-choices {
-			grid-template-columns: 1fr;
+		.desktop-grid {
+			display: none;
 		}
 	}
 </style>
