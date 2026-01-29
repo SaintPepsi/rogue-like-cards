@@ -207,77 +207,87 @@ function createGameState() {
 		if (killingEnemy) return;
 		killingEnemy = true;
 
-		enemiesKilled++;
-		poisonStacks = [];
+		try {
+			enemiesKilled++;
+			poisonStacks = [];
 
-		if (isChest) {
-			// Chest gives gold + guaranteed upgrade
-			const goldReward = getChestGoldReward(stage, playerStats.goldMultiplier);
-			chestGold = goldReward;
-			gold += goldReward;
-			const wasBossChest = isBossChest;
-			isChest = false;
-			isBossChest = false;
+			if (isChest) {
+				// Chest gives gold + guaranteed upgrade
+				const goldReward = getChestGoldReward(stage, playerStats.goldMultiplier);
+				chestGold = goldReward;
+				gold += goldReward;
+				const wasBossChest = isBossChest;
+				isChest = false;
+				isBossChest = false;
 
-			// Boss chests drop legendary-only; regular chests get rarity boost
-			if (wasBossChest) {
-				upgradeChoices = getRandomLegendaryUpgrades(3);
-			} else {
-				upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
+				// Boss chests drop legendary-only; regular chests get rarity boost
+				if (wasBossChest) {
+					upgradeChoices = getRandomLegendaryUpgrades(3);
+				} else {
+					upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
+				}
+				showChestLoot = true;
+				stopPoisonTick();
+				pauseBossTimer();
+				return;
 			}
-			showChestLoot = true;
-			stopPoisonTick();
-			pauseBossTimer();
+
+			waveKills++;
+
+			// Gold drop check - mobs have a percentage chance to drop gold
+			lastGoldDrop = 0;
+			const effectiveGoldPerKill = playerStats.goldPerKill + goldPerKillBonus;
+			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
+				const goldReward = isBoss
+					? getBossGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier)
+					: getEnemyGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier);
+				gold += goldReward;
+				lastGoldDrop = goldReward;
+			}
+
+			// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
+			const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
+			const greedMult = getGreedMultiplier(playerStats.greed);
+			const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
+			xp += xpGain;
+
+			if (isBoss) {
+				stopBossTimer();
+				stage++;
+				waveKills = 0;
+				isBoss = false;
+			}
+
+			// Check for level up (non-blocking - game continues)
+			if (xp >= getXpToNextLevel(level)) {
+				startLevelUp();
+			}
+
+			// Always spawn next target (game continues during level up)
+			if (!isBoss && waveKills >= KILLS_PER_WAVE) {
+				// Check if boss should become a chest
+				if (shouldSpawnBossChest(playerStats.chestChance, playerStats.bossChestChance, Math.random)) {
+					spawnBossChest();
+				} else {
+					spawnBoss();
+				}
+			} else {
+				spawnNextTarget();
+			}
+
+			// If a level-up modal opened during this kill, ensure timers are paused.
+			// This handles the case where spawnBoss() starts a boss timer AFTER
+			// startLevelUp() already attempted to pause timers.
+			if (showLevelUp) {
+				stopPoisonTick();
+				pauseBossTimer();
+			}
+
+			// Auto-save after each kill
+			saveGame();
+		} finally {
 			killingEnemy = false;
-			return;
 		}
-
-		waveKills++;
-
-		// Gold drop check - mobs have a percentage chance to drop gold
-		lastGoldDrop = 0;
-		const effectiveGoldPerKill = playerStats.goldPerKill + goldPerKillBonus;
-		if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
-			const goldReward = isBoss
-				? getBossGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier)
-				: getEnemyGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier);
-			gold += goldReward;
-			lastGoldDrop = goldReward;
-		}
-
-		// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
-		const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
-		const greedMult = getGreedMultiplier(playerStats.greed);
-		const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
-		xp += xpGain;
-
-		if (isBoss) {
-			stopBossTimer();
-			stage++;
-			waveKills = 0;
-			isBoss = false;
-		}
-
-		// Check for level up (non-blocking - game continues)
-		if (xp >= getXpToNextLevel(level)) {
-			startLevelUp();
-		}
-
-		// Always spawn next target (game continues during level up)
-		if (!isBoss && waveKills >= KILLS_PER_WAVE) {
-			// Check if boss should become a chest
-			if (shouldSpawnBossChest(playerStats.chestChance, playerStats.bossChestChance, Math.random)) {
-				spawnBossChest();
-			} else {
-				spawnBoss();
-			}
-		} else {
-			spawnNextTarget();
-		}
-
-		// Auto-save after each kill
-		saveGame();
-		killingEnemy = false;
 	}
 
 	function spawnNextTarget() {
