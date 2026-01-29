@@ -7,6 +7,7 @@ import {
 	getChestHealth,
 	shouldSpawnChest,
 	getXpReward,
+	getXpPerHealth,
 	getChestGoldReward,
 	getXpToNextLevel,
 	XP_PER_HEALTH,
@@ -70,50 +71,61 @@ describe('shouldSpawnChest', () => {
 	});
 });
 
+describe('getXpPerHealth', () => {
+	test('stage 1 returns full XP_PER_HEALTH rate', () => {
+		expect(getXpPerHealth(1)).toBe(XP_PER_HEALTH);
+	});
+
+	test('rate decreases at higher stages', () => {
+		expect(getXpPerHealth(4)).toBeLessThan(getXpPerHealth(1));
+		expect(getXpPerHealth(9)).toBeLessThan(getXpPerHealth(4));
+	});
+
+	test('stage 4 returns half the rate', () => {
+		// 1 / sqrt(4) = 0.5
+		expect(getXpPerHealth(4)).toBeCloseTo(XP_PER_HEALTH * 0.5);
+	});
+});
+
 describe('getXpReward', () => {
-	test('base xp rate scales logarithmically with health', () => {
-		// baseXp = log2(health + 1) * XP_PER_HEALTH
-		// 10hp: floor(log2(11) * 3) = 10
-		expect(getXpReward(10, 1)).toBe(10);
+	test('regular enemy at stage 1', () => {
+		// 10hp * 1.0 xpPerHp = 10
+		expect(getXpReward(10, 1, 1)).toBe(10);
 	});
 
-	test('boss applies BOSS_XP_MULTIPLIER to base xp', () => {
-		// 50hp: floor(log2(51) * XP_PER_HEALTH * BOSS_XP_MULTIPLIER) = 68
-		expect(getXpReward(50, 1, BOSS_XP_MULTIPLIER)).toBe(68);
+	test('boss applies BOSS_XP_MULTIPLIER', () => {
+		// 50hp * 1.0 xpPerHp * 2 = 100
+		expect(getXpReward(50, 1, 1, BOSS_XP_MULTIPLIER)).toBe(100);
 	});
 
-	test('chest applies CHEST_XP_MULTIPLIER to base xp', () => {
-		// 20hp: floor(log2(21) * XP_PER_HEALTH * CHEST_XP_MULTIPLIER) = 26
-		expect(getXpReward(20, 1, CHEST_XP_MULTIPLIER)).toBe(26);
+	test('chest applies CHEST_XP_MULTIPLIER', () => {
+		// 20hp * 1.0 xpPerHp * 1.5 = 30
+		expect(getXpReward(20, 1, 1, CHEST_XP_MULTIPLIER)).toBe(30);
 	});
 
-	test('XP_PER_HEALTH controls the base conversion rate', () => {
-		expect(XP_PER_HEALTH).toBe(3);
+	test('base xp rate is the same for all enemy types at a given stage', () => {
+		// The underlying rate (before floor) is identical: XP_PER_HEALTH / sqrt(stage)
+		const stage = 3;
+		const rate = getXpPerHealth(stage);
+		const regularHp = getEnemyHealth(stage, 0);
+		const bossHp = getBossHealth(stage, 0);
+		// Before floor, both use the same rate
+		expect(regularHp * rate).toBeCloseTo(bossHp * rate * (regularHp / bossHp));
 	});
 
-	test('boss xp per hp is higher than regular enemy xp per hp', () => {
-		const regularHp = 10;
-		const bossHp = 50;
-		const regularXpPerHp = getXpReward(regularHp, 1) / regularHp;
-		const bossXpPerHp = getXpReward(bossHp, 1, BOSS_XP_MULTIPLIER) / bossHp;
+	test('boss xp per hp is higher than regular due to multiplier', () => {
+		const stage = 3;
+		const regularHp = getEnemyHealth(stage, 0);
+		const bossHp = getBossHealth(stage, 0);
+		const regularXpPerHp = getXpReward(regularHp, stage, 1) / regularHp;
+		const bossXpPerHp = getXpReward(bossHp, stage, 1, BOSS_XP_MULTIPLIER) / bossHp;
 		expect(bossXpPerHp).toBeGreaterThan(regularXpPerHp);
 	});
 
-	test('chest xp per hp is higher than regular enemy xp per hp', () => {
-		const regularHp = 10;
-		const chestHp = 20;
-		const regularXpPerHp = getXpReward(regularHp, 1) / regularHp;
-		const chestXpPerHp = getXpReward(chestHp, 1, CHEST_XP_MULTIPLIER) / chestHp;
-		expect(chestXpPerHp).toBeGreaterThan(regularXpPerHp);
-	});
-
-	test('logarithmic curve falls behind exponential health growth', () => {
-		// Health doubles but XP only increases by ~3
-		const xpAt10 = getXpReward(10, 1);
-		const xpAt20 = getXpReward(20, 1);
-		const xpAt40 = getXpReward(40, 1);
-		expect(xpAt20 - xpAt10).toBeLessThan(xpAt10);
-		expect(xpAt40 - xpAt20).toBeLessThan(xpAt20);
+	test('xp rate weens off at higher stages', () => {
+		// Same health, higher stage = less XP
+		expect(getXpReward(100, 5, 1)).toBeLessThan(getXpReward(100, 1, 1));
+		expect(getXpReward(100, 10, 1)).toBeLessThan(getXpReward(100, 5, 1));
 	});
 });
 

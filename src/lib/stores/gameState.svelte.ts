@@ -193,9 +193,9 @@ function createGameState() {
 
 		waveKills++;
 
-		// XP scales logarithmically with enemy health, boosted for bosses/chests
+		// XP scales with enemy health, rate decreases per stage, boosted for bosses/chests
 		const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
-		const xpGain = getXpReward(enemyMaxHealth, playerStats.xpMultiplier, enemyXpMultiplier);
+		const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier);
 		xp += xpGain;
 
 		if (isBoss) {
