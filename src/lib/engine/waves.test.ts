@@ -8,7 +8,9 @@ import {
 	shouldSpawnChest,
 	getXpReward,
 	getChestGoldReward,
-	getXpToNextLevel
+	getXpToNextLevel,
+	BOSS_XP_MULTIPLIER,
+	CHEST_XP_MULTIPLIER
 } from './waves';
 
 describe('getStageMultiplier', () => {
@@ -73,19 +75,20 @@ describe('getXpReward', () => {
 		expect(getXpReward(10, 1)).toBe(10);
 	});
 
-	test('boss health 50 with 1x multiplier', () => {
-		// floor(log2(51) * 3) = floor(17.01) = 17
-		expect(getXpReward(50, 1)).toBe(17);
-	});
-
-	test('boss health 50 with 2x multiplier', () => {
+	test('boss health 50 with boss multiplier', () => {
 		// floor(log2(51) * 3 * 2) = floor(34.03) = 34
-		expect(getXpReward(50, 2)).toBe(34);
+		expect(getXpReward(50, 1, BOSS_XP_MULTIPLIER)).toBe(34);
 	});
 
-	test('chest health 20 with 1x multiplier', () => {
-		// floor(log2(21) * 3) = floor(13.17) = 13
-		expect(getXpReward(20, 1)).toBe(13);
+	test('chest health 20 with chest multiplier', () => {
+		// floor(log2(21) * 3 * 1.5) = floor(19.76) = 19
+		expect(getXpReward(20, 1, CHEST_XP_MULTIPLIER)).toBe(19);
+	});
+
+	test('boss gives significantly more xp than regular enemy', () => {
+		const regularXp = getXpReward(10, 1);
+		const bossXp = getXpReward(50, 1, BOSS_XP_MULTIPLIER);
+		expect(bossXp).toBeGreaterThan(regularXp * 2);
 	});
 
 	test('logarithmic curve falls behind exponential health growth', () => {

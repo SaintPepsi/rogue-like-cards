@@ -12,6 +12,8 @@ import {
 	getXpReward,
 	getChestGoldReward,
 	getXpToNextLevel,
+	BOSS_XP_MULTIPLIER,
+	CHEST_XP_MULTIPLIER,
 } from '$lib/engine/waves';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 
@@ -191,8 +193,9 @@ function createGameState() {
 
 		waveKills++;
 
-		// XP scales logarithmically with enemy health
-		const xpGain = getXpReward(enemyMaxHealth, playerStats.xpMultiplier);
+		// XP scales logarithmically with enemy health, boosted for bosses/chests
+		const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
+		const xpGain = getXpReward(enemyMaxHealth, playerStats.xpMultiplier, enemyXpMultiplier);
 		xp += xpGain;
 
 		if (isBoss) {
