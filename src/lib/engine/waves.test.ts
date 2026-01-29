@@ -76,19 +76,29 @@ describe('getXpReward', () => {
 	});
 
 	test('boss health 50 with boss multiplier', () => {
-		// floor(log2(51) * 3 * 2) = floor(34.03) = 34
-		expect(getXpReward(50, 1, BOSS_XP_MULTIPLIER)).toBe(34);
+		// floor(log2(51) * 3 * 4) = floor(68.07) = 68
+		expect(getXpReward(50, 1, BOSS_XP_MULTIPLIER)).toBe(68);
 	});
 
 	test('chest health 20 with chest multiplier', () => {
-		// floor(log2(21) * 3 * 1.5) = floor(19.76) = 19
-		expect(getXpReward(20, 1, CHEST_XP_MULTIPLIER)).toBe(19);
+		// floor(log2(21) * 3 * 2) = floor(26.34) = 26
+		expect(getXpReward(20, 1, CHEST_XP_MULTIPLIER)).toBe(26);
 	});
 
-	test('boss gives significantly more xp than regular enemy', () => {
-		const regularXp = getXpReward(10, 1);
-		const bossXp = getXpReward(50, 1, BOSS_XP_MULTIPLIER);
-		expect(bossXp).toBeGreaterThan(regularXp * 2);
+	test('boss xp per hp is higher than regular enemy xp per hp', () => {
+		const regularHp = 10;
+		const bossHp = 50;
+		const regularXpPerHp = getXpReward(regularHp, 1) / regularHp;
+		const bossXpPerHp = getXpReward(bossHp, 1, BOSS_XP_MULTIPLIER) / bossHp;
+		expect(bossXpPerHp).toBeGreaterThan(regularXpPerHp);
+	});
+
+	test('chest xp per hp is higher than regular enemy xp per hp', () => {
+		const regularHp = 10;
+		const chestHp = 20;
+		const regularXpPerHp = getXpReward(regularHp, 1) / regularHp;
+		const chestXpPerHp = getXpReward(chestHp, 1, CHEST_XP_MULTIPLIER) / chestHp;
+		expect(chestXpPerHp).toBeGreaterThan(regularXpPerHp);
 	});
 
 	test('logarithmic curve falls behind exponential health growth', () => {
