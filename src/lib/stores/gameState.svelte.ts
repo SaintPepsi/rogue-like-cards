@@ -96,7 +96,6 @@ function createGameState() {
 	let chestGold = $state(0);
 	let lastGoldDrop = $state(0);
 	let upgradeChoices = $state<Upgrade[]>([]);
-	let levelingUp = $state(false);
 
 	// Hit display
 	let hits = $state<HitInfo[]>([]);
@@ -116,7 +115,7 @@ function createGameState() {
 	}
 
 	function attack() {
-		if (showGameOver || levelingUp || showLevelUp || showChestLoot) return;
+		if (showGameOver || showLevelUp || showChestLoot) return;
 
 		const result = calculateAttack(playerStats, {
 			enemyHealth,
@@ -163,7 +162,7 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || levelingUp || showLevelUp || showChestLoot) return;
+		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || showLevelUp || showChestLoot) return;
 		if (poisonStacks.length === 0) return;
 
 		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
@@ -280,31 +279,20 @@ function createGameState() {
 	}
 
 	function startLevelUp() {
-		// Queue this level up
-		pendingLevelUps++;
-
-		// If already showing level up or animating, just queue it
-		if (levelingUp || showLevelUp) {
-			// Consume the XP for this level
+		// Consume all available level-ups from current XP
+		while (xp >= xpToNextLevel) {
+			pendingLevelUps++;
 			xp -= xpToNextLevel;
 			level++;
+		}
+
+		// If already showing level up modal, just queue the additional levels
+		if (showLevelUp) {
 			return;
 		}
 
-		levelingUp = true;
-		// Store overflow XP
-		const overflowXp = xp - xpToNextLevel;
-		// Set XP to max to show full bar
-		xp = xpToNextLevel;
-
-		// Wait for bar to fill, then show level up modal
-		setTimeout(() => {
-			xp = overflowXp;
-			level++;
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
-			levelingUp = false;
-			showLevelUp = true;
-		}, 400);
+		upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
+		showLevelUp = true;
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
@@ -595,7 +583,6 @@ function createGameState() {
 		showLevelUp = false;
 		showGameOver = false;
 		showShop = false;
-		levelingUp = false;
 		pendingLevelUps = 0;
 		clearSave();
 
