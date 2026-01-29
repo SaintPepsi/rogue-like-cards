@@ -9,6 +9,7 @@ import {
 	getXpReward,
 	getChestGoldReward,
 	getXpToNextLevel,
+	XP_PER_HEALTH,
 	BOSS_XP_MULTIPLIER,
 	CHEST_XP_MULTIPLIER
 } from './waves';
@@ -70,19 +71,24 @@ describe('shouldSpawnChest', () => {
 });
 
 describe('getXpReward', () => {
-	test('regular enemy health 10 with 1x multiplier', () => {
-		// floor(log2(11) * 3) = floor(10.37) = 10
+	test('base xp rate scales logarithmically with health', () => {
+		// baseXp = log2(health + 1) * XP_PER_HEALTH
+		// 10hp: floor(log2(11) * 3) = 10
 		expect(getXpReward(10, 1)).toBe(10);
 	});
 
-	test('boss health 50 with boss multiplier', () => {
-		// floor(log2(51) * 3 * 4) = floor(68.07) = 68
+	test('boss applies BOSS_XP_MULTIPLIER to base xp', () => {
+		// 50hp: floor(log2(51) * XP_PER_HEALTH * BOSS_XP_MULTIPLIER) = 68
 		expect(getXpReward(50, 1, BOSS_XP_MULTIPLIER)).toBe(68);
 	});
 
-	test('chest health 20 with chest multiplier', () => {
-		// floor(log2(21) * 3 * 2) = floor(26.34) = 26
+	test('chest applies CHEST_XP_MULTIPLIER to base xp', () => {
+		// 20hp: floor(log2(21) * XP_PER_HEALTH * CHEST_XP_MULTIPLIER) = 26
 		expect(getXpReward(20, 1, CHEST_XP_MULTIPLIER)).toBe(26);
+	});
+
+	test('XP_PER_HEALTH controls the base conversion rate', () => {
+		expect(XP_PER_HEALTH).toBe(3);
 	});
 
 	test('boss xp per hp is higher than regular enemy xp per hp', () => {
