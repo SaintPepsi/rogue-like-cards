@@ -12,6 +12,7 @@
 		enemyMaxHealth: number;
 		enemiesKilled: number;
 		gold: number;
+		lastGoldDrop: number;
 		hits: HitInfo[];
 		poisonStacks: number;
 		onAttack: () => void;
@@ -24,10 +25,26 @@
 		enemyMaxHealth,
 		enemiesKilled,
 		gold,
+		lastGoldDrop,
 		hits,
 		poisonStacks,
 		onAttack
 	}: Props = $props();
+
+	let showGoldDrop = $state(false);
+	let goldDropAmount = $state(0);
+	let goldDropKey = $state(0);
+
+	$effect(() => {
+		if (lastGoldDrop > 0) {
+			goldDropAmount = lastGoldDrop;
+			goldDropKey++;
+			showGoldDrop = true;
+			setTimeout(() => {
+				showGoldDrop = false;
+			}, 1200);
+		}
+	});
 </script>
 
 <div class="battle-area">
@@ -61,9 +78,14 @@
 
 	<div class="battle-stats">
 		<p class="kills">Enemies Killed: {formatNumber(enemiesKilled)}</p>
-		{#if gold > 0}
-			<p class="gold">Gold: {formatNumber(gold)}</p>
-		{/if}
+		<p class="gold">
+			Gold: {formatNumber(gold)}
+			{#if showGoldDrop}
+				{#key goldDropKey}
+					<span class="gold-drop-popup">+{goldDropAmount}g</span>
+				{/key}
+			{/if}
+		</p>
 	</div>
 </div>
 
@@ -94,6 +116,34 @@
 		font-size: 1.1rem;
 		color: #fbbf24;
 		margin: 0;
+		position: relative;
+	}
+
+	.gold-drop-popup {
+		position: absolute;
+		left: calc(100% + 4px);
+		top: 0;
+		color: #fbbf24;
+		font-weight: bold;
+		font-size: 0.9rem;
+		animation: gold-float 1.2s ease-out forwards;
+		pointer-events: none;
+		white-space: nowrap;
+		text-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+	}
+
+	@keyframes gold-float {
+		0% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		70% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
 	}
 
 	.enemy-section {

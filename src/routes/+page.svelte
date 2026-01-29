@@ -68,6 +68,7 @@
 				enemyMaxHealth={gameState.enemyMaxHealth}
 				enemiesKilled={gameState.enemiesKilled}
 				gold={gameState.gold}
+				lastGoldDrop={gameState.lastGoldDrop}
 				hits={gameState.hits}
 				poisonStacks={gameState.poisonStacks.length}
 				onAttack={gameState.attack}
@@ -98,6 +99,7 @@
 		choices={gameState.shopChoices}
 		purchasedUpgrades={gameState.purchasedUpgrades}
 		executeCapLevel={gameState.executeCapLevel}
+		goldPerKillLevel={gameState.goldPerKillLevel}
 		getPrice={gameState.getCardPrice}
 		onBuy={gameState.buyUpgrade}
 		onBack={gameState.closeShop}

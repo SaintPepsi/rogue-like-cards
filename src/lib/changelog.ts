@@ -6,6 +6,26 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.10.0',
+		date: '2026-01-29',
+		changes: [
+			'Mobs now have a chance to drop gold on kill — bosses drop more than regular enemies',
+			'Chests always drop gold as before',
+			'Added 3 new gold drop chance upgrade cards to discover during level-ups',
+			'Added a stackable shop card that increases gold earned per kill',
+			'Gold counter is now always visible during gameplay with drop animations'
+		]
+	},
+	{
+		version: '0.9.0',
+		date: '2026-01-29',
+		changes: [
+			'Redesigned shop system with tier-based pricing',
+			'Added a stackable shop card for execute chance cap',
+			'Shop cards now have a buy animation'
+		]
+	},
+	{
 		version: '0.8.0',
 		date: '2026-01-29',
 		changes: [

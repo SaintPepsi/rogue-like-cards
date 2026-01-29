@@ -19,6 +19,8 @@ export function createDefaultStats(): PlayerStats {
 		luckyChance: 0,
 		chestChance: 0.05,
 		bossChestChance: 0.001,
-		goldMultiplier: 1
+		goldMultiplier: 1,
+		goldDropChance: 0.15,
+		goldPerKill: 0
 	};
 }
