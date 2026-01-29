@@ -351,11 +351,11 @@ function createGameState() {
 			const data: SaveData = JSON.parse(saved);
 
 			// Restore player stats, merging with defaults for forward-compat
-			const saved = data.playerStats as Record<string, unknown>;
+			const savedStats = data.playerStats as Record<string, unknown>;
 			playerStats = { ...createDefaultStats(), ...data.playerStats };
 			// Migrate old executeThreshold → executeChance
-			if ('executeThreshold' in saved && !('executeChance' in saved)) {
-				const threshold = saved.executeThreshold as number;
+			if ('executeThreshold' in savedStats && !('executeChance' in savedStats)) {
+				const threshold = savedStats.executeThreshold as number;
 				playerStats.executeChance = threshold > 0 ? 0.005 : 0;
 			}
 			delete (playerStats as Record<string, unknown>).executeThreshold;
