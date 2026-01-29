@@ -8,13 +8,16 @@
 		gold: number;
 		choices: Upgrade[];
 		purchasedUpgrades: Set<string>;
+		executeCap: number;
+		executeCapPrice: number;
 		getPrice: (index: number) => number;
 		onBuy: (upgrade: Upgrade, index: number) => boolean;
+		onBuyExecuteCap: () => boolean;
 		onBack: () => void;
 		onPlayAgain: () => void;
 	};
 
-	let { show, gold, choices, purchasedUpgrades, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
+	let { show, gold, choices, purchasedUpgrades, executeCap, executeCapPrice, getPrice, onBuy, onBuyExecuteCap, onBack, onPlayAgain }: Props = $props();
 
 	function handleBuy(upgrade: Upgrade, index: number) {
 		onBuy(upgrade, index);
@@ -83,6 +86,27 @@
 					</div>
 				{/each}
 			</CardCarousel>
+
+			<div class="special-section">
+				<h3>Special</h3>
+				<div class="execute-cap-card">
+					<div class="cap-info">
+						<span class="cap-title">Executioner's Pact</span>
+						<span class="cap-desc">Raise execute chance cap by +5%</span>
+						<span class="cap-current">Current cap: {Math.round(executeCap * 100)}%</span>
+					</div>
+					{@const canAffordCap = gold >= executeCapPrice}
+					<button
+						class="buy-btn"
+						class:affordable={canAffordCap}
+						disabled={!canAffordCap}
+						onclick={onBuyExecuteCap}
+					>
+						Buy for {executeCapPrice}g
+					</button>
+				</div>
+			</div>
+
 			<div class="button-row">
 				<button class="back-btn" onclick={onBack}>Back</button>
 				<button class="play-btn" onclick={onPlayAgain}>Play Again</button>
@@ -177,6 +201,54 @@
 
 	.buy-btn:disabled:not(.owned) {
 		cursor: not-allowed;
+	}
+
+	.special-section {
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+		margin: 16px 0;
+		padding-top: 16px;
+	}
+
+	.special-section h3 {
+		margin: 0 0 12px;
+		font-size: 1rem;
+		color: rgba(255, 255, 255, 0.6);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	.execute-cap-card {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		background: rgba(139, 92, 246, 0.1);
+		border: 1px solid rgba(139, 92, 246, 0.3);
+		border-radius: 12px;
+		padding: 16px;
+		margin-bottom: 16px;
+	}
+
+	.cap-info {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.cap-title {
+		font-weight: bold;
+		font-size: 1rem;
+		color: #a78bfa;
+	}
+
+	.cap-desc {
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.cap-current {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.4);
 	}
 
 	.button-row {

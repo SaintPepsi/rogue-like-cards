@@ -18,9 +18,10 @@
 				<div class="version-entry">
 					<h3>v0.3.1</h3>
 					<ul>
+						<li><span class="tag new">New</span> Executioner's Pact: buy to raise your execute cap beyond 10% (death shop only)</li>
 						<li><span class="tag change">Changed</span> Execute reworked: now a % chance to instantly kill on any hit instead of a health threshold</li>
-						<li><span class="tag change">Changed</span> Execute upgrades stack additively and cap at 10%</li>
-						<li><span class="tag change">Changed</span> Execute cards no longer appear once you hit the 10% cap</li>
+						<li><span class="tag change">Changed</span> Execute upgrades stack additively and cap at 10% (expandable via Executioner's Pact)</li>
+						<li><span class="tag change">Changed</span> Execute cards no longer appear once you hit your current cap</li>
 					</ul>
 				</div>
 				<div class="version-entry">

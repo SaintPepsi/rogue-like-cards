@@ -1,5 +1,5 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
-import { getRandomUpgrades, allUpgrades } from '$lib/data/upgrades';
+import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
@@ -38,6 +38,7 @@ interface SaveData {
 interface PersistentData {
 	gold: number;
 	purchasedUpgradeIds: string[];
+	executeCapBonus: number;
 }
 
 function createGameState() {
@@ -53,6 +54,7 @@ function createGameState() {
 	// Persistent state (survives game over)
 	let persistentGold = $state(0);
 	let purchasedUpgrades = $state<Set<string>>(new Set());
+	let executeCapBonus = $state(0);
 	let showShop = $state(false);
 	let shopChoices = $state<Upgrade[]>([]);
 
@@ -104,7 +106,8 @@ function createGameState() {
 			enemyHealth,
 			enemyMaxHealth,
 			overkillDamage,
-			rng: Math.random
+			rng: Math.random,
+			executeCap: getExecuteCap(executeCapBonus)
 		});
 
 		// Assign hit IDs (UI concern)
@@ -154,7 +157,7 @@ function createGameState() {
 			isChest = false;
 
 			// Show chest loot with higher rarity cards
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance); // +50% rarity boost
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus)); // +50% rarity boost
 			showChestLoot = true;
 			return;
 		}
@@ -225,7 +228,7 @@ function createGameState() {
 		setTimeout(() => {
 			xp = overflowXp;
 			level++;
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance);
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus));
 			levelingUp = false;
 			showLevelUp = true;
 		}, 400);
@@ -272,7 +275,7 @@ function createGameState() {
 		pendingLevelUps--;
 		if (pendingLevelUps > 0) {
 			// Show next level up
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance);
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus));
 			saveGame();
 			return;
 		}
@@ -390,7 +393,8 @@ function createGameState() {
 	function savePersistent() {
 		const data: PersistentData = {
 			gold: persistentGold,
-			purchasedUpgradeIds: [...purchasedUpgrades]
+			purchasedUpgradeIds: [...purchasedUpgrades],
+			executeCapBonus
 		};
 		try {
 			localStorage.setItem(PERSISTENT_STORAGE_KEY, JSON.stringify(data));
@@ -407,6 +411,7 @@ function createGameState() {
 			const data: PersistentData = JSON.parse(saved);
 			persistentGold = data.gold || 0;
 			purchasedUpgrades = new Set(data.purchasedUpgradeIds || []);
+			executeCapBonus = data.executeCapBonus || 0;
 		} catch (e) {
 			console.warn('Failed to load persistent data:', e);
 		}
@@ -418,7 +423,7 @@ function createGameState() {
 
 	function openShop() {
 		// Generate 3 random upgrade choices for the shop
-		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance); // Slight lucky boost in shop
+		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus)); // Slight lucky boost in shop
 		showShop = true;
 	}
 
@@ -435,7 +440,23 @@ function createGameState() {
 		savePersistent();
 
 		// Refresh shop choices after purchase
-		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance);
+		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus));
+		return true;
+	}
+
+	function getExecuteCapPrice(): number {
+		// Each level costs more: 50, 75, 100, ...
+		const level = Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+		return 50 + level * 25;
+	}
+
+	function buyExecuteCap(): boolean {
+		const price = getExecuteCapPrice();
+		if (persistentGold < price) return false;
+
+		persistentGold -= price;
+		executeCapBonus += EXECUTE_CAP_BONUS_PER_LEVEL;
+		savePersistent();
 		return true;
 	}
 
@@ -582,6 +603,13 @@ function createGameState() {
 			return shopChoices;
 		},
 
+		get executeCap() {
+			return getExecuteCap(executeCapBonus);
+		},
+		get executeCapPrice() {
+			return getExecuteCapPrice();
+		},
+
 		// Actions
 		attack,
 		selectUpgrade,
@@ -590,6 +618,7 @@ function createGameState() {
 		openShop,
 		closeShop,
 		buyUpgrade,
+		buyExecuteCap,
 		getCardPrice
 	};
 }

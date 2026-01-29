@@ -5,6 +5,7 @@ export interface AttackContext {
 	enemyMaxHealth: number;
 	overkillDamage: number;
 	rng: () => number;
+	executeCap?: number;
 }
 
 export interface AttackResult {
@@ -17,7 +18,10 @@ export function calculateAttack(stats: PlayerStats, ctx: AttackContext): AttackR
 	const hits: Omit<HitInfo, 'id'>[] = [];
 	let totalDamage = 0;
 
-	const isExecute = stats.executeChance > 0 && ctx.rng() < stats.executeChance;
+	const effectiveExecuteChance = ctx.executeCap != null
+		? Math.min(stats.executeChance, ctx.executeCap)
+		: stats.executeChance;
+	const isExecute = effectiveExecuteChance > 0 && ctx.rng() < effectiveExecuteChance;
 
 	if (isExecute) {
 		totalDamage = ctx.enemyHealth;

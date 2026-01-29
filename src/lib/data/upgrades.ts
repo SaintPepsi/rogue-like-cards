@@ -211,7 +211,7 @@ export const allUpgrades: Upgrade[] = [
 		rarity: 'uncommon',
 		image: pickaxeImg,
 		stats: [{ icon: '⚰️', label: 'Execute', value: '+0.5% chance' }],
-		apply: (s) => (s.executeChance = Math.min(s.executeChance + 0.005, 0.1))
+		apply: (s) => (s.executeChance += 0.005)
 	},
 	{
 		id: 'execute2',
@@ -219,7 +219,7 @@ export const allUpgrades: Upgrade[] = [
 		rarity: 'rare',
 		image: axeImg,
 		stats: [{ icon: '⚰️', label: 'Execute', value: '+1% chance' }],
-		apply: (s) => (s.executeChance = Math.min(s.executeChance + 0.01, 0.1))
+		apply: (s) => (s.executeChance += 0.01)
 	},
 	{
 		id: 'execute3',
@@ -227,7 +227,7 @@ export const allUpgrades: Upgrade[] = [
 		rarity: 'epic',
 		image: axeImg,
 		stats: [{ icon: '⚰️', label: 'Execute', value: '+2% chance' }],
-		apply: (s) => (s.executeChance = Math.min(s.executeChance + 0.02, 0.1))
+		apply: (s) => (s.executeChance += 0.02)
 	},
 
 	// === BOSS TIMER ===
@@ -371,7 +371,7 @@ export const allUpgrades: Upgrade[] = [
 		],
 		apply: (s) => {
 			s.poison += 10;
-			s.executeChance = Math.min(s.executeChance + 0.02, 0.1);
+			s.executeChance += 0.02;
 			s.multiStrike += 2;
 		}
 	},
@@ -393,18 +393,24 @@ export const allUpgrades: Upgrade[] = [
 	}
 ];
 
-export const EXECUTE_CHANCE_CAP = 0.1;
+export const EXECUTE_CHANCE_BASE_CAP = 0.1;
+export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.05;
 
 const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
+
+export function getExecuteCap(executeCapBonus: number): number {
+	return EXECUTE_CHANCE_BASE_CAP + executeCapBonus;
+}
 
 export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,
-	currentExecuteChance: number = 0
+	currentExecuteChance: number = 0,
+	executeCap: number = EXECUTE_CHANCE_BASE_CAP
 ): Upgrade[] {
-	// Filter out execute upgrades if player has hit the cap
+	// Filter out execute upgrades if player has hit their current cap
 	const pool =
-		currentExecuteChance >= EXECUTE_CHANCE_CAP
+		currentExecuteChance >= executeCap
 			? allUpgrades.filter((u) => !executeUpgradeIds.has(u.id))
 			: allUpgrades;
 
