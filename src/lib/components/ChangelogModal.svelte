@@ -122,6 +122,9 @@
 	}
 
 	.version-entry li {
+		display: flex;
+		align-items: baseline;
+		gap: 8px;
 		padding: 6px 0;
 		font-size: 0.9rem;
 		color: rgba(255, 255, 255, 0.8);
@@ -134,8 +137,8 @@
 		border-radius: 3px;
 		font-size: 0.75rem;
 		font-weight: 600;
-		margin-right: 6px;
 		text-transform: uppercase;
+		flex-shrink: 0;
 	}
 
 	.tag.new {
