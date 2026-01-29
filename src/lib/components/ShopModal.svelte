@@ -9,19 +9,28 @@
 		gold: number;
 		choices: Upgrade[];
 		purchasedUpgrades: Set<string>;
-		executeCap: number;
-		executeCapPrice: number;
-		getPrice: (index: number) => number;
-		onBuy: (upgrade: Upgrade, index: number) => boolean;
-		onBuyExecuteCap: () => boolean;
+		executeCapLevel: number;
+		getPrice: (upgrade: Upgrade) => number;
+		onBuy: (upgrade: Upgrade) => boolean;
 		onBack: () => void;
 		onPlayAgain: () => void;
 	};
 
-	let { show, gold, choices, purchasedUpgrades, executeCap, executeCapPrice, getPrice, onBuy, onBuyExecuteCap, onBack, onPlayAgain }: Props = $props();
+	let { show, gold, choices, purchasedUpgrades, executeCapLevel, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
 
-	function handleBuy(upgrade: Upgrade, index: number) {
-		onBuy(upgrade, index);
+	// Track which cards are animating out
+	let animatingOut = $state<Set<string>>(new Set());
+
+	function handleBuy(upgrade: Upgrade) {
+		const success = onBuy(upgrade);
+		if (success) {
+			// Animate all cards out, then they'll re-render with new choices
+			const ids = new Set(choices.map(c => c.id));
+			animatingOut = ids;
+			setTimeout(() => {
+				animatingOut = new Set();
+			}, 400);
+		}
 	}
 </script>
 
@@ -32,13 +41,15 @@
 			<p class="gold-display">Your Gold: <span class="gold-amount">{formatNumber(gold)}</span></p>
 			<p class="shop-info">Purchased cards give permanent bonuses each run!</p>
 			<div class="upgrade-choices desktop-grid">
-				{#each choices as upgrade, index (upgrade.id)}
-					{@const price = getPrice(index)}
+				{#each choices as upgrade (upgrade.id)}
+					{@const isExecuteCap = upgrade.id === 'execute_cap'}
+					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
-					{@const alreadyOwned = purchasedUpgrades.has(upgrade.id)}
-					<div class="card-wrapper">
+					{@const alreadyOwned = !isExecuteCap && purchasedUpgrades.has(upgrade.id)}
+					{@const isAnimating = animatingOut.has(upgrade.id)}
+					<div class="card-wrapper" class:animate-out={isAnimating}>
 						<UpgradeCard
-							title={upgrade.title}
+							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
 							stats={upgrade.stats}
@@ -48,7 +59,7 @@
 							class:affordable={canAfford && !alreadyOwned}
 							class:owned={alreadyOwned}
 							disabled={!canAfford || alreadyOwned}
-							onclick={() => handleBuy(upgrade, index)}
+							onclick={() => handleBuy(upgrade)}
 						>
 							{#if alreadyOwned}
 								Owned
@@ -60,13 +71,15 @@
 				{/each}
 			</div>
 			<CardCarousel count={choices.length}>
-				{#each choices as upgrade, index (upgrade.id)}
-					{@const price = getPrice(index)}
+				{#each choices as upgrade (upgrade.id)}
+					{@const isExecuteCap = upgrade.id === 'execute_cap'}
+					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
-					{@const alreadyOwned = purchasedUpgrades.has(upgrade.id)}
-					<div class="card-wrapper">
+					{@const alreadyOwned = !isExecuteCap && purchasedUpgrades.has(upgrade.id)}
+					{@const isAnimating = animatingOut.has(upgrade.id)}
+					<div class="card-wrapper" class:animate-out={isAnimating}>
 						<UpgradeCard
-							title={upgrade.title}
+							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
 							stats={upgrade.stats}
@@ -76,7 +89,7 @@
 							class:affordable={canAfford && !alreadyOwned}
 							class:owned={alreadyOwned}
 							disabled={!canAfford || alreadyOwned}
-							onclick={() => handleBuy(upgrade, index)}
+							onclick={() => handleBuy(upgrade)}
 						>
 							{#if alreadyOwned}
 								Owned
@@ -87,25 +100,6 @@
 					</div>
 				{/each}
 			</CardCarousel>
-
-			<div class="special-section">
-				<h3>Special</h3>
-				<div class="execute-cap-card">
-					<div class="cap-info">
-						<span class="cap-title">Executioner's Pact</span>
-						<span class="cap-desc">Raise execute chance cap by +0.5%</span>
-						<span class="cap-current">Current cap: {Math.round(executeCap * 100)}%</span>
-					</div>
-					<button
-						class="buy-btn"
-						class:affordable={gold >= executeCapPrice}
-						disabled={gold < executeCapPrice}
-						onclick={onBuyExecuteCap}
-					>
-						Buy for {formatNumber(executeCapPrice)}g
-					</button>
-				</div>
-			</div>
 
 			<div class="button-row">
 				<button class="back-btn" onclick={onBack}>Back</button>
@@ -168,6 +162,13 @@
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
+		transition: opacity 0.35s ease, transform 0.35s ease;
+	}
+
+	.card-wrapper.animate-out {
+		opacity: 0;
+		transform: scale(0.85) translateY(20px);
+		pointer-events: none;
 	}
 
 	.buy-btn {
@@ -201,54 +202,6 @@
 
 	.buy-btn:disabled:not(.owned) {
 		cursor: not-allowed;
-	}
-
-	.special-section {
-		border-top: 1px solid rgba(255, 255, 255, 0.1);
-		margin: 16px 0;
-		padding-top: 16px;
-	}
-
-	.special-section h3 {
-		margin: 0 0 12px;
-		font-size: 1rem;
-		color: rgba(255, 255, 255, 0.6);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-
-	.execute-cap-card {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		background: rgba(139, 92, 246, 0.1);
-		border: 1px solid rgba(139, 92, 246, 0.3);
-		border-radius: 12px;
-		padding: 16px;
-		margin-bottom: 16px;
-	}
-
-	.cap-info {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 4px;
-	}
-
-	.cap-title {
-		font-weight: bold;
-		font-size: 1rem;
-		color: #a78bfa;
-	}
-
-	.cap-desc {
-		font-size: 0.85rem;
-		color: rgba(255, 255, 255, 0.6);
-	}
-
-	.cap-current {
-		font-size: 0.8rem;
-		color: rgba(255, 255, 255, 0.4);
 	}
 
 	.button-row {

@@ -97,11 +97,9 @@
 		gold={gameState.persistentGold}
 		choices={gameState.shopChoices}
 		purchasedUpgrades={gameState.purchasedUpgrades}
-		executeCap={gameState.executeCap}
-		executeCapPrice={gameState.executeCapPrice}
+		executeCapLevel={gameState.executeCapLevel}
 		getPrice={gameState.getCardPrice}
 		onBuy={gameState.buyUpgrade}
-		onBuyExecuteCap={gameState.buyExecuteCap}
 		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
 	/>
