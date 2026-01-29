@@ -28,7 +28,7 @@
 						<h3>v{entry.version} <span class="version-date">{entry.date}</span></h3>
 						<ul>
 							{#each entry.changes as change}
-								<li><span class="tag {change.category}">{tagLabel[change.category]}</span> <span class="change-description">{change.description}</span></li>
+								<li><span class="tag tag-{change.category}">{tagLabel[change.category]}</span> <span class="change-description">{change.description}</span></li>
 							{/each}
 						</ul>
 					</div>
@@ -146,17 +146,17 @@
 		min-width: 0;
 	}
 
-	.tag.new {
+	.tag-new {
 		background: rgba(34, 197, 94, 0.2);
 		color: #4ade80;
 	}
 
-	.tag.changed {
+	.tag-changed {
 		background: rgba(251, 191, 36, 0.2);
 		color: #fbbf24;
 	}
 
-	.tag.fixed {
+	.tag-fixed {
 		background: rgba(239, 68, 68, 0.2);
 		color: #f87171;
 	}
