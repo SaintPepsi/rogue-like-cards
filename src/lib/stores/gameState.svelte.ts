@@ -116,7 +116,7 @@ function createGameState() {
 	}
 
 	function attack() {
-		if (showGameOver || levelingUp) return;
+		if (showGameOver || levelingUp || showLevelUp || showChestLoot) return;
 
 		const result = calculateAttack(playerStats, {
 			enemyHealth,
@@ -163,7 +163,7 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || levelingUp) return;
+		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || levelingUp || showLevelUp || showChestLoot) return;
 		if (poisonStacks.length === 0) return;
 
 		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
@@ -596,6 +596,7 @@ function createGameState() {
 		showGameOver = false;
 		showShop = false;
 		levelingUp = false;
+		pendingLevelUps = 0;
 		clearSave();
 
 		// Apply purchased upgrades from shop

@@ -13,6 +13,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.17.0',
+		date: '2026-01-29',
+		changes: [
+			{ category: 'fixed', description: 'Fixed game freeze caused by poison killing enemies while level-up modal was open' }
+		]
+	},
+	{
 		version: '0.16.0',
 		date: '2026-01-29',
 		changes: [
