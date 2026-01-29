@@ -9,22 +9,12 @@ export const CHANGELOG: ChangelogEntry[] = [
 		version: '0.7.0',
 		date: '2026-01-29',
 		changes: [
-			'Poison now stacks — each attack applies a poison stack to the enemy',
+			'Poison rework — attacks now apply poison stacks to enemies',
 			'Poison stacks have a duration and tick down over time',
-			'Added poison stack counter badge on enemies showing active stacks',
-			'New upgrades: Lingering Toxin, Slow Rot, Eternal Blight (poison duration)',
-			'New upgrades: Compound Toxin, Venom Cascade, Pandemic (max poison stacks)',
-			'New combo cards: Plague Doctor (epic), Toxic Apocalypse (legendary)',
-			'Stats panel now shows max stacks and duration for poison',
+			'Enemies now show a poison stack counter',
+			'Added 8 new poison upgrade cards to discover',
+			'Stats panel now shows poison stack details',
 			'Fixed reset button not clearing bank purchases and persistent data'
-		]
-	},
-	{
-		version: '0.6.0',
-		date: '2026-01-29',
-		changes: [
-			'Added stackable poison system with duration and max stacks',
-			'Added enemy poison stack counter display'
 		]
 	},
 	{

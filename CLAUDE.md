@@ -103,3 +103,9 @@ bun --hot ./index.ts
 ```
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
+
+## Changelog Guidelines
+
+- Never list specific upgrade/card names in changelog entries. Keep them a mystery for players to discover.
+- Use counts instead (e.g. "Added 8 new poison upgrade cards to discover").
+- Describe mechanics changes and bug fixes clearly, but don't spoil card specifics.
