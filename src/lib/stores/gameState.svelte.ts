@@ -124,9 +124,21 @@ function createGameState() {
 		enemyHealth -= result.totalDamage;
 		addHits(newHits);
 
-		// Add poison stack on attack (if player has poison and below max stacks)
-		if (playerStats.poison > 0 && poisonStacks.length < playerStats.poisonMaxStacks) {
-			poisonStacks = [...poisonStacks, playerStats.poisonDuration];
+		// Add or refresh poison stack on attack
+		if (playerStats.poison > 0) {
+			if (poisonStacks.length < playerStats.poisonMaxStacks) {
+				// Below max: add a new stack
+				poisonStacks = [...poisonStacks, playerStats.poisonDuration];
+			} else {
+				// At max: refresh the oldest (lowest remaining) stack
+				const updated = [...poisonStacks];
+				let minIndex = 0;
+				for (let i = 1; i < updated.length; i++) {
+					if (updated[i] < updated[minIndex]) minIndex = i;
+				}
+				updated[minIndex] = playerStats.poisonDuration;
+				poisonStacks = updated;
+			}
 		}
 
 		if (enemyHealth <= 0) {
