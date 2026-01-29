@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Upgrade } from '$lib/types';
+	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
 
@@ -41,7 +42,7 @@
 	<div class="modal-overlay">
 		<div class="modal">
 			<h2>Treasure Found!</h2>
-			<p class="gold-reward">+{gold} Gold</p>
+			<p class="gold-reward">+{formatNumber(gold)} Gold</p>
 			<p>Choose a reward:</p>
 			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, i (upgrade.id)}

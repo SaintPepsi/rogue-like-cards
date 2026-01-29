@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { formatNumber } from '$lib/format';
+
 	type Props = {
 		damage: number;
 		index: number;
@@ -19,7 +21,7 @@
 >
 	<span class="execute-icon">⚰️</span>
 	<span class="execute-text">EXECUTE</span>
-	<span class="execute-damage">{damage}</span>
+	<span class="execute-damage">{formatNumber(damage)}</span>
 </div>
 
 <style>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { HitInfo } from '$lib/types';
+	import { formatNumber } from '$lib/format';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest.png';
 	import HitNumber from './hits/HitNumber.svelte';
@@ -46,14 +47,14 @@
 		<div class="health-bar" class:boss-bar={isBoss}>
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>
-		<span class="health-text">{enemyHealth}/{enemyMaxHealth}</span>
+		<span class="health-text">{formatNumber(enemyHealth)}/{formatNumber(enemyMaxHealth)}</span>
 		<p class="hint">Click the enemy to attack!</p>
 	</div>
 
 	<div class="battle-stats">
-		<p class="kills">Enemies Killed: {enemiesKilled}</p>
+		<p class="kills">Enemies Killed: {formatNumber(enemiesKilled)}</p>
 		{#if gold > 0}
-			<p class="gold">Gold: {gold}</p>
+			<p class="gold">Gold: {formatNumber(gold)}</p>
 		{/if}
 	</div>
 </div>

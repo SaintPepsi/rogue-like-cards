@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PlayerStats, Effect } from '$lib/types';
+	import { formatNumber } from '$lib/format';
 
 	type Props = {
 		stats: PlayerStats;
@@ -14,7 +15,7 @@
 	<!-- Always show damage -->
 	<div class="stat-row">
 		<span>⚔️ Damage</span>
-		<span>{stats.damage}</span>
+		<span>{formatNumber(stats.damage)}</span>
 	</div>
 	<!-- Only show other stats when improved from default -->
 	{#if stats.critChance > 0}
@@ -32,7 +33,7 @@
 	{#if stats.poison > 0}
 		<div class="stat-row poison">
 			<span>☠️ Poison</span>
-			<span>{stats.poison}/sec</span>
+			<span>{formatNumber(stats.poison)}/sec</span>
 		</div>
 	{/if}
 	{#if stats.poisonCritChance > 0}

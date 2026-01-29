@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { gameState } from '$lib/stores/gameState.svelte';
+	import { formatNumber } from '$lib/format';
 	import { VERSION } from '$lib/version';
 	import StatsPanel from '$lib/components/StatsPanel.svelte';
 	import BattleArea from '$lib/components/BattleArea.svelte';
@@ -53,7 +54,7 @@
 					<div class="xp-fill" style:width="{(gameState.xp / gameState.xpToNextLevel) * 100}%"></div>
 				</div>
 			{/key}
-			<span class="xp-text">{gameState.xp}/{gameState.xpToNextLevel} XP</span>
+			<span class="xp-text">{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span>
 		</div>
 
 		<!-- Main Content: Stats + Battle -->

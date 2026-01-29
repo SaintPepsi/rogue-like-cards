@@ -9,6 +9,8 @@
 		onOpenShop: () => void;
 	};
 
+	import { formatNumber } from '$lib/format';
+
 	let { show, stage, level, enemiesKilled, gold, onReset, onOpenShop }: Props = $props();
 </script>
 
@@ -20,9 +22,9 @@
 			<div class="game-over-stats">
 				<p>Stage Reached: <strong>{stage}</strong></p>
 				<p>Level: <strong>{level}</strong></p>
-				<p>Enemies Killed: <strong>{enemiesKilled}</strong></p>
+				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
 			</div>
-			<p class="gold-display">Gold: <span class="gold-amount">{gold}</span></p>
+			<p class="gold-display">Gold: <span class="gold-amount">{formatNumber(gold)}</span></p>
 			<div class="button-row">
 				<button class="shop-btn" onclick={onOpenShop}>Buy Cards</button>
 				<button class="play-again-btn" onclick={onReset}>Play Again</button>
