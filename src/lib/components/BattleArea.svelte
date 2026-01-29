@@ -13,6 +13,7 @@
 		enemiesKilled: number;
 		gold: number;
 		lastGoldDrop: number;
+		goldDropId: number;
 		hits: HitInfo[];
 		poisonStacks: number;
 		onAttack: () => void;
@@ -26,19 +27,16 @@
 		enemiesKilled,
 		gold,
 		lastGoldDrop,
+		goldDropId,
 		hits,
 		poisonStacks,
 		onAttack
 	}: Props = $props();
 
 	let showGoldDrop = $state(false);
-	let goldDropAmount = $state(0);
-	let goldDropKey = $state(0);
 
 	$effect(() => {
 		if (lastGoldDrop > 0) {
-			goldDropAmount = lastGoldDrop;
-			goldDropKey = Date.now();
 			showGoldDrop = true;
 			setTimeout(() => {
 				showGoldDrop = false;
@@ -81,8 +79,8 @@
 		<p class="gold">
 			Gold: {formatNumber(gold)}
 			{#if showGoldDrop}
-				{#key goldDropKey}
-					<span class="gold-drop-popup">+{goldDropAmount}g</span>
+				{#key goldDropId}
+					<span class="gold-drop-popup">+{lastGoldDrop}g</span>
 				{/key}
 			{/if}
 		</p>

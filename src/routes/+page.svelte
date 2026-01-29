@@ -69,6 +69,7 @@
 				enemiesKilled={gameState.enemiesKilled}
 				gold={gameState.gold}
 				lastGoldDrop={gameState.lastGoldDrop}
+				goldDropId={gameState.goldDropId}
 				hits={gameState.hits}
 				poisonStacks={gameState.poisonStacks.length}
 				onAttack={gameState.attack}

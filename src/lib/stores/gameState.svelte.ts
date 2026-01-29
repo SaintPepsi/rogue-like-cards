@@ -95,6 +95,7 @@ function createGameState() {
 	let showChestLoot = $state(false);
 	let chestGold = $state(0);
 	let lastGoldDrop = $state(0);
+	let goldDropId = $state(0);
 	let upgradeChoices = $state<Upgrade[]>([]);
 
 	// Hit display
@@ -243,6 +244,7 @@ function createGameState() {
 					: getEnemyGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
 				lastGoldDrop = goldReward;
+				goldDropId++;
 			}
 
 			// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
@@ -779,6 +781,9 @@ function createGameState() {
 
 		get lastGoldDrop() {
 			return lastGoldDrop;
+		},
+		get goldDropId() {
+			return goldDropId;
 		},
 		get executeCapLevel() {
 			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
