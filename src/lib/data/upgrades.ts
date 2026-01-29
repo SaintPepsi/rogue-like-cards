@@ -210,24 +210,24 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Mercy Kill',
 		rarity: 'uncommon',
 		image: pickaxeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '<10% HP' }],
-		apply: (s) => (s.executeThreshold = Math.max(s.executeThreshold, 0.1))
+		stats: [{ icon: '⚰️', label: 'Execute', value: '+0.5% chance' }],
+		apply: (s) => (s.executeChance += 0.005)
 	},
 	{
 		id: 'execute2',
 		title: 'Culling Blade',
 		rarity: 'rare',
 		image: axeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '<20% HP' }],
-		apply: (s) => (s.executeThreshold = Math.max(s.executeThreshold, 0.2))
+		stats: [{ icon: '⚰️', label: 'Execute', value: '+1% chance' }],
+		apply: (s) => (s.executeChance += 0.01)
 	},
 	{
 		id: 'execute3',
 		title: 'Death Sentence',
 		rarity: 'epic',
 		image: axeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '<30% HP' }],
-		apply: (s) => (s.executeThreshold = Math.max(s.executeThreshold, 0.3))
+		stats: [{ icon: '⚰️', label: 'Execute', value: '+2% chance' }],
+		apply: (s) => (s.executeChance += 0.02)
 	},
 
 	// === BOSS TIMER ===
@@ -366,12 +366,12 @@ export const allUpgrades: Upgrade[] = [
 		image: fireImg,
 		stats: [
 			{ icon: '☠️', label: 'Poison', value: '+10/sec' },
-			{ icon: '⚰️', label: 'Execute', value: '<25% HP' },
+			{ icon: '⚰️', label: 'Execute', value: '+2% chance' },
 			{ icon: '⚡', label: 'Multi-Strike', value: '+2' }
 		],
 		apply: (s) => {
 			s.poison += 10;
-			s.executeThreshold = Math.max(s.executeThreshold, 0.25);
+			s.executeChance += 0.02;
 			s.multiStrike += 2;
 		}
 	},
@@ -393,8 +393,28 @@ export const allUpgrades: Upgrade[] = [
 	}
 ];
 
-export function getRandomUpgrades(count: number, luckyChance: number = 0): Upgrade[] {
-	const shuffled = [...allUpgrades].sort(() => Math.random() - 0.5);
+export const EXECUTE_CHANCE_BASE_CAP = 0.1;
+export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
+
+const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
+
+export function getExecuteCap(executeCapBonus: number): number {
+	return EXECUTE_CHANCE_BASE_CAP + executeCapBonus;
+}
+
+export function getRandomUpgrades(
+	count: number,
+	luckyChance: number = 0,
+	currentExecuteChance: number = 0,
+	executeCap: number = EXECUTE_CHANCE_BASE_CAP
+): Upgrade[] {
+	// Filter out execute upgrades if player has hit their current cap
+	const pool =
+		currentExecuteChance >= executeCap
+			? allUpgrades.filter((u) => !executeUpgradeIds.has(u.id))
+			: allUpgrades;
+
+	const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
 	// Apply lucky chance - boost rarer items
 	const weighted = shuffled.sort((a, b) => {

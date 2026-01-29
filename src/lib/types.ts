@@ -17,7 +17,7 @@ export type PlayerStats = {
 	poisonCritChance: number; // Chance for poison to crit
 	multiStrike: number; // Extra attacks per click
 	overkill: boolean; // Excess damage carries over
-	executeThreshold: number; // Instant kill below this % health
+	executeChance: number; // Chance to instantly kill on hit
 	bonusBossTime: number; // Extra seconds for boss fights
 	greed: number; // Enemy health multiplier (also increases XP)
 	luckyChance: number; // Chance for rarer upgrades

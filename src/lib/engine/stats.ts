@@ -11,7 +11,7 @@ export function createDefaultStats(): PlayerStats {
 		poisonCritChance: 0,
 		multiStrike: 0,
 		overkill: false,
-		executeThreshold: 0,
+		executeChance: 0,
 		bonusBossTime: 0,
 		greed: 0,
 		luckyChance: 0,

@@ -9,8 +9,10 @@
 	import ChestLootModal from '$lib/components/ChestLootModal.svelte';
 	import UpgradesModal from '$lib/components/UpgradesModal.svelte';
 	import ShopModal from '$lib/components/ShopModal.svelte';
+	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 
 	let showUpgradesModal = $state(false);
+	let showChangelogModal = $state(false);
 
 	onMount(() => {
 		gameState.init();
@@ -25,6 +27,7 @@
 	<header>
 		<h1>Rogue Arena</h1>
 		<div class="header-buttons">
+			<button class="changelog-btn" onclick={() => showChangelogModal = true}>Changelog</button>
 			<button class="upgrades-btn" onclick={() => showUpgradesModal = true}>Upgrades</button>
 			<button class="reset-btn" onclick={gameState.resetGame}>Reset</button>
 		</div>
@@ -92,8 +95,11 @@
 		gold={gameState.persistentGold}
 		choices={gameState.shopChoices}
 		purchasedUpgrades={gameState.purchasedUpgrades}
+		executeCap={gameState.executeCap}
+		executeCapPrice={gameState.executeCapPrice}
 		getPrice={gameState.getCardPrice}
 		onBuy={gameState.buyUpgrade}
+		onBuyExecuteCap={gameState.buyExecuteCap}
 		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
 	/>
@@ -109,6 +115,11 @@
 		show={showUpgradesModal}
 		unlockedUpgrades={gameState.unlockedUpgrades}
 		onClose={() => showUpgradesModal = false}
+	/>
+
+	<ChangelogModal
+		show={showChangelogModal}
+		onClose={() => showChangelogModal = false}
 	/>
 
 	<footer>
@@ -150,6 +161,20 @@
 	.header-buttons {
 		display: flex;
 		gap: 12px;
+	}
+
+	.changelog-btn {
+		padding: 8px 16px;
+		background: rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: 4px;
+		color: rgba(255, 255, 255, 0.7);
+		cursor: pointer;
+	}
+
+	.changelog-btn:hover {
+		background: rgba(255, 255, 255, 0.2);
+		color: white;
 	}
 
 	.upgrades-btn {

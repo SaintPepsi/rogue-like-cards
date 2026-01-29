@@ -38,21 +38,40 @@ describe('calculateAttack', () => {
 		expect(result.hits[0].type).toBe('crit');
 	});
 
-	test('execute triggers when enemy health below threshold', () => {
+	test('execute triggers based on chance roll', () => {
 		const stats: PlayerStats = {
 			...createDefaultStats(),
-			executeThreshold: 0.3
+			executeChance: 0.3
 		};
+		// rng returns 0.1, which is < 0.3, so execute triggers
 		const result = calculateAttack(stats, {
-			enemyHealth: 2,
-			enemyMaxHealth: 10,
+			enemyHealth: 50,
+			enemyMaxHealth: 100,
 			overkillDamage: 0,
-			rng: () => 0.99
+			rng: () => 0.1
 		});
 
-		expect(result.totalDamage).toBe(2);
+		expect(result.totalDamage).toBe(50);
 		expect(result.hits).toHaveLength(1);
 		expect(result.hits[0].type).toBe('execute');
+	});
+
+	test('execute does not trigger when chance roll fails', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			executeChance: 0.3
+		};
+		// rng returns 0.5, which is >= 0.3, so execute does not trigger
+		const result = calculateAttack(stats, {
+			enemyHealth: 50,
+			enemyMaxHealth: 100,
+			overkillDamage: 0,
+			rng: () => 0.5
+		});
+
+		expect(result.totalDamage).toBe(1);
+		expect(result.hits).toHaveLength(1);
+		expect(result.hits[0].type).toBe('normal');
 	});
 
 	test('multi-strike produces multiple hits', () => {

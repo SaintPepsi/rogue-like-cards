@@ -47,10 +47,10 @@
 			<span>+{stats.multiStrike}</span>
 		</div>
 	{/if}
-	{#if stats.executeThreshold > 0}
+	{#if stats.executeChance > 0}
 		<div class="stat-row">
 			<span>⚰️ Execute</span>
-			<span>&lt;{Math.round(stats.executeThreshold * 100)}%</span>
+			<span>{Math.round(stats.executeChance * 100)}%</span>
 		</div>
 	{/if}
 	{#if stats.overkill}
