@@ -13,6 +13,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.14.0',
+		date: '2026-01-29',
+		changes: [
+			{ category: 'fixed', description: 'Fixed number overflow causing display issues at high stages' },
+			{ category: 'fixed', description: 'Balanced XP scaling curve to prevent runaway progression' }
+		]
+	},
+	{
+		version: '0.13.0',
+		date: '2026-01-29',
+		changes: [
+			{ category: 'changed', description: 'Redesigned changelog system with categorized entries for new features, changes, and fixes' }
+		]
+	},
+	{
 		version: '0.12.0',
 		date: '2026-01-29',
 		changes: [
@@ -22,7 +37,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 		]
 	},
 	{
-		version: '0.10.0',
+		version: '0.11.0',
 		date: '2026-01-29',
 		changes: [
 			{ category: 'new', description: 'Mobs now have a chance to drop gold on kill — bosses drop more than regular enemies' },
@@ -32,7 +47,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 		]
 	},
 	{
-		version: '0.9.0',
+		version: '0.10.0',
 		date: '2026-01-29',
 		changes: [
 			{ category: 'changed', description: 'Redesigned shop system with tier-based pricing' },
@@ -41,7 +56,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 		]
 	},
 	{
-		version: '0.8.0',
+		version: '0.9.0',
 		date: '2026-01-29',
 		changes: [
 			{ category: 'changed', description: 'EXP rewards are now based on enemy health with a uniform XP-per-HP rate' },
@@ -51,7 +66,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 		]
 	},
 	{
-		version: '0.7.0',
+		version: '0.8.0',
 		date: '2026-01-29',
 		changes: [
 			{ category: 'new', description: 'Poison rework — attacks now apply poison stacks to enemies' },
@@ -63,18 +78,27 @@ export const CHANGELOG: ChangelogEntry[] = [
 		]
 	},
 	{
-		version: '0.5.0',
+		version: '0.6.0',
 		date: '2026-01-29',
 		changes: [
 			{ category: 'new', description: 'Added number formatting with K/M/B/T suffixes for large numbers' }
 		]
 	},
 	{
-		version: '0.4.0',
+		version: '0.5.0',
 		date: '2026-01-29',
 		changes: [
 			{ category: 'new', description: 'Added staggered card flip animation when level-up and chest loot modals open' },
 			{ category: 'changed', description: 'Cards are disabled until their flip animation completes, preventing accidental picks on mobile' }
+		]
+	},
+	{
+		version: '0.4.0',
+		date: '2026-01-29',
+		changes: [
+			{ category: 'changed', description: 'Reworked execute mechanic from health threshold to percentage-based chance' },
+			{ category: 'new', description: 'Added configurable execute chance cap with exponential pricing' },
+			{ category: 'fixed', description: 'Fixed build error caused by misplaced template directive in shop component' }
 		]
 	},
 	{
