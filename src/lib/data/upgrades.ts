@@ -541,6 +541,18 @@ export const allUpgrades: Upgrade[] = [
 	}
 ];
 
+// === EXECUTE CAP (shop-only stackable card) ===
+export const executeCapUpgrade: Upgrade = {
+	id: 'execute_cap',
+	title: "Executioner's Pact",
+	rarity: 'epic',
+	image: pickaxeImg,
+	stats: [{ icon: '⚰️', label: 'Execute Cap', value: '+0.5%' }],
+	apply: () => {
+		// Applied via executeCapBonus in gameState, not through normal stats
+	}
+};
+
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
 export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 

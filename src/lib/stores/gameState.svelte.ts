@@ -1,5 +1,5 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
-import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL } from '$lib/data/upgrades';
+import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
@@ -468,13 +468,24 @@ function createGameState() {
 		}
 	}
 
-	function getCardPrice(cardIndex: number): number {
-		return calculateCardPrice(cardIndex, purchasedUpgrades.size);
+	function getCardPrice(upgrade: Upgrade): number {
+		if (upgrade.id === 'execute_cap') {
+			const level = Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+			return calculateCardPrice(upgrade.rarity, level);
+		}
+		// Count how many times this specific card has been bought
+		// For regular cards it's 0 or 1 (can't rebuy), but price still reflects total purchases
+		return calculateCardPrice(upgrade.rarity, purchasedUpgrades.size);
+	}
+
+	function generateShopChoices(): Upgrade[] {
+		// Generate 2 random upgrade choices + always include execute cap card
+		const randomCards = getRandomUpgrades(2, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
+		return [...randomCards, executeCapUpgrade];
 	}
 
 	function openShop() {
-		// Generate 3 random upgrade choices for the shop
-		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // Slight lucky boost in shop
+		shopChoices = generateShopChoices();
 		showShop = true;
 	}
 
@@ -482,34 +493,24 @@ function createGameState() {
 		showShop = false;
 	}
 
-	function buyUpgrade(upgrade: Upgrade, cardIndex: number): boolean {
-		const price = getCardPrice(cardIndex);
+	function buyUpgrade(upgrade: Upgrade): boolean {
+		const price = getCardPrice(upgrade);
 		if (persistentGold < price) return false;
 
 		persistentGold -= price;
-		purchasedUpgrades = new Set([...purchasedUpgrades, upgrade.id]);
+
+		if (upgrade.id === 'execute_cap') {
+			executeCapBonus += EXECUTE_CAP_BONUS_PER_LEVEL;
+		} else {
+			purchasedUpgrades = new Set([...purchasedUpgrades, upgrade.id]);
+		}
+
 		savePersistent();
 
-		// Refresh shop choices after purchase
-		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
-		return true;
-	}
-
-	function getExecuteCapPrice(): number {
-		// Exponential runaway cost: 25 * e^(0.3 * level)
-		// Level 0: 25g, Level 1: 34g, Level 3: 61g, Level 5: 112g,
-		// Level 10: 498g, Level 15: 2216g, Level 20: 9866g
-		const level = Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
-		return Math.round(25 * Math.exp(0.3 * level));
-	}
-
-	function buyExecuteCap(): boolean {
-		const price = getExecuteCapPrice();
-		if (persistentGold < price) return false;
-
-		persistentGold -= price;
-		executeCapBonus += EXECUTE_CAP_BONUS_PER_LEVEL;
-		savePersistent();
+		// Refresh shop choices after purchase (delayed to let animation play)
+		setTimeout(() => {
+			shopChoices = generateShopChoices();
+		}, 400);
 		return true;
 	}
 
@@ -671,11 +672,8 @@ function createGameState() {
 			return shopChoices;
 		},
 
-		get executeCap() {
-			return getExecuteCap(executeCapBonus);
-		},
-		get executeCapPrice() {
-			return getExecuteCapPrice();
+		get executeCapLevel() {
+			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
 		},
 
 		// Actions
@@ -687,7 +685,6 @@ function createGameState() {
 		openShop,
 		closeShop,
 		buyUpgrade,
-		buyExecuteCap,
 		getCardPrice
 	};
 }
