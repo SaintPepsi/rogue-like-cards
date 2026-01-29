@@ -28,7 +28,7 @@
 						<h3>v{entry.version} <span class="version-date">{entry.date}</span></h3>
 						<ul>
 							{#each entry.changes as change}
-								<li><span class="tag {change.category}">{tagLabel[change.category]}</span> {change.description}</li>
+								<li><span class="tag {change.category}">{tagLabel[change.category]}</span> <span class="change-description">{change.description}</span></li>
 							{/each}
 						</ul>
 					</div>
@@ -122,9 +122,6 @@
 	}
 
 	.version-entry li {
-		display: flex;
-		align-items: baseline;
-		gap: 8px;
 		padding: 6px 0;
 		font-size: 0.9rem;
 		color: rgba(255, 255, 255, 0.8);
@@ -133,12 +130,17 @@
 
 	.tag {
 		display: inline-block;
+		vertical-align: baseline;
 		padding: 1px 6px;
 		border-radius: 3px;
 		font-size: 0.75rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		flex-shrink: 0;
+		margin-right: 8px;
+	}
+
+	.change-description {
+		display: inline;
 	}
 
 	.tag.new {
