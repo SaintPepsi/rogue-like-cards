@@ -13,6 +13,7 @@
 		enemiesKilled: number;
 		gold: number;
 		hits: HitInfo[];
+		poisonStacks: number;
 		onAttack: () => void;
 	};
 
@@ -24,6 +25,7 @@
 		enemiesKilled,
 		gold,
 		hits,
+		poisonStacks,
 		onAttack
 	}: Props = $props();
 </script>
@@ -40,6 +42,12 @@
 			role="button"
 		>
 			<img class="enemy-sprite" src={isChest ? chestSprite : enemySprite} alt={isChest ? 'Chest' : 'Enemy'} draggable="false" />
+			{#if poisonStacks > 0}
+				<div class="poison-counter">
+					<span class="poison-icon">☠️</span>
+					<span class="poison-count">{poisonStacks}</span>
+				</div>
+			{/if}
 			{#each hits as hit (hit.id)}
 				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
 			{/each}
@@ -150,6 +158,42 @@
 
 	.enemy.boss .enemy-sprite {
 		transform: scale(3);
+	}
+
+	.poison-counter {
+		position: absolute;
+		top: -8px;
+		right: -8px;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		background: rgba(34, 197, 94, 0.9);
+		border: 2px solid #16a34a;
+		border-radius: 12px;
+		padding: 2px 8px;
+		font-size: 0.8rem;
+		font-weight: bold;
+		color: white;
+		z-index: 10;
+		box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+		animation: poison-pulse 1.5s ease-in-out infinite;
+	}
+
+	.poison-icon {
+		font-size: 0.7rem;
+	}
+
+	.poison-count {
+		font-size: 0.85rem;
+	}
+
+	@keyframes poison-pulse {
+		0%, 100% {
+			box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+		}
+		50% {
+			box-shadow: 0 0 14px rgba(34, 197, 94, 0.8);
+		}
 	}
 
 	.health-bar {

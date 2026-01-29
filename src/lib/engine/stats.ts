@@ -9,6 +9,8 @@ export function createDefaultStats(): PlayerStats {
 		damageMultiplier: 1,
 		poison: 0,
 		poisonCritChance: 0,
+		poisonMaxStacks: 5,
+		poisonDuration: 5,
 		multiStrike: 0,
 		overkill: false,
 		executeChance: 0,

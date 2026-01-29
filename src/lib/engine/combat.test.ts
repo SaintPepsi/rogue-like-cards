@@ -162,19 +162,30 @@ describe('calculateAttack', () => {
 describe('calculatePoison', () => {
 	test('returns zero damage when poison is 0', () => {
 		const stats = createDefaultStats();
-		const result = calculatePoison(stats, { rng: () => 0.99 });
+		const result = calculatePoison(stats, { rng: () => 0.99, activeStacks: 0 });
 		expect(result.damage).toBe(0);
 		expect(result.type).toBe('poison');
 	});
 
-	test('deals base poison damage', () => {
+	test('deals base poison damage with 1 stack', () => {
 		const stats: PlayerStats = {
 			...createDefaultStats(),
 			poison: 5,
 			damageMultiplier: 1
 		};
-		const result = calculatePoison(stats, { rng: () => 0.99 });
+		const result = calculatePoison(stats, { rng: () => 0.99, activeStacks: 1 });
 		expect(result.damage).toBe(5);
+		expect(result.type).toBe('poison');
+	});
+
+	test('poison scales with active stacks', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			poison: 5,
+			damageMultiplier: 1
+		};
+		const result = calculatePoison(stats, { rng: () => 0.99, activeStacks: 3 });
+		expect(result.damage).toBe(15);
 		expect(result.type).toBe('poison');
 	});
 
@@ -186,7 +197,7 @@ describe('calculatePoison', () => {
 			critMultiplier: 2,
 			damageMultiplier: 1
 		};
-		const result = calculatePoison(stats, { rng: () => 0 });
+		const result = calculatePoison(stats, { rng: () => 0, activeStacks: 1 });
 		expect(result.damage).toBe(20);
 		expect(result.type).toBe('poisonCrit');
 	});
@@ -197,7 +208,17 @@ describe('calculatePoison', () => {
 			poison: 4,
 			damageMultiplier: 3
 		};
-		const result = calculatePoison(stats, { rng: () => 0.99 });
+		const result = calculatePoison(stats, { rng: () => 0.99, activeStacks: 1 });
 		expect(result.damage).toBe(12);
+	});
+
+	test('returns zero damage with zero active stacks', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			poison: 10,
+			damageMultiplier: 1
+		};
+		const result = calculatePoison(stats, { rng: () => 0.99, activeStacks: 0 });
+		expect(result.damage).toBe(0);
 	});
 });

@@ -6,6 +6,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.7.0',
+		date: '2026-01-29',
+		changes: [
+			'Poison rework — attacks now apply poison stacks to enemies',
+			'Poison stacks have a duration and tick down over time',
+			'Enemies now show a poison stack counter',
+			'Added 8 new poison upgrade cards to discover',
+			'Stats panel now shows poison stack details',
+			'Fixed reset button not clearing bank purchases and persistent data'
+		]
+	},
+	{
+		version: '0.5.0',
+		date: '2026-01-29',
+		changes: [
+			'Added number formatting with K/M/B/T suffixes for large numbers'
+		]
+	},
+	{
 		version: '0.4.0',
 		date: '2026-01-29',
 		changes: [

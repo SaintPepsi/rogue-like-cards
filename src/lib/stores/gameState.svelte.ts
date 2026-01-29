@@ -73,6 +73,9 @@ function createGameState() {
 	let enemiesKilled = $state(0);
 	let overkillDamage = $state(0);
 
+	// Poison stacks - each entry is remaining ticks for that stack
+	let poisonStacks = $state<number[]>([]);
+
 	// UI state
 	let showLevelUp = $state(false);
 	let pendingLevelUps = $state(0);
@@ -121,6 +124,23 @@ function createGameState() {
 		enemyHealth -= result.totalDamage;
 		addHits(newHits);
 
+		// Add or refresh poison stack on attack
+		if (playerStats.poison > 0) {
+			if (poisonStacks.length < playerStats.poisonMaxStacks) {
+				// Below max: add a new stack
+				poisonStacks = [...poisonStacks, playerStats.poisonDuration];
+			} else {
+				// At max: refresh the oldest (lowest remaining) stack
+				const updated = [...poisonStacks];
+				let minIndex = 0;
+				for (let i = 1; i < updated.length; i++) {
+					if (updated[i] < updated[minIndex]) minIndex = i;
+				}
+				updated[minIndex] = playerStats.poisonDuration;
+				poisonStacks = updated;
+			}
+		}
+
 		if (enemyHealth <= 0) {
 			killEnemy();
 		}
@@ -128,13 +148,19 @@ function createGameState() {
 
 	function applyPoison() {
 		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || levelingUp) return;
+		if (poisonStacks.length === 0) return;
 
-		const result = calculatePoison(playerStats, { rng: Math.random });
+		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
 		if (result.damage <= 0) return;
 
 		enemyHealth -= result.damage;
 		hitId++;
 		addHits([{ damage: result.damage, type: result.type, id: hitId, index: 0 }]);
+
+		// Tick down all stacks and remove expired ones
+		poisonStacks = poisonStacks
+			.map((remaining) => remaining - 1)
+			.filter((remaining) => remaining > 0);
 
 		if (enemyHealth <= 0) {
 			killEnemy();
@@ -148,6 +174,7 @@ function createGameState() {
 
 	function killEnemy() {
 		enemiesKilled++;
+		poisonStacks = [];
 
 		if (isChest) {
 			// Chest gives gold + guaranteed upgrade
@@ -157,7 +184,7 @@ function createGameState() {
 			isChest = false;
 
 			// Show chest loot with higher rarity cards
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus)); // +50% rarity boost
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
 			showChestLoot = true;
 			return;
 		}
@@ -228,7 +255,7 @@ function createGameState() {
 		setTimeout(() => {
 			xp = overflowXp;
 			level++;
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus));
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
 			levelingUp = false;
 			showLevelUp = true;
 		}, 400);
@@ -246,6 +273,8 @@ function createGameState() {
 				s.label.includes('Crit') ||
 				s.label.includes('XP') ||
 				s.label.includes('Poison') ||
+				s.label.includes('Stacks') ||
+				s.label.includes('Duration') ||
 				s.label.includes('Multi') ||
 				s.label.includes('Execute') ||
 				s.label.includes('Overkill') ||
@@ -275,7 +304,7 @@ function createGameState() {
 		pendingLevelUps--;
 		if (pendingLevelUps > 0) {
 			// Show next level up
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus));
+			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
 			saveGame();
 			return;
 		}
@@ -390,6 +419,14 @@ function createGameState() {
 		}
 	}
 
+	function clearPersistent() {
+		try {
+			localStorage.removeItem(PERSISTENT_STORAGE_KEY);
+		} catch (e) {
+			console.warn('Failed to clear persistent data:', e);
+		}
+	}
+
 	function savePersistent() {
 		const data: PersistentData = {
 			gold: persistentGold,
@@ -423,7 +460,7 @@ function createGameState() {
 
 	function openShop() {
 		// Generate 3 random upgrade choices for the shop
-		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus)); // Slight lucky boost in shop
+		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // Slight lucky boost in shop
 		showShop = true;
 	}
 
@@ -440,7 +477,7 @@ function createGameState() {
 		savePersistent();
 
 		// Refresh shop choices after purchase
-		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus));
+		shopChoices = getRandomUpgrades(3, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
 		return true;
 	}
 
@@ -487,6 +524,7 @@ function createGameState() {
 		waveKills = 0;
 		isBoss = false;
 		overkillDamage = 0;
+		poisonStacks = [];
 		enemiesKilled = 0;
 		gold = 0;
 		isChest = false;
@@ -503,6 +541,17 @@ function createGameState() {
 
 		spawnEnemy();
 		startPoisonTick();
+	}
+
+	function fullReset() {
+		// Clear persistent data (bank purchases, gold, execute cap)
+		persistentGold = 0;
+		purchasedUpgrades = new Set();
+		executeCapBonus = 0;
+		clearPersistent();
+
+		// Then do a normal game reset (without purchased upgrades since they're gone)
+		resetGame();
 	}
 
 	function init() {
@@ -574,6 +623,9 @@ function createGameState() {
 		get hits() {
 			return hits;
 		},
+		get poisonStacks() {
+			return poisonStacks;
+		},
 		get gold() {
 			return gold;
 		},
@@ -616,6 +668,7 @@ function createGameState() {
 		attack,
 		selectUpgrade,
 		resetGame,
+		fullReset,
 		init,
 		openShop,
 		closeShop,

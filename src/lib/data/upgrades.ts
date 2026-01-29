@@ -142,6 +142,58 @@ export const allUpgrades: Upgrade[] = [
 		apply: (s) => (s.poison += 5)
 	},
 
+	// === POISON DURATION UPGRADES ===
+	{
+		id: 'poisondur1',
+		title: 'Lingering Toxin',
+		rarity: 'common',
+		image: poisonImg,
+		stats: [{ icon: '🕐', label: 'Poison Duration', value: '+2s' }],
+		apply: (s) => (s.poisonDuration += 2)
+	},
+	{
+		id: 'poisondur2',
+		title: 'Slow Rot',
+		rarity: 'uncommon',
+		image: poisonImg,
+		stats: [{ icon: '🕐', label: 'Poison Duration', value: '+4s' }],
+		apply: (s) => (s.poisonDuration += 4)
+	},
+	{
+		id: 'poisondur3',
+		title: 'Eternal Blight',
+		rarity: 'rare',
+		image: poisonImg,
+		stats: [{ icon: '🕐', label: 'Poison Duration', value: '+8s' }],
+		apply: (s) => (s.poisonDuration += 8)
+	},
+
+	// === POISON MAX STACKS UPGRADES ===
+	{
+		id: 'poisonstack1',
+		title: 'Compound Toxin',
+		rarity: 'uncommon',
+		image: poisonImg,
+		stats: [{ icon: '🧪', label: 'Max Poison Stacks', value: '+3' }],
+		apply: (s) => (s.poisonMaxStacks += 3)
+	},
+	{
+		id: 'poisonstack2',
+		title: 'Venom Cascade',
+		rarity: 'rare',
+		image: poisonImg,
+		stats: [{ icon: '🧪', label: 'Max Poison Stacks', value: '+5' }],
+		apply: (s) => (s.poisonMaxStacks += 5)
+	},
+	{
+		id: 'poisonstack3',
+		title: 'Pandemic',
+		rarity: 'epic',
+		image: poisonImg,
+		stats: [{ icon: '🧪', label: 'Max Poison Stacks', value: '+10' }],
+		apply: (s) => (s.poisonMaxStacks += 10)
+	},
+
 	// === POISON CRIT UPGRADES ===
 	{
 		id: 'poisoncrit1',
@@ -344,6 +396,40 @@ export const allUpgrades: Upgrade[] = [
 		}
 	},
 	{
+		id: 'combo3',
+		title: 'Plague Doctor',
+		rarity: 'epic',
+		image: poisonImg,
+		stats: [
+			{ icon: '☠️', label: 'Poison', value: '+5/stack' },
+			{ icon: '🧪', label: 'Max Stacks', value: '+5' },
+			{ icon: '🕐', label: 'Duration', value: '+3s' }
+		],
+		apply: (s) => {
+			s.poison += 5;
+			s.poisonMaxStacks += 5;
+			s.poisonDuration += 3;
+		}
+	},
+	{
+		id: 'legendary4',
+		title: 'Toxic Apocalypse',
+		rarity: 'legendary',
+		image: poisonImg,
+		stats: [
+			{ icon: '☠️', label: 'Poison', value: '+12/stack' },
+			{ icon: '🧪', label: 'Max Stacks', value: '+10' },
+			{ icon: '🕐', label: 'Duration', value: '+5s' },
+			{ icon: '💀', label: 'Poison Crit', value: '+15%' }
+		],
+		apply: (s) => {
+			s.poison += 12;
+			s.poisonMaxStacks += 10;
+			s.poisonDuration += 5;
+			s.poisonCritChance += 0.15;
+		}
+	},
+	{
 		id: 'legendary1',
 		title: "Dragon's Fury",
 		rarity: 'legendary',
@@ -398,6 +484,14 @@ export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 
 const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
 
+// Upgrades that require the player to already have base poison
+const poisonDependentIds = new Set([
+	'poisondur1', 'poisondur2', 'poisondur3',
+	'poisonstack1', 'poisonstack2', 'poisonstack3',
+	'poisoncrit1', 'poisoncrit2', 'poisoncrit3',
+	'combo3', 'legendary4'
+]);
+
 export function getExecuteCap(executeCapBonus: number): number {
 	return EXECUTE_CHANCE_BASE_CAP + executeCapBonus;
 }
@@ -406,13 +500,20 @@ export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,
 	currentExecuteChance: number = 0,
-	executeCap: number = EXECUTE_CHANCE_BASE_CAP
+	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
+	currentPoison: number = 0
 ): Upgrade[] {
+	let pool = [...allUpgrades];
+
 	// Filter out execute upgrades if player has hit their current cap
-	const pool =
-		currentExecuteChance >= executeCap
-			? allUpgrades.filter((u) => !executeUpgradeIds.has(u.id))
-			: allUpgrades;
+	if (currentExecuteChance >= executeCap) {
+		pool = pool.filter((u) => !executeUpgradeIds.has(u.id));
+	}
+
+	// Filter out poison-dependent upgrades if player has no base poison
+	if (currentPoison <= 0) {
+		pool = pool.filter((u) => !poisonDependentIds.has(u.id));
+	}
 
 	const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
