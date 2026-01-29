@@ -41,6 +41,18 @@ export function getChestGoldReward(stage: number, goldMultiplier: number): numbe
 	return Math.floor((10 + stage * 5) * goldMultiplier);
 }
 
+export function getEnemyGoldReward(stage: number, goldPerKill: number, goldMultiplier: number): number {
+	return Math.floor((2 + stage + goldPerKill) * goldMultiplier);
+}
+
+export function getBossGoldReward(stage: number, goldPerKill: number, goldMultiplier: number): number {
+	return Math.floor((5 + stage * 2 + goldPerKill) * goldMultiplier);
+}
+
+export function shouldDropGold(goldDropChance: number, rng: () => number): boolean {
+	return rng() < goldDropChance;
+}
+
 export function getXpToNextLevel(level: number): number {
 	return Math.floor(10 * Math.pow(1.5, level - 1));
 }
