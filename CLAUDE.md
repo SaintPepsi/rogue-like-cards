@@ -106,6 +106,40 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 
 ## Changelog Guidelines
 
+All changelog entries live in `src/lib/changelog.ts`. The `ChangelogModal.svelte` component renders them dynamically — never hardcode entries in the modal.
+
+### Data format
+
+Each entry in the `CHANGELOG` array uses this structure:
+
+```ts
+{
+  version: '0.12.0',
+  date: '2026-01-29',
+  changes: [
+    { category: 'new', description: 'Description of the change' }
+  ]
+}
+```
+
+### Categories
+
+Every change item must have a `category`:
+- `new` — New features, mechanics, or content
+- `changed` — Modifications to existing behavior
+- `fixed` — Bug fixes
+
+### Content rules
+
 - Never list specific upgrade/card names in changelog entries. Keep them a mystery for players to discover.
 - Use counts instead (e.g. "Added 8 new poison upgrade cards to discover").
 - Describe mechanics changes and bug fixes clearly, but don't spoil card specifics.
+- Start descriptions with a verb: "Added", "Fixed", "Redesigned", etc.
+- Keep each entry to a single sentence.
+
+### Versioning
+
+- `PATCH` is auto-incremented by the pre-commit hook on every commit.
+- `MINOR` is bumped by CI on merge to master.
+- Changelog entries track `MAJOR.MINOR.0` versions (the minor release).
+- The pre-commit hook enforces that a changelog entry exists for the current minor version.

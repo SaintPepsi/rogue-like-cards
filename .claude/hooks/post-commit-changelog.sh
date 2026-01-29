@@ -33,6 +33,7 @@ if echo "$COMMAND" | grep -qE 'git commit' && ! echo "$COMMAND" | grep -q 'updat
   # Output a reminder to Claude via stderr (shown to Claude as context)
   echo "CHANGELOG REMINDER: A git commit was just made (${COMMIT_HASH}: ${COMMIT_MSG})." >&2
   echo "Please update src/lib/changelog.ts to include this change under version '${VERSION}' with date '${TODAY}'." >&2
+  echo "Each change must be a { category, description } object where category is 'new' | 'changed' | 'fixed'." >&2
   echo "If an entry for version '${VERSION}' already exists, append the change to its changes array." >&2
   echo "If no entry exists for '${VERSION}', add a new entry at the top of the CHANGELOG array." >&2
 

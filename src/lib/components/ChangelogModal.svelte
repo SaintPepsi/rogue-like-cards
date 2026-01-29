@@ -1,10 +1,18 @@
 <script lang="ts">
+	import { CHANGELOG, type ChangeCategory } from '$lib/changelog';
+
 	type Props = {
 		show: boolean;
 		onClose: () => void;
 	};
 
 	let { show, onClose }: Props = $props();
+
+	const tagLabel: Record<ChangeCategory, string> = {
+		new: 'New',
+		changed: 'Changed',
+		fixed: 'Fixed'
+	};
 </script>
 
 {#if show}
@@ -15,27 +23,16 @@
 				<button class="close-btn" onclick={onClose}>&times;</button>
 			</div>
 			<div class="modal-content">
-				<div class="version-entry">
-					<h3>v0.3.1</h3>
-					<ul>
-						<li><span class="tag new">New</span> Executioner's Pact: buy to raise your execute cap beyond 10% (death shop only)</li>
-						<li><span class="tag change">Changed</span> Execute reworked: now a % chance to instantly kill on any hit instead of a health threshold</li>
-						<li><span class="tag change">Changed</span> Execute upgrades stack additively and cap at 10% (expandable via Executioner's Pact)</li>
-						<li><span class="tag change">Changed</span> Execute cards no longer appear once you hit your current cap</li>
-					</ul>
-				</div>
-				<div class="version-entry">
-					<h3>v0.3.0</h3>
-					<ul>
-						<li><span class="tag new">New</span> Mobile card carousel for shop and upgrade selection</li>
-					</ul>
-				</div>
-				<div class="version-entry">
-					<h3>v0.2.0</h3>
-					<ul>
-						<li><span class="tag new">New</span> Initial release with combat, upgrades, shop, and boss fights</li>
-					</ul>
-				</div>
+				{#each CHANGELOG as entry}
+					<div class="version-entry">
+						<h3>v{entry.version} <span class="version-date">{entry.date}</span></h3>
+						<ul>
+							{#each entry.changes as change}
+								<li><span class="tag {change.category}">{tagLabel[change.category]}</span> {change.description}</li>
+							{/each}
+						</ul>
+					</div>
+				{/each}
 			</div>
 		</div>
 	</div>
@@ -112,6 +109,12 @@
 		color: #a78bfa;
 	}
 
+	.version-date {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.4);
+		font-weight: normal;
+	}
+
 	.version-entry ul {
 		list-style: none;
 		padding: 0;
@@ -140,8 +143,13 @@
 		color: #4ade80;
 	}
 
-	.tag.change {
+	.tag.changed {
 		background: rgba(251, 191, 36, 0.2);
 		color: #fbbf24;
+	}
+
+	.tag.fixed {
+		background: rgba(239, 68, 68, 0.2);
+		color: #f87171;
 	}
 </style>
