@@ -11,6 +11,8 @@ describe('createDefaultStats', () => {
 		expect(stats.damageMultiplier).toBe(1);
 		expect(stats.poison).toBe(0);
 		expect(stats.poisonCritChance).toBe(0);
+		expect(stats.poisonMaxStacks).toBe(5);
+		expect(stats.poisonDuration).toBe(5);
 		expect(stats.multiStrike).toBe(0);
 		expect(stats.overkill).toBe(false);
 		expect(stats.executeChance).toBe(0);
