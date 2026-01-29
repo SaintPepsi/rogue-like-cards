@@ -11,6 +11,25 @@
 	};
 
 	let { show, choices, pendingCount, onSelect }: Props = $props();
+
+	let selectionEnabled = $state(false);
+	let delayTimer: ReturnType<typeof setTimeout> | undefined;
+
+	$effect(() => {
+		if (show) {
+			selectionEnabled = false;
+			clearTimeout(delayTimer);
+			delayTimer = setTimeout(() => {
+				selectionEnabled = true;
+			}, 1000);
+		}
+		return () => clearTimeout(delayTimer);
+	});
+
+	function handleSelect(upgrade: Upgrade) {
+		if (!selectionEnabled) return;
+		onSelect(upgrade);
+	}
 </script>
 
 {#if show}
@@ -21,9 +40,9 @@
 			{/if}
 			<h2>Level Up!</h2>
 			<p>Choose an upgrade:</p>
-			<div class="upgrade-choices desktop-grid">
+			<div class="upgrade-choices desktop-grid" class:selection-blocked={!selectionEnabled}>
 				{#each choices as upgrade (upgrade.id)}
-					<button class="upgrade-btn" onclick={() => onSelect(upgrade)}>
+					<button class="upgrade-btn" disabled={!selectionEnabled} onclick={() => handleSelect(upgrade)}>
 						<UpgradeCard
 							title={upgrade.title}
 							rarity={upgrade.rarity}
@@ -35,7 +54,7 @@
 			</div>
 			<CardCarousel count={choices.length}>
 				{#each choices as upgrade (upgrade.id)}
-					<button class="upgrade-btn" onclick={() => onSelect(upgrade)}>
+					<button class="upgrade-btn" disabled={!selectionEnabled} class:selection-blocked={!selectionEnabled} onclick={() => handleSelect(upgrade)}>
 						<UpgradeCard
 							title={upgrade.title}
 							rarity={upgrade.rarity}
@@ -112,8 +131,17 @@
 		transition: transform 0.2s;
 	}
 
-	.upgrade-btn:hover {
+	.upgrade-btn:hover:not(:disabled) {
 		transform: translateY(-8px);
+	}
+
+	.upgrade-btn:disabled {
+		cursor: default;
+	}
+
+	.selection-blocked {
+		opacity: 0.5;
+		transition: opacity 0.3s ease;
 	}
 
 	@media (max-width: 768px) {
