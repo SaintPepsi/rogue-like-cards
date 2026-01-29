@@ -25,8 +25,16 @@ export function shouldSpawnChest(chestChance: number, rng: () => number): boolea
 	return rng() < chestChance;
 }
 
-export function getXpReward(stage: number, xpMultiplier: number): number {
-	return Math.floor((5 + stage * 3) * xpMultiplier);
+export const XP_PER_HEALTH = 1;
+export const BOSS_XP_MULTIPLIER = 2;
+export const CHEST_XP_MULTIPLIER = 1.5;
+
+export function getXpPerHealth(stage: number): number {
+	return XP_PER_HEALTH / Math.sqrt(stage);
+}
+
+export function getXpReward(enemyMaxHealth: number, stage: number, xpMultiplier: number, enemyXpMultiplier: number = 1): number {
+	return Math.floor(enemyMaxHealth * getXpPerHealth(stage) * enemyXpMultiplier * xpMultiplier);
 }
 
 export function getChestGoldReward(stage: number, goldMultiplier: number): number {

@@ -18,6 +18,21 @@ if [ $? -ne 0 ]; then
 fi
 echo "Build passed."
 
+# --- Changelog check ---
+CHANGELOG_FILE="src/lib/changelog.ts"
+CURRENT_MINOR_VERSION=$(grep -oP "VERSION = '\K[^']+" "src/lib/version.ts" 2>/dev/null | sed 's/\.[0-9]*$//')
+CHANGELOG_VERSION=$(grep -oP "version: '\K[^']+" "$CHANGELOG_FILE" 2>/dev/null | head -1)
+
+if [ -n "$CURRENT_MINOR_VERSION" ] && [ -n "$CHANGELOG_VERSION" ]; then
+  CHANGELOG_MINOR=$(echo "$CHANGELOG_VERSION" | sed 's/\.[0-9]*$//')
+  if [ "$CHANGELOG_MINOR" != "$CURRENT_MINOR_VERSION" ]; then
+    echo "CHANGELOG MISSING - The latest changelog entry is v$CHANGELOG_VERSION but the current version is v$CURRENT_MINOR_VERSION.x"
+    echo "Add a changelog entry for v$CURRENT_MINOR_VERSION.0 in $CHANGELOG_FILE before committing."
+    exit 1
+  fi
+  echo "Changelog check passed."
+fi
+
 # --- Version bump ---
 VERSION_FILE="src/lib/version.ts"
 PACKAGE_FILE="package.json"

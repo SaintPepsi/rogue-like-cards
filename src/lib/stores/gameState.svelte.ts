@@ -12,6 +12,8 @@ import {
 	getXpReward,
 	getChestGoldReward,
 	getXpToNextLevel,
+	BOSS_XP_MULTIPLIER,
+	CHEST_XP_MULTIPLIER,
 } from '$lib/engine/waves';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 
@@ -124,20 +126,23 @@ function createGameState() {
 		enemyHealth -= result.totalDamage;
 		addHits(newHits);
 
-		// Add or refresh poison stack on attack
+		// Add or refresh poison stacks — one per strike
 		if (playerStats.poison > 0) {
-			if (poisonStacks.length < playerStats.poisonMaxStacks) {
-				// Below max: add a new stack
-				poisonStacks = [...poisonStacks, playerStats.poisonDuration];
-			} else {
-				// At max: refresh the oldest (lowest remaining) stack
-				const updated = [...poisonStacks];
-				let minIndex = 0;
-				for (let i = 1; i < updated.length; i++) {
-					if (updated[i] < updated[minIndex]) minIndex = i;
+			const strikes = result.hits.filter((h) => h.type !== 'execute').length;
+			for (let i = 0; i < strikes; i++) {
+				if (poisonStacks.length < playerStats.poisonMaxStacks) {
+					// Below max: add a new stack
+					poisonStacks = [...poisonStacks, playerStats.poisonDuration];
+				} else {
+					// At max: refresh the oldest (lowest remaining) stack
+					const updated = [...poisonStacks];
+					let minIndex = 0;
+					for (let j = 1; j < updated.length; j++) {
+						if (updated[j] < updated[minIndex]) minIndex = j;
+					}
+					updated[minIndex] = playerStats.poisonDuration;
+					poisonStacks = updated;
 				}
-				updated[minIndex] = playerStats.poisonDuration;
-				poisonStacks = updated;
 			}
 		}
 
@@ -191,8 +196,9 @@ function createGameState() {
 
 		waveKills++;
 
-		// XP scales with stage, boosted by greed
-		const xpGain = getXpReward(stage, playerStats.xpMultiplier);
+		// XP scales with enemy health, rate decreases per stage, boosted for bosses/chests
+		const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
+		const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier);
 		xp += xpGain;
 
 		if (isBoss) {
