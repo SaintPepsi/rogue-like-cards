@@ -11,7 +11,8 @@ export const CHANGELOG: ChangelogEntry[] = [
 		changes: [
 			'EXP rewards are now based on enemy health with a uniform XP-per-HP rate',
 			'Bosses and chests give bonus EXP via dedicated multipliers on top of the base rate',
-			'XP-per-HP rate gradually decreases at higher stages so progression naturally slows'
+			'XP-per-HP rate gradually decreases at higher stages so progression naturally slows',
+			'Fixed multi-strike attacks only applying one poison stack instead of one per strike'
 		]
 	},
 	{
