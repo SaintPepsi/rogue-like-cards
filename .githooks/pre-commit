@@ -1,12 +1,24 @@
 #!/bin/sh
 #
-# Pre-commit hook: increments the patch version by 1 on every commit.
+# Pre-commit hook:
+#   1. Runs the production build and aborts on failure
+#   2. Increments the patch version by 1 on every commit
 #
 # Version format: MAJOR.MINOR.PATCH
 #   PATCH = incremented here on every commit
 #   MINOR = bumped by CI on merge to master
 #
 
+# --- Build check ---
+echo "Running build check..."
+npx vite build > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "BUILD FAILED - commit aborted. Fix build errors before committing."
+  exit 1
+fi
+echo "Build passed."
+
+# --- Version bump ---
 VERSION_FILE="src/lib/version.ts"
 PACKAGE_FILE="package.json"
 

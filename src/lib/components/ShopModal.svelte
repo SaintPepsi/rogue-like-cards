@@ -95,11 +95,10 @@
 						<span class="cap-desc">Raise execute chance cap by +0.5%</span>
 						<span class="cap-current">Current cap: {Math.round(executeCap * 100)}%</span>
 					</div>
-					{@const canAffordCap = gold >= executeCapPrice}
 					<button
 						class="buy-btn"
-						class:affordable={canAffordCap}
-						disabled={!canAffordCap}
+						class:affordable={gold >= executeCapPrice}
+						disabled={gold < executeCapPrice}
 						onclick={onBuyExecuteCap}
 					>
 						Buy for {executeCapPrice}g
