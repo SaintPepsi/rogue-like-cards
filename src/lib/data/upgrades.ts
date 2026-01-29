@@ -348,6 +348,38 @@ export const allUpgrades: Upgrade[] = [
 		apply: (s) => (s.luckyChance += 0.25)
 	},
 
+	// === GOLD DROP CHANCE ===
+	{
+		id: 'golddrop1',
+		title: 'Keen Scavenger',
+		rarity: 'common',
+		image: coinsImg,
+		stats: [{ icon: '💰', label: 'Gold Drop', value: '+5%' }],
+		apply: (s) => (s.goldDropChance += 0.05)
+	},
+	{
+		id: 'golddrop2',
+		title: 'Treasure Hunter',
+		rarity: 'uncommon',
+		image: coinsImg,
+		stats: [{ icon: '💰', label: 'Gold Drop', value: '+10%' }],
+		apply: (s) => (s.goldDropChance += 0.1)
+	},
+	{
+		id: 'golddrop3',
+		title: 'Golden Touch',
+		rarity: 'rare',
+		image: coinsImg,
+		stats: [
+			{ icon: '💰', label: 'Gold Drop', value: '+15%' },
+			{ icon: '✨', label: 'Gold Mult', value: '+25%' }
+		],
+		apply: (s) => {
+			s.goldDropChance += 0.15;
+			s.goldMultiplier += 0.25;
+		}
+	},
+
 	// === DAMAGE MULTIPLIER ===
 	{
 		id: 'dmgmult1',
@@ -490,6 +522,20 @@ export const executeCapUpgrade: Upgrade = {
 		// Applied via executeCapBonus in gameState, not through normal stats
 	}
 };
+
+// === GOLD PER KILL (shop-only stackable card) ===
+export const goldPerKillUpgrade: Upgrade = {
+	id: 'gold_per_kill',
+	title: "Prospector's Pick",
+	rarity: 'uncommon',
+	image: coinsImg,
+	stats: [{ icon: '💰', label: 'Gold Per Kill', value: '+1' }],
+	apply: () => {
+		// Applied via goldPerKillBonus in gameState, not through normal stats
+	}
+};
+
+export const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
 
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
 export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;

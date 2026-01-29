@@ -25,6 +25,8 @@ export type PlayerStats = {
 	luckyChance: number; // Chance for rarer upgrades
 	chestChance: number; // Chance for chest to spawn
 	goldMultiplier: number; // Bonus gold from chests
+	goldDropChance: number; // Chance for mobs to drop gold on kill
+	goldPerKill: number; // Bonus flat gold per kill drop
 };
 
 export type Upgrade = {

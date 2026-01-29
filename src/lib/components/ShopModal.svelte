@@ -10,13 +10,14 @@
 		choices: Upgrade[];
 		purchasedUpgrades: Set<string>;
 		executeCapLevel: number;
+		goldPerKillLevel: number;
 		getPrice: (upgrade: Upgrade) => number;
 		onBuy: (upgrade: Upgrade) => boolean;
 		onBack: () => void;
 		onPlayAgain: () => void;
 	};
 
-	let { show, gold, choices, purchasedUpgrades, executeCapLevel, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
+	let { show, gold, choices, purchasedUpgrades, executeCapLevel, goldPerKillLevel, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
 
 	// Track which cards are animating out
 	let animatingOut = $state<Set<string>>(new Set());
@@ -43,13 +44,14 @@
 			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade (upgrade.id)}
 					{@const isExecuteCap = upgrade.id === 'execute_cap'}
+					{@const isGoldPerKill = upgrade.id === 'gold_per_kill'}
 					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
-					{@const alreadyOwned = !isExecuteCap && purchasedUpgrades.has(upgrade.id)}
+					{@const alreadyOwned = !isExecuteCap && !isGoldPerKill && purchasedUpgrades.has(upgrade.id)}
 					{@const isAnimating = animatingOut.has(upgrade.id)}
 					<div class="card-wrapper" class:animate-out={isAnimating}>
 						<UpgradeCard
-							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : upgrade.title}
+							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : isGoldPerKill ? `${upgrade.title} (Lv.${goldPerKillLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
 							stats={upgrade.stats}
@@ -73,13 +75,14 @@
 			<CardCarousel count={choices.length}>
 				{#each choices as upgrade (upgrade.id)}
 					{@const isExecuteCap = upgrade.id === 'execute_cap'}
+					{@const isGoldPerKill = upgrade.id === 'gold_per_kill'}
 					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
-					{@const alreadyOwned = !isExecuteCap && purchasedUpgrades.has(upgrade.id)}
+					{@const alreadyOwned = !isExecuteCap && !isGoldPerKill && purchasedUpgrades.has(upgrade.id)}
 					{@const isAnimating = animatingOut.has(upgrade.id)}
 					<div class="card-wrapper" class:animate-out={isAnimating}>
 						<UpgradeCard
-							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : upgrade.title}
+							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : isGoldPerKill ? `${upgrade.title} (Lv.${goldPerKillLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
 							stats={upgrade.stats}
