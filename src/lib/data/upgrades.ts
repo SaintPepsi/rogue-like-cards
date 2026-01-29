@@ -570,6 +570,12 @@ export function getExecuteCap(executeCapBonus: number): number {
 	return EXECUTE_CHANCE_BASE_CAP + executeCapBonus;
 }
 
+export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
+	const legendaries = allUpgrades.filter((u) => u.rarity === 'legendary');
+	const shuffled = [...legendaries].sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, count);
+}
+
 export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,

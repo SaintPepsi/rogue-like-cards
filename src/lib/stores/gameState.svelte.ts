@@ -1,5 +1,5 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
-import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade } from '$lib/data/upgrades';
+import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
@@ -8,6 +8,7 @@ import {
 	getEnemyHealth,
 	getBossHealth,
 	getChestHealth,
+	getBossChestHealth,
 	shouldSpawnChest,
 	shouldSpawnBossChest,
 	getXpReward,
@@ -35,6 +36,7 @@ interface SaveData {
 	enemyMaxHealth: number;
 	isBoss: boolean;
 	isChest: boolean;
+	isBossChest: boolean;
 	timestamp: number;
 }
 
@@ -66,6 +68,7 @@ function createGameState() {
 	let waveKills = $state(0);
 	let isBoss = $state(false);
 	let isChest = $state(false);
+	let isBossChest = $state(false);
 	let bossTimer = $state(0);
 	let bossInterval: ReturnType<typeof setInterval> | null = null;
 	let poisonInterval: ReturnType<typeof setInterval> | null = null;
@@ -187,10 +190,16 @@ function createGameState() {
 			const goldReward = getChestGoldReward(stage, playerStats.goldMultiplier);
 			chestGold = goldReward;
 			gold += goldReward;
+			const wasBossChest = isBossChest;
 			isChest = false;
+			isBossChest = false;
 
-			// Show chest loot with higher rarity cards
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
+			// Boss chests drop legendary-only; regular chests get rarity boost
+			if (wasBossChest) {
+				upgradeChoices = getRandomLegendaryUpgrades(3);
+			} else {
+				upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
+			}
 			showChestLoot = true;
 			return;
 		}
@@ -218,7 +227,7 @@ function createGameState() {
 		if (!isBoss && waveKills >= KILLS_PER_WAVE) {
 			// Check if boss should become a chest
 			if (shouldSpawnBossChest(playerStats.chestChance, playerStats.bossChestChance, Math.random)) {
-				spawnChest();
+				spawnBossChest();
 			} else {
 				spawnBoss();
 			}
@@ -241,6 +250,13 @@ function createGameState() {
 	function spawnChest() {
 		isChest = true;
 		enemyMaxHealth = getChestHealth(stage, playerStats.greed);
+		enemyHealth = enemyMaxHealth;
+	}
+
+	function spawnBossChest() {
+		isChest = true;
+		isBossChest = true;
+		enemyMaxHealth = getBossChestHealth(stage, playerStats.greed);
 		enemyHealth = enemyMaxHealth;
 	}
 
@@ -380,6 +396,7 @@ function createGameState() {
 			enemyMaxHealth,
 			isBoss,
 			isChest,
+			isBossChest,
 			timestamp: Date.now()
 		};
 		try {
@@ -417,6 +434,7 @@ function createGameState() {
 			enemyMaxHealth = data.enemyMaxHealth;
 			isBoss = data.isBoss;
 			isChest = data.isChest;
+			isBossChest = data.isBossChest ?? false;
 
 			return true;
 		} catch (e) {
@@ -543,6 +561,7 @@ function createGameState() {
 		enemiesKilled = 0;
 		gold = 0;
 		isChest = false;
+		isBossChest = false;
 		showChestLoot = false;
 		chestGold = 0;
 		showLevelUp = false;
@@ -646,6 +665,9 @@ function createGameState() {
 		},
 		get isChest() {
 			return isChest;
+		},
+		get isBossChest() {
+			return isBossChest;
 		},
 		get showChestLoot() {
 			return showChestLoot;

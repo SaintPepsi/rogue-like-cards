@@ -21,6 +21,10 @@ export function getChestHealth(stage: number, greed: number): number {
 	return Math.floor(20 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
+export function getBossChestHealth(stage: number, greed: number): number {
+	return getBossHealth(stage, greed) * getChestHealth(stage, greed);
+}
+
 export function shouldSpawnChest(chestChance: number, rng: () => number): boolean {
 	return rng() < chestChance;
 }

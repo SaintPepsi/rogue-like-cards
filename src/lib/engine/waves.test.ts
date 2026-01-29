@@ -5,6 +5,7 @@ import {
 	getEnemyHealth,
 	getBossHealth,
 	getChestHealth,
+	getBossChestHealth,
 	shouldSpawnChest,
 	shouldSpawnBossChest,
 	getXpReward,
@@ -55,6 +56,16 @@ describe('enemy health', () => {
 
 	test('chest at stage 1, greed 0', () => {
 		expect(getChestHealth(1, 0)).toBe(20);
+	});
+
+	test('boss chest at stage 1, greed 0', () => {
+		// boss(50) * chest(20) = 1000
+		expect(getBossChestHealth(1, 0)).toBe(1000);
+	});
+
+	test('boss chest at stage 2, greed 0', () => {
+		// boss(75) * chest(30) = 2250
+		expect(getBossChestHealth(2, 0)).toBe(2250);
 	});
 
 	test('regular enemy with greed', () => {
