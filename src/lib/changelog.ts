@@ -6,6 +6,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.8.0',
+		date: '2026-01-29',
+		changes: [
+			'EXP rewards are now based on enemy health instead of stage number',
+			'Bosses and chests now give bonus EXP proportional to their higher health pools',
+			'EXP scales logarithmically so progression naturally slows at higher stages'
+		]
+	},
+	{
 		version: '0.7.0',
 		date: '2026-01-29',
 		changes: [
