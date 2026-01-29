@@ -1,5 +1,5 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
-import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
+import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
@@ -8,7 +8,9 @@ import {
 	getEnemyHealth,
 	getBossHealth,
 	getChestHealth,
+	getBossChestHealth,
 	shouldSpawnChest,
+	shouldSpawnBossChest,
 	shouldDropGold,
 	getXpReward,
 	getChestGoldReward,
@@ -37,6 +39,7 @@ interface SaveData {
 	enemyMaxHealth: number;
 	isBoss: boolean;
 	isChest: boolean;
+	isBossChest: boolean;
 	timestamp: number;
 }
 
@@ -70,6 +73,7 @@ function createGameState() {
 	let waveKills = $state(0);
 	let isBoss = $state(false);
 	let isChest = $state(false);
+	let isBossChest = $state(false);
 	let bossTimer = $state(0);
 	let bossInterval: ReturnType<typeof setInterval> | null = null;
 	let poisonInterval: ReturnType<typeof setInterval> | null = null;
@@ -192,10 +196,16 @@ function createGameState() {
 			const goldReward = getChestGoldReward(stage, playerStats.goldMultiplier);
 			chestGold = goldReward;
 			gold += goldReward;
+			const wasBossChest = isBossChest;
 			isChest = false;
+			isBossChest = false;
 
-			// Show chest loot with higher rarity cards
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
+			// Boss chests drop legendary-only; regular chests get rarity boost
+			if (wasBossChest) {
+				upgradeChoices = getRandomLegendaryUpgrades(3);
+			} else {
+				upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
+			}
 			showChestLoot = true;
 			return;
 		}
@@ -232,7 +242,12 @@ function createGameState() {
 
 		// Always spawn next target (game continues during level up)
 		if (!isBoss && waveKills >= KILLS_PER_WAVE) {
-			spawnBoss();
+			// Check if boss should become a chest
+			if (shouldSpawnBossChest(playerStats.chestChance, playerStats.bossChestChance, Math.random)) {
+				spawnBossChest();
+			} else {
+				spawnBoss();
+			}
 		} else {
 			spawnNextTarget();
 		}
@@ -242,8 +257,7 @@ function createGameState() {
 	}
 
 	function spawnNextTarget() {
-		// Check for chest spawn (not during boss wave buildup)
-		if (!isBoss && waveKills < KILLS_PER_WAVE - 1 && shouldSpawnChest(playerStats.chestChance, Math.random)) {
+		if (shouldSpawnChest(playerStats.chestChance, Math.random)) {
 			spawnChest();
 		} else {
 			spawnEnemy();
@@ -253,6 +267,13 @@ function createGameState() {
 	function spawnChest() {
 		isChest = true;
 		enemyMaxHealth = getChestHealth(stage, playerStats.greed);
+		enemyHealth = enemyMaxHealth;
+	}
+
+	function spawnBossChest() {
+		isChest = true;
+		isBossChest = true;
+		enemyMaxHealth = getBossChestHealth(stage, playerStats.greed);
 		enemyHealth = enemyMaxHealth;
 	}
 
@@ -303,6 +324,8 @@ function createGameState() {
 				s.label.includes('Overkill') ||
 				s.label.includes('Timer') ||
 				s.label.includes('Lucky') ||
+				s.label.includes('Chest') ||
+				s.label.includes('Boss Chest') ||
 				s.label.includes('Gold')
 		);
 
@@ -390,6 +413,7 @@ function createGameState() {
 			enemyMaxHealth,
 			isBoss,
 			isChest,
+			isBossChest,
 			timestamp: Date.now()
 		};
 		try {
@@ -427,6 +451,7 @@ function createGameState() {
 			enemyMaxHealth = data.enemyMaxHealth;
 			isBoss = data.isBoss;
 			isChest = data.isChest;
+			isBossChest = data.isBossChest ?? false;
 
 			return true;
 		} catch (e) {
@@ -561,6 +586,7 @@ function createGameState() {
 		enemiesKilled = 0;
 		gold = 0;
 		isChest = false;
+		isBossChest = false;
 		showChestLoot = false;
 		chestGold = 0;
 		lastGoldDrop = 0;
@@ -666,6 +692,9 @@ function createGameState() {
 		},
 		get isChest() {
 			return isChest;
+		},
+		get isBossChest() {
+			return isBossChest;
 		},
 		get showChestLoot() {
 			return showChestLoot;

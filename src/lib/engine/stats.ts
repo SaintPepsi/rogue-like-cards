@@ -18,6 +18,7 @@ export function createDefaultStats(): PlayerStats {
 		greed: 0,
 		luckyChance: 0,
 		chestChance: 0.05,
+		bossChestChance: 0.001,
 		goldMultiplier: 1,
 		goldDropChance: 0.15,
 		goldPerKill: 0

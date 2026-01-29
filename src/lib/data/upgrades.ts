@@ -330,6 +330,68 @@ export const allUpgrades: Upgrade[] = [
 		}
 	},
 
+	// === CHEST SPAWN ===
+	{
+		id: 'chest1',
+		title: 'Keen Nose',
+		rarity: 'uncommon',
+		image: chestImg,
+		stats: [{ icon: '📦', label: 'Chest Chance', value: '+0.1%' }],
+		apply: (s) => (s.chestChance += 0.001)
+	},
+	{
+		id: 'chest2',
+		title: 'Treasure Sense',
+		rarity: 'rare',
+		image: chestImg,
+		stats: [{ icon: '📦', label: 'Chest Chance', value: '+0.1%' }],
+		apply: (s) => (s.chestChance += 0.001)
+	},
+	{
+		id: 'chest3',
+		title: 'Hoarder',
+		rarity: 'epic',
+		image: chestImg,
+		stats: [
+			{ icon: '📦', label: 'Chest Chance', value: '+0.1%' },
+			{ icon: '💰', label: 'Gold Mult', value: '+0.5x' }
+		],
+		apply: (s) => {
+			s.chestChance += 0.001;
+			s.goldMultiplier += 0.5;
+		}
+	},
+
+	// === BOSS CHEST SPAWN (Legendary only) ===
+	{
+		id: 'bosschest1',
+		title: "Mimic's Blessing",
+		rarity: 'legendary',
+		image: chestImg,
+		stats: [
+			{ icon: '👑', label: 'Boss Chest', value: '+0.1%' },
+			{ icon: '📦', label: 'Chest Chance', value: '+0.1%' }
+		],
+		apply: (s) => {
+			s.bossChestChance += 0.001;
+			s.chestChance += 0.001;
+		}
+	},
+	{
+		id: 'bosschest2',
+		title: "Dragon's Hoard",
+		rarity: 'legendary',
+		image: chestImg,
+		stats: [
+			{ icon: '👑', label: 'Boss Chest', value: '+0.1%' },
+			{ icon: '💰', label: 'Gold Mult', value: '+1x' }
+		],
+		apply: (s) => {
+			s.bossChestChance += 0.001;
+			s.goldMultiplier += 1;
+		}
+	},
+
 	// === LUCKY ===
 	{
 		id: 'lucky1',
@@ -552,6 +614,12 @@ const poisonDependentIds = new Set([
 
 export function getExecuteCap(executeCapBonus: number): number {
 	return EXECUTE_CHANCE_BASE_CAP + executeCapBonus;
+}
+
+export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
+	const legendaries = allUpgrades.filter((u) => u.rarity === 'legendary');
+	const shuffled = [...legendaries].sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, count);
 }
 
 export function getRandomUpgrades(

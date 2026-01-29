@@ -24,6 +24,7 @@ export type PlayerStats = {
 	greed: number; // Enemy health multiplier (also increases XP)
 	luckyChance: number; // Chance for rarer upgrades
 	chestChance: number; // Chance for chest to spawn
+	bossChestChance: number; // Chance for boss to become a chest (rolled on top of chest roll)
 	goldMultiplier: number; // Bonus gold from chests
 	goldDropChance: number; // Chance for mobs to drop gold on kill
 	goldPerKill: number; // Bonus flat gold per kill drop

@@ -20,6 +20,7 @@ describe('createDefaultStats', () => {
 		expect(stats.greed).toBe(0);
 		expect(stats.luckyChance).toBe(0);
 		expect(stats.chestChance).toBe(0.05);
+		expect(stats.bossChestChance).toBe(0.001);
 		expect(stats.goldMultiplier).toBe(1);
 	});
 
