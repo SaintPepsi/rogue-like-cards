@@ -407,6 +407,14 @@ function createGameState() {
 		}
 	}
 
+	function clearPersistent() {
+		try {
+			localStorage.removeItem(PERSISTENT_STORAGE_KEY);
+		} catch (e) {
+			console.warn('Failed to clear persistent data:', e);
+		}
+	}
+
 	function savePersistent() {
 		const data: PersistentData = {
 			gold: persistentGold,
@@ -523,6 +531,17 @@ function createGameState() {
 		startPoisonTick();
 	}
 
+	function fullReset() {
+		// Clear persistent data (bank purchases, gold, execute cap)
+		persistentGold = 0;
+		purchasedUpgrades = new Set();
+		executeCapBonus = 0;
+		clearPersistent();
+
+		// Then do a normal game reset (without purchased upgrades since they're gone)
+		resetGame();
+	}
+
 	function init() {
 		// Always load persistent data first
 		loadPersistent();
@@ -637,6 +656,7 @@ function createGameState() {
 		attack,
 		selectUpgrade,
 		resetGame,
+		fullReset,
 		init,
 		openShop,
 		closeShop,

@@ -30,7 +30,7 @@
 		<div class="header-buttons">
 			<button class="changelog-btn" onclick={() => showChangelogModal = true}>Changelog</button>
 			<button class="upgrades-btn" onclick={() => showUpgradesModal = true}>Upgrades</button>
-			<button class="reset-btn" onclick={gameState.resetGame}>Reset</button>
+			<button class="reset-btn" onclick={gameState.fullReset}>Reset</button>
 		</div>
 	</header>
 
