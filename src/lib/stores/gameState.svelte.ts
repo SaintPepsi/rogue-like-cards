@@ -9,6 +9,7 @@ import {
 	getBossHealth,
 	getChestHealth,
 	shouldSpawnChest,
+	shouldSpawnBossChest,
 	getXpReward,
 	getChestGoldReward,
 	getXpToNextLevel,
@@ -215,7 +216,12 @@ function createGameState() {
 
 		// Always spawn next target (game continues during level up)
 		if (!isBoss && waveKills >= KILLS_PER_WAVE) {
-			spawnBoss();
+			// Check if boss should become a chest
+			if (shouldSpawnBossChest(playerStats.chestChance, playerStats.bossChestChance, Math.random)) {
+				spawnChest();
+			} else {
+				spawnBoss();
+			}
 		} else {
 			spawnNextTarget();
 		}
@@ -225,8 +231,7 @@ function createGameState() {
 	}
 
 	function spawnNextTarget() {
-		// Check for chest spawn (not during boss wave buildup)
-		if (!isBoss && waveKills < KILLS_PER_WAVE - 1 && shouldSpawnChest(playerStats.chestChance, Math.random)) {
+		if (shouldSpawnChest(playerStats.chestChance, Math.random)) {
 			spawnChest();
 		} else {
 			spawnEnemy();
@@ -285,7 +290,10 @@ function createGameState() {
 				s.label.includes('Execute') ||
 				s.label.includes('Overkill') ||
 				s.label.includes('Timer') ||
-				s.label.includes('Lucky')
+				s.label.includes('Lucky') ||
+				s.label.includes('Chest') ||
+				s.label.includes('Boss Chest') ||
+				s.label.includes('Gold Mult')
 		);
 
 		if (hasSpecialEffect) {

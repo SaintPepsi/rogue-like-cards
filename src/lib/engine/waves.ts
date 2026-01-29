@@ -25,6 +25,10 @@ export function shouldSpawnChest(chestChance: number, rng: () => number): boolea
 	return rng() < chestChance;
 }
 
+export function shouldSpawnBossChest(chestChance: number, bossChestChance: number, rng: () => number): boolean {
+	return rng() < chestChance && rng() < bossChestChance;
+}
+
 export const XP_PER_HEALTH = 1;
 export const BOSS_XP_MULTIPLIER = 2;
 export const CHEST_XP_MULTIPLIER = 1.5;

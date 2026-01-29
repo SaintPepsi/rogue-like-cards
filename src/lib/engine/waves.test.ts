@@ -6,6 +6,7 @@ import {
 	getBossHealth,
 	getChestHealth,
 	shouldSpawnChest,
+	shouldSpawnBossChest,
 	getXpReward,
 	getXpPerHealth,
 	getChestGoldReward,
@@ -68,6 +69,28 @@ describe('shouldSpawnChest', () => {
 
 	test('does not spawn when rng >= chestChance', () => {
 		expect(shouldSpawnChest(0.05, () => 0.99)).toBe(false);
+	});
+});
+
+describe('shouldSpawnBossChest', () => {
+	test('spawns when both chest and boss chest rolls succeed', () => {
+		expect(shouldSpawnBossChest(0.05, 0.001, () => 0.0001)).toBe(true);
+	});
+
+	test('does not spawn when chest roll fails', () => {
+		let call = 0;
+		expect(shouldSpawnBossChest(0.05, 0.001, () => {
+			call++;
+			return call === 1 ? 0.99 : 0.0001; // chest fails, boss would pass
+		})).toBe(false);
+	});
+
+	test('does not spawn when boss chest roll fails', () => {
+		let call = 0;
+		expect(shouldSpawnBossChest(0.05, 0.001, () => {
+			call++;
+			return call === 1 ? 0.01 : 0.99; // chest passes, boss fails
+		})).toBe(false);
 	});
 });
 
