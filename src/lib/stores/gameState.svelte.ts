@@ -73,6 +73,9 @@ function createGameState() {
 	let enemiesKilled = $state(0);
 	let overkillDamage = $state(0);
 
+	// Poison stacks - each entry is remaining ticks for that stack
+	let poisonStacks = $state<number[]>([]);
+
 	// UI state
 	let showLevelUp = $state(false);
 	let pendingLevelUps = $state(0);
@@ -121,6 +124,11 @@ function createGameState() {
 		enemyHealth -= result.totalDamage;
 		addHits(newHits);
 
+		// Add poison stack on attack (if player has poison and below max stacks)
+		if (playerStats.poison > 0 && poisonStacks.length < playerStats.poisonMaxStacks) {
+			poisonStacks = [...poisonStacks, playerStats.poisonDuration];
+		}
+
 		if (enemyHealth <= 0) {
 			killEnemy();
 		}
@@ -128,13 +136,19 @@ function createGameState() {
 
 	function applyPoison() {
 		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || levelingUp) return;
+		if (poisonStacks.length === 0) return;
 
-		const result = calculatePoison(playerStats, { rng: Math.random });
+		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
 		if (result.damage <= 0) return;
 
 		enemyHealth -= result.damage;
 		hitId++;
 		addHits([{ damage: result.damage, type: result.type, id: hitId, index: 0 }]);
+
+		// Tick down all stacks and remove expired ones
+		poisonStacks = poisonStacks
+			.map((remaining) => remaining - 1)
+			.filter((remaining) => remaining > 0);
 
 		if (enemyHealth <= 0) {
 			killEnemy();
@@ -148,6 +162,7 @@ function createGameState() {
 
 	function killEnemy() {
 		enemiesKilled++;
+		poisonStacks = [];
 
 		if (isChest) {
 			// Chest gives gold + guaranteed upgrade
@@ -246,6 +261,8 @@ function createGameState() {
 				s.label.includes('Crit') ||
 				s.label.includes('XP') ||
 				s.label.includes('Poison') ||
+				s.label.includes('Stacks') ||
+				s.label.includes('Duration') ||
 				s.label.includes('Multi') ||
 				s.label.includes('Execute') ||
 				s.label.includes('Overkill') ||
@@ -487,6 +504,7 @@ function createGameState() {
 		waveKills = 0;
 		isBoss = false;
 		overkillDamage = 0;
+		poisonStacks = [];
 		enemiesKilled = 0;
 		gold = 0;
 		isChest = false;
@@ -573,6 +591,9 @@ function createGameState() {
 		},
 		get hits() {
 			return hits;
+		},
+		get poisonStacks() {
+			return poisonStacks;
 		},
 		get gold() {
 			return gold;

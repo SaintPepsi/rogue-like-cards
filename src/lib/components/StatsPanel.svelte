@@ -33,7 +33,17 @@
 	{#if stats.poison > 0}
 		<div class="stat-row poison">
 			<span>☠️ Poison</span>
-			<span>{formatNumber(stats.poison)}/sec</span>
+			<span>{formatNumber(stats.poison)}/stack</span>
+		</div>
+	{/if}
+	{#if stats.poison > 0}
+		<div class="stat-row poison">
+			<span>🧪 Max Stacks</span>
+			<span>{stats.poisonMaxStacks}</span>
+		</div>
+		<div class="stat-row poison">
+			<span>🕐 Duration</span>
+			<span>{stats.poisonDuration}s</span>
 		</div>
 	{/if}
 	{#if stats.poisonCritChance > 0}

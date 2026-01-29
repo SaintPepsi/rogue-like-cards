@@ -13,8 +13,10 @@ export type PlayerStats = {
 	xpMultiplier: number;
 	damageMultiplier: number; // Final damage multiplier (applies to all damage including poison)
 	// New mechanics
-	poison: number; // Damage per second
+	poison: number; // Damage per tick per stack
 	poisonCritChance: number; // Chance for poison to crit
+	poisonMaxStacks: number; // Max concurrent poison stacks on enemy
+	poisonDuration: number; // How many seconds each poison stack lasts
 	multiStrike: number; // Extra attacks per click
 	overkill: boolean; // Excess damage carries over
 	executeChance: number; // Chance to instantly kill on hit

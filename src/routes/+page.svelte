@@ -69,6 +69,7 @@
 				enemiesKilled={gameState.enemiesKilled}
 				gold={gameState.gold}
 				hits={gameState.hits}
+				poisonStacks={gameState.poisonStacks.length}
 				onAttack={gameState.attack}
 			/>
 		</div>
