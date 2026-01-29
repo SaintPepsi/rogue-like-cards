@@ -11,7 +11,7 @@
 
 # --- Build check ---
 echo "Running build check..."
-npx vite build > /dev/null 2>&1
+bun run build > /dev/null 2>&1
 if [ $? -ne 0 ]; then
   echo "BUILD FAILED - commit aborted. Fix build errors before committing."
   exit 1
