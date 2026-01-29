@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { formatNumber } from '$lib/format';
+
 	type Props = {
 		damage: number;
 		index: number;
@@ -18,7 +20,7 @@
 	style:top="calc(50% + {randomY}px)"
 	style:animation-delay="{animationDelay}s"
 >
-	{damage}
+	{formatNumber(damage)}
 </div>
 
 <style>

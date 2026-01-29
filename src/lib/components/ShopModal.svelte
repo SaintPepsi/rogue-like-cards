@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Upgrade } from '$lib/types';
+	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
 
@@ -28,7 +29,7 @@
 	<div class="modal-overlay">
 		<div class="modal">
 			<h2>Card Shop</h2>
-			<p class="gold-display">Your Gold: <span class="gold-amount">{gold}</span></p>
+			<p class="gold-display">Your Gold: <span class="gold-amount">{formatNumber(gold)}</span></p>
 			<p class="shop-info">Purchased cards give permanent bonuses each run!</p>
 			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, index (upgrade.id)}
@@ -52,7 +53,7 @@
 							{#if alreadyOwned}
 								Owned
 							{:else}
-								Buy for {price}g
+								Buy for {formatNumber(price)}g
 							{/if}
 						</button>
 					</div>
@@ -80,7 +81,7 @@
 							{#if alreadyOwned}
 								Owned
 							{:else}
-								Buy for {price}g
+								Buy for {formatNumber(price)}g
 							{/if}
 						</button>
 					</div>
@@ -101,7 +102,7 @@
 						disabled={gold < executeCapPrice}
 						onclick={onBuyExecuteCap}
 					>
-						Buy for {executeCapPrice}g
+						Buy for {formatNumber(executeCapPrice)}g
 					</button>
 				</div>
 			</div>
