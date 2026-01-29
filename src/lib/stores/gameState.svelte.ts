@@ -445,9 +445,11 @@ function createGameState() {
 	}
 
 	function getExecuteCapPrice(): number {
-		// Each level costs more: 50, 75, 100, ...
+		// Exponential runaway cost: 25 * e^(0.3 * level)
+		// Level 0: 25g, Level 1: 34g, Level 3: 61g, Level 5: 112g,
+		// Level 10: 498g, Level 15: 2216g, Level 20: 9866g
 		const level = Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
-		return 50 + level * 25;
+		return Math.round(25 * Math.exp(0.3 * level));
 	}
 
 	function buyExecuteCap(): boolean {

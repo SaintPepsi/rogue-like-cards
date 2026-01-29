@@ -394,7 +394,7 @@ export const allUpgrades: Upgrade[] = [
 ];
 
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
-export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.05;
+export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 
 const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
 

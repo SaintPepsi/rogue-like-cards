@@ -92,7 +92,7 @@
 				<div class="execute-cap-card">
 					<div class="cap-info">
 						<span class="cap-title">Executioner's Pact</span>
-						<span class="cap-desc">Raise execute chance cap by +5%</span>
+						<span class="cap-desc">Raise execute chance cap by +0.5%</span>
 						<span class="cap-current">Current cap: {Math.round(executeCap * 100)}%</span>
 					</div>
 					{@const canAffordCap = gold >= executeCapPrice}
