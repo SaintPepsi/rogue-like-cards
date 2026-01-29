@@ -51,8 +51,12 @@ export function getXpPerHealth(stage: number): number {
 	return XP_PER_HEALTH / Math.sqrt(stage);
 }
 
-export function getXpReward(enemyMaxHealth: number, stage: number, xpMultiplier: number, enemyXpMultiplier: number = 1): number {
-	return Math.floor(enemyMaxHealth * getXpPerHealth(stage) * enemyXpMultiplier * xpMultiplier);
+export function getXpReward(enemyMaxHealth: number, stage: number, xpMultiplier: number, enemyXpMultiplier: number = 1, greedMultiplier: number = 1): number {
+	// Decouple XP from greed: use base health (before greed) so greed is purely a difficulty increase
+	const baseHealth = enemyMaxHealth / greedMultiplier;
+	// Apply diminishing returns to XP multiplier to prevent every-kill level ups at high stages
+	const effectiveXpMult = Math.sqrt(xpMultiplier);
+	return Math.floor(baseHealth * getXpPerHealth(stage) * enemyXpMultiplier * effectiveXpMult);
 }
 
 export function getChestGoldReward(stage: number, goldMultiplier: number): number {

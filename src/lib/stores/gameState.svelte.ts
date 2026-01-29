@@ -9,6 +9,7 @@ import {
 	getBossHealth,
 	getChestHealth,
 	getBossChestHealth,
+	getGreedMultiplier,
 	shouldSpawnChest,
 	shouldSpawnBossChest,
 	shouldDropGold,
@@ -223,9 +224,10 @@ function createGameState() {
 			lastGoldDrop = goldReward;
 		}
 
-		// XP scales with enemy health, rate decreases per stage, boosted for bosses/chests
+		// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
 		const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
-		const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier);
+		const greedMult = getGreedMultiplier(playerStats.greed);
+		const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
 		xp += xpGain;
 
 		if (isBoss) {
