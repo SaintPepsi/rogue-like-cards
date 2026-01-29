@@ -38,7 +38,7 @@
 	$effect(() => {
 		if (lastGoldDrop > 0) {
 			goldDropAmount = lastGoldDrop;
-			goldDropKey++;
+			goldDropKey = Date.now();
 			showGoldDrop = true;
 			setTimeout(() => {
 				showGoldDrop = false;

@@ -16,7 +16,8 @@ export const CHANGELOG: ChangelogEntry[] = [
 		version: '0.18.0',
 		date: '2026-01-29',
 		changes: [
-			{ category: 'fixed', description: 'Fixed game freeze caused by boss timer running during level-up modal when killing the final wave enemy' }
+			{ category: 'fixed', description: 'Fixed game freeze caused by infinite reactive loop in gold drop animation' },
+			{ category: 'fixed', description: 'Fixed boss timer running during level-up modal when killing the final wave enemy' }
 		]
 	},
 	{
