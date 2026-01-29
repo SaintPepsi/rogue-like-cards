@@ -302,15 +302,15 @@ function createGameState() {
 	}
 
 	function startLevelUp() {
-		// Consume all available level-ups from current XP
+		// Consume all available level-ups from current XP.
 		// IMPORTANT: call getXpToNextLevel(level) directly — the $derived xpToNextLevel
 		// may not recompute mid-loop in Svelte 5's synchronous batch.
-		let required = getXpToNextLevel(level);
-		while (xp >= required) {
+		// Bounded iteration to avoid any possibility of infinite looping.
+		const MAX_LEVELUPS = 100;
+		for (let i = 0; i < MAX_LEVELUPS && xp >= getXpToNextLevel(level); i++) {
 			pendingLevelUps++;
-			xp -= required;
+			xp -= getXpToNextLevel(level);
 			level++;
-			required = getXpToNextLevel(level);
 		}
 
 		// If already showing level up modal, just queue the additional levels

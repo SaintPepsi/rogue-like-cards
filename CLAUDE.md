@@ -104,6 +104,10 @@ bun --hot ./index.ts
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
 
+## Code Style
+
+- Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
+
 ## Changelog Guidelines
 
 All changelog entries live in `src/lib/changelog.ts`. The `ChangelogModal.svelte` component renders them dynamically — never hardcode entries in the modal.
