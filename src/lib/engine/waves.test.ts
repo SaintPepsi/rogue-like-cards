@@ -29,6 +29,24 @@ describe('getStageMultiplier', () => {
 	test('stage 3 returns 2.25', () => {
 		expect(getStageMultiplier(3)).toBeCloseTo(2.25);
 	});
+
+	test('stage 100 still uses exponential', () => {
+		expect(getStageMultiplier(100)).toBeCloseTo(Math.pow(1.5, 99));
+	});
+
+	test('stage 200 uses soft cap polynomial growth', () => {
+		const base = Math.pow(1.5, 99);
+		const result = getStageMultiplier(200);
+		// Should be much smaller than pure exponential 1.5^199
+		expect(result).toBeLessThan(Math.pow(1.5, 199));
+		// Should still be larger than the base
+		expect(result).toBeGreaterThan(base);
+	});
+
+	test('high stages produce finite numbers', () => {
+		expect(isFinite(getStageMultiplier(500))).toBe(true);
+		expect(isFinite(getStageMultiplier(1000))).toBe(true);
+	});
 });
 
 describe('getGreedMultiplier', () => {
@@ -59,13 +77,13 @@ describe('enemy health', () => {
 	});
 
 	test('boss chest at stage 1, greed 0', () => {
-		// boss(50) * chest(20) = 1000
-		expect(getBossChestHealth(1, 0)).toBe(1000);
+		// boss(50) * 10 = 500
+		expect(getBossChestHealth(1, 0)).toBe(500);
 	});
 
 	test('boss chest at stage 2, greed 0', () => {
-		// boss(75) * chest(30) = 2250
-		expect(getBossChestHealth(2, 0)).toBe(2250);
+		// boss(75) * 10 = 750
+		expect(getBossChestHealth(2, 0)).toBe(750);
 	});
 
 	test('regular enemy with greed', () => {

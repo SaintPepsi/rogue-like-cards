@@ -2,7 +2,16 @@ export const KILLS_PER_WAVE = 5;
 export const BASE_BOSS_TIME = 30;
 
 export function getStageMultiplier(stage: number): number {
-	return Math.pow(1.5, stage - 1);
+	// Use 1.5^stage for early game, transitioning to softer polynomial growth
+	// to prevent numbers from exceeding safe floating-point precision
+	const SOFT_CAP_STAGE = 100;
+	if (stage <= SOFT_CAP_STAGE) {
+		return Math.pow(1.5, stage - 1);
+	}
+	// After soft cap: exponential base at cap * polynomial growth beyond
+	const base = Math.pow(1.5, SOFT_CAP_STAGE - 1);
+	const beyond = stage - SOFT_CAP_STAGE;
+	return base * Math.pow(1 + beyond * 0.1, 3);
 }
 
 export function getGreedMultiplier(greed: number): number {
@@ -22,7 +31,8 @@ export function getChestHealth(stage: number, greed: number): number {
 }
 
 export function getBossChestHealth(stage: number, greed: number): number {
-	return getBossHealth(stage, greed) * getChestHealth(stage, greed);
+	// Use boss health * fixed multiplier instead of boss * chest (which squared the exponent)
+	return Math.floor(getBossHealth(stage, greed) * 10);
 }
 
 export function shouldSpawnChest(chestChance: number, rng: () => number): boolean {
@@ -62,5 +72,12 @@ export function shouldDropGold(goldDropChance: number, rng: () => number): boole
 }
 
 export function getXpToNextLevel(level: number): number {
-	return Math.floor(10 * Math.pow(1.5, level - 1));
+	// Same soft cap approach as stage multiplier to prevent overflow
+	const SOFT_CAP_LEVEL = 100;
+	if (level <= SOFT_CAP_LEVEL) {
+		return Math.floor(10 * Math.pow(1.5, level - 1));
+	}
+	const base = Math.pow(1.5, SOFT_CAP_LEVEL - 1);
+	const beyond = level - SOFT_CAP_LEVEL;
+	return Math.floor(10 * base * Math.pow(1 + beyond * 0.1, 3));
 }
