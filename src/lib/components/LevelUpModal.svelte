@@ -11,6 +11,30 @@
 	};
 
 	let { show, choices, pendingCount, onSelect }: Props = $props();
+
+	let flippedCards = $state<boolean[]>([]);
+	let flipTimers: ReturnType<typeof setTimeout>[] = [];
+
+	$effect(() => {
+		if (show) {
+			flippedCards = choices.map(() => false);
+			flipTimers.forEach(clearTimeout);
+			flipTimers = [];
+
+			choices.forEach((_, i) => {
+				const timer = setTimeout(() => {
+					flippedCards[i] = true;
+				}, 200 + i * 250);
+				flipTimers.push(timer);
+			});
+		}
+		return () => flipTimers.forEach(clearTimeout);
+	});
+
+	function handleSelect(upgrade: Upgrade, index: number) {
+		if (!flippedCards[index]) return;
+		onSelect(upgrade);
+	}
 </script>
 
 {#if show}
@@ -22,26 +46,52 @@
 			<h2>Level Up!</h2>
 			<p>Choose an upgrade:</p>
 			<div class="upgrade-choices desktop-grid">
-				{#each choices as upgrade (upgrade.id)}
-					<button class="upgrade-btn" onclick={() => onSelect(upgrade)}>
-						<UpgradeCard
-							title={upgrade.title}
-							rarity={upgrade.rarity}
-							image={upgrade.image}
-							stats={upgrade.stats}
-						/>
+				{#each choices as upgrade, i (upgrade.id)}
+					<button
+						class="upgrade-btn"
+						disabled={!flippedCards[i]}
+						onclick={() => handleSelect(upgrade, i)}
+					>
+						<div class="card-flip" class:flipped={flippedCards[i]}>
+							<div class="card-face card-back">
+								<div class="card-back-design">
+									<div class="card-back-inner">?</div>
+								</div>
+							</div>
+							<div class="card-face card-front">
+								<UpgradeCard
+									title={upgrade.title}
+									rarity={upgrade.rarity}
+									image={upgrade.image}
+									stats={upgrade.stats}
+								/>
+							</div>
+						</div>
 					</button>
 				{/each}
 			</div>
 			<CardCarousel count={choices.length}>
-				{#each choices as upgrade (upgrade.id)}
-					<button class="upgrade-btn" onclick={() => onSelect(upgrade)}>
-						<UpgradeCard
-							title={upgrade.title}
-							rarity={upgrade.rarity}
-							image={upgrade.image}
-							stats={upgrade.stats}
-						/>
+				{#each choices as upgrade, i (upgrade.id)}
+					<button
+						class="upgrade-btn"
+						disabled={!flippedCards[i]}
+						onclick={() => handleSelect(upgrade, i)}
+					>
+						<div class="card-flip" class:flipped={flippedCards[i]}>
+							<div class="card-face card-back">
+								<div class="card-back-design">
+									<div class="card-back-inner">?</div>
+								</div>
+							</div>
+							<div class="card-face card-front">
+								<UpgradeCard
+									title={upgrade.title}
+									rarity={upgrade.rarity}
+									image={upgrade.image}
+									stats={upgrade.stats}
+								/>
+							</div>
+						</div>
 					</button>
 				{/each}
 			</CardCarousel>
@@ -109,11 +159,65 @@
 		border: none;
 		padding: 0;
 		cursor: pointer;
-		transition: transform 0.2s;
+		perspective: 800px;
 	}
 
-	.upgrade-btn:hover {
-		transform: translateY(-8px);
+	.upgrade-btn:hover:not(:disabled) .card-flip.flipped {
+		transform: rotateY(180deg) translateY(-8px);
+	}
+
+	.upgrade-btn:disabled {
+		cursor: default;
+	}
+
+	.card-flip {
+		position: relative;
+		width: 100%;
+		transform-style: preserve-3d;
+		transition: transform 0.6s ease;
+		transform: rotateY(0deg);
+	}
+
+	.card-flip.flipped {
+		transform: rotateY(180deg);
+	}
+
+	.card-face {
+		backface-visibility: hidden;
+		-webkit-backface-visibility: hidden;
+	}
+
+	.card-back {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.card-back-design {
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(135deg, #1a1525, #2d2438);
+		border: 2px solid #4a3a5a;
+		border-radius: 8px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow:
+			0 0 20px rgba(139, 92, 246, 0.3),
+			inset 0 0 30px rgba(0, 0, 0, 0.4);
+	}
+
+	.card-back-inner {
+		font-size: 3rem;
+		color: rgba(139, 92, 246, 0.6);
+		font-weight: bold;
+		text-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+	}
+
+	.card-front {
+		transform: rotateY(180deg);
 	}
 
 	@media (max-width: 768px) {
