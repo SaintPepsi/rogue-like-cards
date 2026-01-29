@@ -68,12 +68,33 @@ describe('shouldSpawnChest', () => {
 });
 
 describe('getXpReward', () => {
-	test('stage 1 with 1x multiplier', () => {
-		expect(getXpReward(1, 1)).toBe(8);
+	test('regular enemy health 10 with 1x multiplier', () => {
+		// floor(log2(11) * 3) = floor(10.37) = 10
+		expect(getXpReward(10, 1)).toBe(10);
 	});
 
-	test('stage 3 with 2x multiplier', () => {
-		expect(getXpReward(3, 2)).toBe(28);
+	test('boss health 50 with 1x multiplier', () => {
+		// floor(log2(51) * 3) = floor(17.01) = 17
+		expect(getXpReward(50, 1)).toBe(17);
+	});
+
+	test('boss health 50 with 2x multiplier', () => {
+		// floor(log2(51) * 3 * 2) = floor(34.03) = 34
+		expect(getXpReward(50, 2)).toBe(34);
+	});
+
+	test('chest health 20 with 1x multiplier', () => {
+		// floor(log2(21) * 3) = floor(13.17) = 13
+		expect(getXpReward(20, 1)).toBe(13);
+	});
+
+	test('logarithmic curve falls behind exponential health growth', () => {
+		// Health doubles but XP only increases by ~3
+		const xpAt10 = getXpReward(10, 1);
+		const xpAt20 = getXpReward(20, 1);
+		const xpAt40 = getXpReward(40, 1);
+		expect(xpAt20 - xpAt10).toBeLessThan(xpAt10);
+		expect(xpAt40 - xpAt20).toBeLessThan(xpAt20);
 	});
 });
 

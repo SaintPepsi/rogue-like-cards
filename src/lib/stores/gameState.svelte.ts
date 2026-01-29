@@ -191,8 +191,8 @@ function createGameState() {
 
 		waveKills++;
 
-		// XP scales with stage, boosted by greed
-		const xpGain = getXpReward(stage, playerStats.xpMultiplier);
+		// XP scales logarithmically with enemy health
+		const xpGain = getXpReward(enemyMaxHealth, playerStats.xpMultiplier);
 		xp += xpGain;
 
 		if (isBoss) {
