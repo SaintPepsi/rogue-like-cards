@@ -122,6 +122,9 @@
 	}
 
 	.version-entry li {
+		display: flex;
+		align-items: baseline;
+		gap: 8px;
 		padding: 6px 0;
 		font-size: 0.9rem;
 		color: rgba(255, 255, 255, 0.8);
@@ -130,17 +133,17 @@
 
 	.tag {
 		display: inline-block;
-		vertical-align: baseline;
 		padding: 1px 6px;
 		border-radius: 3px;
 		font-size: 0.75rem;
 		font-weight: 600;
 		text-transform: uppercase;
-		margin-right: 8px;
+		flex-shrink: 0;
 	}
 
 	.change-description {
-		display: inline;
+		flex: 1;
+		min-width: 0;
 	}
 
 	.tag.new {
