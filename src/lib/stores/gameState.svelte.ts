@@ -101,9 +101,14 @@ function createGameState() {
 	let hits = $state<HitInfo[]>([]);
 	let hitId = $state(0);
 
-	// Derived values
+	// Derived values (for rendering only — game logic should call getXpToNextLevel(level) directly)
 	let xpToNextLevel = $derived(getXpToNextLevel(level));
 	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
+
+	// Centralized check: is the game currently paused by a modal?
+	function isModalOpen() {
+		return showGameOver || showLevelUp || showChestLoot;
+	}
 
 	function addHits(newHits: HitInfo[]) {
 		hits = [...hits, ...newHits];
@@ -115,7 +120,7 @@ function createGameState() {
 	}
 
 	function attack() {
-		if (showGameOver || showLevelUp || showChestLoot) return;
+		if (isModalOpen() || enemyHealth <= 0) return;
 
 		const result = calculateAttack(playerStats, {
 			enemyHealth,
@@ -162,7 +167,7 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (playerStats.poison <= 0 || enemyHealth <= 0 || showGameOver || showLevelUp || showChestLoot) return;
+		if (playerStats.poison <= 0 || enemyHealth <= 0 || isModalOpen()) return;
 		if (poisonStacks.length === 0) return;
 
 		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
@@ -187,7 +192,21 @@ function createGameState() {
 		poisonInterval = setInterval(applyPoison, 1000);
 	}
 
+	function stopPoisonTick() {
+		if (poisonInterval) {
+			clearInterval(poisonInterval);
+			poisonInterval = null;
+		}
+	}
+
+	let killingEnemy = false;
+
 	function killEnemy() {
+		// Re-entry guard: attack() and applyPoison() can both call killEnemy
+		// in the same tick if poison fires right as attack lands the kill.
+		if (killingEnemy) return;
+		killingEnemy = true;
+
 		enemiesKilled++;
 		poisonStacks = [];
 
@@ -207,6 +226,9 @@ function createGameState() {
 				upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
 			}
 			showChestLoot = true;
+			stopPoisonTick();
+			pauseBossTimer();
+			killingEnemy = false;
 			return;
 		}
 
@@ -237,7 +259,7 @@ function createGameState() {
 		}
 
 		// Check for level up (non-blocking - game continues)
-		if (xp >= xpToNextLevel) {
+		if (xp >= getXpToNextLevel(level)) {
 			startLevelUp();
 		}
 
@@ -255,6 +277,7 @@ function createGameState() {
 
 		// Auto-save after each kill
 		saveGame();
+		killingEnemy = false;
 	}
 
 	function spawnNextTarget() {
@@ -280,10 +303,14 @@ function createGameState() {
 
 	function startLevelUp() {
 		// Consume all available level-ups from current XP
-		while (xp >= xpToNextLevel) {
+		// IMPORTANT: call getXpToNextLevel(level) directly — the $derived xpToNextLevel
+		// may not recompute mid-loop in Svelte 5's synchronous batch.
+		let required = getXpToNextLevel(level);
+		while (xp >= required) {
 			pendingLevelUps++;
-			xp -= xpToNextLevel;
+			xp -= required;
 			level++;
+			required = getXpToNextLevel(level);
 		}
 
 		// If already showing level up modal, just queue the additional levels
@@ -293,6 +320,8 @@ function createGameState() {
 
 		upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
 		showLevelUp = true;
+		stopPoisonTick();
+		pauseBossTimer();
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
@@ -333,12 +362,14 @@ function createGameState() {
 		if (showChestLoot) {
 			showChestLoot = false;
 			spawnNextTarget();
+			startPoisonTick();
+			resumeBossTimer();
 			saveGame();
 			return;
 		}
 
 		// Handle queued level ups
-		pendingLevelUps--;
+		pendingLevelUps = Math.max(0, pendingLevelUps - 1);
 		if (pendingLevelUps > 0) {
 			// Show next level up
 			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
@@ -346,8 +377,10 @@ function createGameState() {
 			return;
 		}
 
-		// Game continues in background, just close the modal
+		// All level-ups consumed — close modal and resume game
 		showLevelUp = false;
+		startPoisonTick();
+		resumeBossTimer();
 		saveGame();
 	}
 
@@ -386,6 +419,29 @@ function createGameState() {
 			bossInterval = null;
 		}
 		bossTimer = 0;
+	}
+
+	function pauseBossTimer() {
+		if (bossInterval) {
+			clearInterval(bossInterval);
+			bossInterval = null;
+		}
+		// bossTimer is preserved so it can be resumed
+	}
+
+	function resumeBossTimer() {
+		if (bossTimer > 0 && !bossInterval) {
+			bossInterval = setInterval(() => {
+				bossTimer--;
+				if (bossTimer <= 0) {
+					stopBossTimer();
+					persistentGold += gold;
+					savePersistent();
+					showGameOver = true;
+					clearSave();
+				}
+			}, 1000);
+		}
 	}
 
 	function saveGame() {
