@@ -14,26 +14,34 @@
 	let { show, gold, choices, onSelect }: Props = $props();
 
 	let flippedCards = $state<boolean[]>([]);
+	let enabledCards = $state<boolean[]>([]);
 	let flipTimers: ReturnType<typeof setTimeout>[] = [];
 
 	$effect(() => {
 		if (show) {
 			flippedCards = choices.map(() => false);
+			enabledCards = choices.map(() => false);
 			flipTimers.forEach(clearTimeout);
 			flipTimers = [];
 
 			choices.forEach((_, i) => {
-				const timer = setTimeout(() => {
+				const flipTimer = setTimeout(() => {
 					flippedCards[i] = true;
 				}, 200 + i * 250);
-				flipTimers.push(timer);
+				flipTimers.push(flipTimer);
+
+				// Enable after flip animation completes (0.6s CSS transition)
+				const enableTimer = setTimeout(() => {
+					enabledCards[i] = true;
+				}, 200 + i * 250 + 600);
+				flipTimers.push(enableTimer);
 			});
 		}
 		return () => flipTimers.forEach(clearTimeout);
 	});
 
 	function handleSelect(upgrade: Upgrade, index: number) {
-		if (!flippedCards[index]) return;
+		if (!enabledCards[index]) return;
 		onSelect(upgrade);
 	}
 </script>
@@ -48,7 +56,7 @@
 				{#each choices as upgrade, i (upgrade.id)}
 					<button
 						class="upgrade-btn"
-						disabled={!flippedCards[i]}
+						disabled={!enabledCards[i]}
 						onclick={() => handleSelect(upgrade, i)}
 					>
 						<div class="card-flip" class:flipped={flippedCards[i]}>
@@ -73,7 +81,7 @@
 				{#each choices as upgrade, i (upgrade.id)}
 					<button
 						class="upgrade-btn"
-						disabled={!flippedCards[i]}
+						disabled={!enabledCards[i]}
 						onclick={() => handleSelect(upgrade, i)}
 					>
 						<div class="card-flip" class:flipped={flippedCards[i]}>

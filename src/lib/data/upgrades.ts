@@ -484,6 +484,14 @@ export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 
 const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
 
+// Upgrades that require the player to already have base poison
+const poisonDependentIds = new Set([
+	'poisondur1', 'poisondur2', 'poisondur3',
+	'poisonstack1', 'poisonstack2', 'poisonstack3',
+	'poisoncrit1', 'poisoncrit2', 'poisoncrit3',
+	'combo3', 'legendary4'
+]);
+
 export function getExecuteCap(executeCapBonus: number): number {
 	return EXECUTE_CHANCE_BASE_CAP + executeCapBonus;
 }
@@ -492,13 +500,20 @@ export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,
 	currentExecuteChance: number = 0,
-	executeCap: number = EXECUTE_CHANCE_BASE_CAP
+	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
+	currentPoison: number = 0
 ): Upgrade[] {
+	let pool = [...allUpgrades];
+
 	// Filter out execute upgrades if player has hit their current cap
-	const pool =
-		currentExecuteChance >= executeCap
-			? allUpgrades.filter((u) => !executeUpgradeIds.has(u.id))
-			: allUpgrades;
+	if (currentExecuteChance >= executeCap) {
+		pool = pool.filter((u) => !executeUpgradeIds.has(u.id));
+	}
+
+	// Filter out poison-dependent upgrades if player has no base poison
+	if (currentPoison <= 0) {
+		pool = pool.filter((u) => !poisonDependentIds.has(u.id));
+	}
 
 	const shuffled = [...pool].sort(() => Math.random() - 0.5);
 
