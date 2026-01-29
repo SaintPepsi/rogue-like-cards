@@ -13,6 +13,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.16.0',
+		date: '2026-01-29',
+		changes: [
+			{ category: 'fixed', description: 'Fixed changelog category labels still overlapping description text on narrow screens' }
+		]
+	},
+	{
 		version: '0.15.0',
 		date: '2026-01-29',
 		changes: [
