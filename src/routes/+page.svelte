@@ -67,12 +67,14 @@
 				</div>
 			{/key}
 			<span class="xp-text">{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span>
-			<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
 		</div>
 
 		<!-- Main Content: Stats + Battle -->
 		<div class="game-layout">
-			<StatsPanel stats={gameState.playerStats} />
+			<div class="stats-column">
+				<StatsPanel stats={gameState.playerStats} />
+				<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
+			</div>
 
 			<BattleArea
 				isBoss={gameState.isBoss}
@@ -323,6 +325,12 @@
 		flex-shrink: 0;
 		font-size: 0.8rem;
 		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.stats-column {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
 	}
 
 	.game-layout {

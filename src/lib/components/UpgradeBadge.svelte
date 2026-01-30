@@ -7,12 +7,10 @@
 	let { count, onclick }: Props = $props();
 </script>
 
-{#if count > 0}
-	<button class="upgrade-badge" {onclick}>
-		<span class="badge-icon">⬆</span>
-		<span class="badge-text">{count}</span>
-	</button>
-{/if}
+<button class="upgrade-badge" class:disabled={count === 0} onclick={count > 0 ? onclick : undefined} disabled={count === 0}>
+	<span class="badge-icon">⬆</span>
+	<span class="badge-text">{count}</span>
+</button>
 
 <style>
 	.upgrade-badge {
@@ -28,16 +26,23 @@
 		font-size: 0.9rem;
 		cursor: pointer;
 		animation: pulse-badge 1s ease-in-out infinite;
-		transition: transform 0.15s, box-shadow 0.15s;
+		transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
 		box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
 	}
 
-	.upgrade-badge:hover {
+	.upgrade-badge.disabled {
+		opacity: 0.3;
+		cursor: default;
+		animation: none;
+		box-shadow: none;
+	}
+
+	.upgrade-badge:hover:not(.disabled) {
 		transform: scale(1.08);
 		box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
 	}
 
-	.upgrade-badge:active {
+	.upgrade-badge:active:not(.disabled) {
 		transform: scale(0.95);
 	}
 
