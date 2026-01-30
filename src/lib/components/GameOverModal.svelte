@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	type Props = {
 		show: boolean;
 		stage: number;
@@ -26,8 +27,8 @@
 			</div>
 			<p class="gold-display">Gold: <span class="gold-amount">{formatNumber(gold)}</span></p>
 			<div class="button-row">
-				<button class="shop-btn" onclick={onOpenShop}>Buy Cards</button>
-				<button class="play-again-btn" onclick={onReset}>Play Again</button>
+				<Button.Root class="px-6 py-3 bg-linear-to-r from-[#fbbf24] to-[#f59e0b] border-none rounded-lg text-[#1a1a2e] text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]" onclick={onOpenShop}>Buy Cards</Button.Root>
+				<Button.Root class="px-6 py-3 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]" onclick={onReset}>Play Again</Button.Root>
 			</div>
 		</div>
 	</div>
@@ -97,41 +98,4 @@
 		gap: 12px;
 	}
 
-	.shop-btn {
-		padding: 12px 24px;
-		background: linear-gradient(90deg, #fbbf24, #f59e0b);
-		border: none;
-		border-radius: 8px;
-		color: #1a1a2e;
-		font-size: 1.1rem;
-		font-weight: bold;
-		cursor: pointer;
-		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
-	}
-
-	.shop-btn:hover {
-		transform: scale(1.05);
-		box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
-	}
-
-	.play-again-btn {
-		padding: 12px 24px;
-		background: linear-gradient(90deg, #22c55e, #16a34a);
-		border: none;
-		border-radius: 8px;
-		color: white;
-		font-size: 1.1rem;
-		font-weight: bold;
-		cursor: pointer;
-		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
-	}
-
-	.play-again-btn:hover {
-		transform: scale(1.05);
-		box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
-	}
 </style>

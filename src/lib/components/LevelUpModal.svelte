@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import type { Upgrade } from '$lib/types';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
@@ -38,8 +39,8 @@
 			<p>Choose an upgrade:</p>
 			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, i (upgrade.id)}
-					<button
-						class="upgrade-btn"
+					<Button.Root
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default"
 						disabled={!flip.enabledCards[i]}
 						onclick={() => handleSelect(upgrade, i)}
 					>
@@ -58,13 +59,13 @@
 								/>
 							</div>
 						</div>
-					</button>
+					</Button.Root>
 				{/each}
 			</div>
 			<CardCarousel count={choices.length}>
 				{#each choices as upgrade, i (upgrade.id)}
-					<button
-						class="upgrade-btn"
+					<Button.Root
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default"
 						disabled={!flip.enabledCards[i]}
 						onclick={() => handleSelect(upgrade, i)}
 					>
@@ -83,7 +84,7 @@
 								/>
 							</div>
 						</div>
-					</button>
+					</Button.Root>
 				{/each}
 			</CardCarousel>
 		</div>
@@ -145,20 +146,8 @@
 		gap: 16px;
 	}
 
-	.upgrade-btn {
-		background: none;
-		border: none;
-		padding: 0;
-		cursor: pointer;
-		perspective: 800px;
-	}
-
-	.upgrade-btn:hover:not(:disabled) .card-flip.flipped {
+	:global(.group:hover:not(:disabled)) .card-flip.flipped {
 		transform: rotateY(180deg) translateY(-8px);
-	}
-
-	.upgrade-btn:disabled {
-		cursor: default;
 	}
 
 	.card-flip {
