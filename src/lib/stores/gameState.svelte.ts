@@ -140,11 +140,12 @@ function createGameState() {
 		}
 	}
 
+	// Re-entry guard: JS is single-threaded so attack() (click handler) and
+	// applyPoison() (setInterval) can't truly interleave. Kept as a cheap
+	// safety net documenting the invariant.
 	let killingEnemy = false;
 
 	function killEnemy() {
-		// Re-entry guard: attack() and applyPoison() can both call killEnemy
-		// in the same tick if poison fires right as attack lands the kill.
 		if (killingEnemy) return;
 		killingEnemy = true;
 
@@ -153,7 +154,6 @@ function createGameState() {
 			poisonStacks = [];
 
 			if (enemy.isChest) {
-				// Chest gives gold + guaranteed upgrade
 				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
 				chestGold = goldReward;
 				gold += goldReward;
@@ -169,7 +169,6 @@ function createGameState() {
 
 			enemy.advanceWave();
 
-			// Gold drop check - mobs have a percentage chance to drop gold
 			const effectiveGoldPerKill = playerStats.goldPerKill + shop.getGoldPerKillBonus();
 			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
 				const goldReward = enemy.isBoss
@@ -179,7 +178,6 @@ function createGameState() {
 				ui.addGoldDrop(goldReward);
 			}
 
-			// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
 			const enemyXpMultiplier = enemy.isBoss ? BOSS_XP_MULTIPLIER : enemy.isChest ? CHEST_XP_MULTIPLIER : 1;
 			const greedMult = getGreedMultiplier(playerStats.greed);
 			const xpGain = getXpReward(enemy.enemyMaxHealth, enemy.stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
@@ -190,16 +188,13 @@ function createGameState() {
 				enemy.advanceStage();
 			}
 
-			// Check for level up (non-blocking - game continues)
 			const leveledUp = leveling.checkLevelUp(upgradeContext());
 			if (leveledUp) {
 				timers.stopPoisonTick();
 				timers.pauseBossTimer();
 			}
 
-			// Always spawn next target (game continues during level up)
 			if (!enemy.isBoss && enemy.isWaveComplete()) {
-				// Check if boss should become a chest
 				if (enemy.shouldSpawnBossChestTarget(playerStats)) {
 					enemy.spawnBossChest(playerStats.greed);
 				} else {
@@ -210,15 +205,12 @@ function createGameState() {
 				enemy.spawnNextTarget(playerStats);
 			}
 
-			// If a level-up modal opened during this kill, ensure timers are paused.
-			// This handles the case where spawnBoss() starts a boss timer AFTER
-			// checkLevelUp() already attempted to pause timers.
+			// Ensure timers paused if level-up modal opened after spawn started a boss timer
 			if (leveling.showLevelUp) {
 				timers.stopPoisonTick();
 				timers.pauseBossTimer();
 			}
 
-			// Auto-save after each kill
 			saveGame();
 		} finally {
 			killingEnemy = false;
