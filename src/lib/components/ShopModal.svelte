@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
@@ -56,10 +57,8 @@
 							image={upgrade.image}
 							stats={upgrade.stats}
 						/>
-						<button
-							class="buy-btn"
-							class:affordable={canAfford && !alreadyOwned}
-							class:owned={alreadyOwned}
+						<Button.Root
+							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
 							disabled={!canAfford || alreadyOwned}
 							onclick={() => handleBuy(upgrade)}
 						>
@@ -68,7 +67,7 @@
 							{:else}
 								Buy for {formatNumber(price)}g
 							{/if}
-						</button>
+						</Button.Root>
 					</div>
 				{/each}
 			</div>
@@ -87,10 +86,8 @@
 							image={upgrade.image}
 							stats={upgrade.stats}
 						/>
-						<button
-							class="buy-btn"
-							class:affordable={canAfford && !alreadyOwned}
-							class:owned={alreadyOwned}
+						<Button.Root
+							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
 							disabled={!canAfford || alreadyOwned}
 							onclick={() => handleBuy(upgrade)}
 						>
@@ -99,14 +96,14 @@
 							{:else}
 								Buy for {formatNumber(price)}g
 							{/if}
-						</button>
+						</Button.Root>
 					</div>
 				{/each}
 			</CardCarousel>
 
 			<div class="button-row">
-				<button class="back-btn" onclick={onBack}>Back</button>
-				<button class="play-btn" onclick={onPlayAgain}>Play Again</button>
+				<Button.Root class="py-3 px-8 bg-[#374151] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]" onclick={onBack}>Back</Button.Root>
+				<Button.Root class="py-3 px-8 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]" onclick={onPlayAgain}>Play Again</Button.Root>
 			</div>
 		</div>
 	</div>
@@ -174,76 +171,10 @@
 		pointer-events: none;
 	}
 
-	.buy-btn {
-		padding: 10px 16px;
-		border: none;
-		border-radius: 8px;
-		font-size: 0.95rem;
-		font-weight: bold;
-		cursor: pointer;
-		transition: transform 0.2s, box-shadow 0.2s;
-		background: #374151;
-		color: rgba(255, 255, 255, 0.5);
-	}
-
-	.buy-btn.affordable {
-		background: linear-gradient(90deg, #fbbf24, #f59e0b);
-		color: #1a1a2e;
-		cursor: pointer;
-	}
-
-	.buy-btn.affordable:hover {
-		transform: scale(1.05);
-		box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
-	}
-
-	.buy-btn.owned {
-		background: #22c55e;
-		color: white;
-		cursor: default;
-	}
-
-	.buy-btn:disabled:not(.owned) {
-		cursor: not-allowed;
-	}
-
 	.button-row {
 		display: flex;
 		justify-content: center;
 		gap: 16px;
-	}
-
-	.back-btn {
-		padding: 12px 32px;
-		background: #374151;
-		border: none;
-		border-radius: 8px;
-		color: white;
-		font-size: 1rem;
-		font-weight: bold;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-
-	.back-btn:hover {
-		background: #4b5563;
-	}
-
-	.play-btn {
-		padding: 12px 32px;
-		background: linear-gradient(90deg, #22c55e, #16a34a);
-		border: none;
-		border-radius: 8px;
-		color: white;
-		font-size: 1rem;
-		font-weight: bold;
-		cursor: pointer;
-		transition: transform 0.2s, box-shadow 0.2s;
-	}
-
-	.play-btn:hover {
-		transform: scale(1.05);
-		box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
 	}
 
 	@media (max-width: 768px) {

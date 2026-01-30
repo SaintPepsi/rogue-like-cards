@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 
 	type Props = {
@@ -32,12 +33,11 @@
 	{#if count > 1}
 		<div class="carousel-dots">
 			{#each Array(count) as _, i}
-				<button
-					class="dot"
-					class:active={i === activeIndex}
+				<Button.Root
+					class="w-2.5 h-2.5 rounded-full border-none bg-white/30 cursor-pointer p-0 transition-[background,transform] duration-200 {i === activeIndex ? 'bg-[#fbbf24] scale-[1.3]' : ''}"
 					onclick={() => scrollTo(i)}
 					aria-label="Go to card {i + 1}"
-				></button>
+				></Button.Root>
 			{/each}
 		</div>
 	{/if}
@@ -72,22 +72,6 @@
 		justify-content: center;
 		gap: 8px;
 		margin-top: 16px;
-	}
-
-	.dot {
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		border: none;
-		background: rgba(255, 255, 255, 0.3);
-		cursor: pointer;
-		padding: 0;
-		transition: background 0.2s, transform 0.2s;
-	}
-
-	.dot.active {
-		background: #fbbf24;
-		transform: scale(1.3);
 	}
 
 	@media (max-width: 768px) {

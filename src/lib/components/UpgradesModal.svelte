@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import { allUpgrades } from '$lib/data/upgrades';
 	import UpgradeCard from './UpgradeCard.svelte';
 
@@ -20,7 +21,7 @@
 			<div class="modal-header">
 				<h2>Upgrades Collection</h2>
 				<span class="progress">{unlockedCount}/{totalCount} Discovered</span>
-				<button class="close-btn" onclick={onClose}>&times;</button>
+				<Button.Root class="ml-auto bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white" onclick={onClose}>&times;</Button.Root>
 			</div>
 			<div class="modal-content">
 				<div class="upgrades-grid">
@@ -86,21 +87,6 @@
 	.progress {
 		color: rgba(255, 255, 255, 0.6);
 		font-size: 0.9rem;
-	}
-
-	.close-btn {
-		margin-left: auto;
-		background: none;
-		border: none;
-		color: rgba(255, 255, 255, 0.6);
-		font-size: 2rem;
-		cursor: pointer;
-		line-height: 1;
-		padding: 0;
-	}
-
-	.close-btn:hover {
-		color: white;
 	}
 
 	.modal-content {

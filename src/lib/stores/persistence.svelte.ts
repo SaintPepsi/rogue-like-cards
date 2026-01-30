@@ -1,5 +1,11 @@
 import type { PlayerStats, Effect } from '$lib/types';
 
+export interface SavedUpgradeEvent {
+	type: 'levelup' | 'chest';
+	choiceIds: string[];
+	gold?: number;
+}
+
 export interface SessionSaveData {
 	playerStats: PlayerStats;
 	effects: Effect[];
@@ -15,6 +21,8 @@ export interface SessionSaveData {
 	isBoss: boolean;
 	isChest: boolean;
 	isBossChest: boolean;
+	upgradeQueue?: SavedUpgradeEvent[];
+	activeEvent?: SavedUpgradeEvent | null;
 	timestamp: number;
 }
 

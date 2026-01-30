@@ -2,7 +2,7 @@
 	import type { HitInfo, GoldDrop } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import enemySprite from '$lib/assets/images/enemy.png';
-	import chestSprite from '$lib/assets/images/chest.png';
+	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
 
 	type Props = {

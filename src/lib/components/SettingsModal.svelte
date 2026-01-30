@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	type Props = {
 		show: boolean;
 		onClose: () => void;
@@ -36,18 +37,18 @@
 		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}} role="dialog">
 			<div class="modal-header">
 				<h2>Settings</h2>
-				<button class="close-btn" onclick={handleClose}>&times;</button>
+				<Button.Root class="bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white" onclick={handleClose}>&times;</Button.Root>
 			</div>
 			<div class="modal-content">
-				<button class="settings-item" onclick={handleChangelog}>
+				<Button.Root class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-white/[0.08] rounded-[10px] text-white/90 cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-white/10" onclick={handleChangelog}>
 					<span class="settings-icon">📋</span>
 					<span class="settings-label">Changelog</span>
 					<span class="settings-arrow">›</span>
-				</button>
+				</Button.Root>
 
 				<div class="settings-divider"></div>
 
-				<button class="settings-item danger" onclick={handleReset}>
+				<Button.Root class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-[rgba(239,68,68,0.15)] rounded-[10px] text-[#f87171] cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-[rgba(239,68,68,0.1)]" onclick={handleReset}>
 					<span class="settings-icon">🗑️</span>
 					<span class="settings-label">
 						{#if showResetConfirm}
@@ -59,7 +60,7 @@
 					{#if showResetConfirm}
 						<span class="settings-confirm">Confirm</span>
 					{/if}
-				</button>
+				</Button.Root>
 			</div>
 		</div>
 	</div>
@@ -102,42 +103,8 @@
 		flex: 1;
 	}
 
-	.close-btn {
-		background: none;
-		border: none;
-		color: rgba(255, 255, 255, 0.6);
-		font-size: 2rem;
-		cursor: pointer;
-		line-height: 1;
-		padding: 0;
-	}
-
-	.close-btn:hover {
-		color: white;
-	}
-
 	.modal-content {
 		padding: 12px;
-	}
-
-	.settings-item {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		width: 100%;
-		padding: 14px 16px;
-		background: rgba(255, 255, 255, 0.05);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		border-radius: 10px;
-		color: rgba(255, 255, 255, 0.9);
-		cursor: pointer;
-		font-size: 0.95rem;
-		text-align: left;
-		transition: background 0.15s;
-	}
-
-	.settings-item:hover {
-		background: rgba(255, 255, 255, 0.1);
 	}
 
 	.settings-icon {
@@ -159,15 +126,6 @@
 		height: 1px;
 		background: rgba(255, 255, 255, 0.06);
 		margin: 8px 4px;
-	}
-
-	.settings-item.danger {
-		color: #f87171;
-		border-color: rgba(239, 68, 68, 0.15);
-	}
-
-	.settings-item.danger:hover {
-		background: rgba(239, 68, 68, 0.1);
 	}
 
 	.settings-confirm {

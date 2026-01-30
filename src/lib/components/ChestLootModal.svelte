@@ -1,45 +1,55 @@
 <script lang="ts">
+	import { Button } from 'bits-ui';
 	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
 	import { useCardFlip } from './useCardFlip.svelte';
+	import { useCardSelect } from './useCardSelect.svelte';
 
 	type Props = {
 		show: boolean;
 		gold: number;
 		choices: Upgrade[];
 		onSelect: (upgrade: Upgrade) => void;
+		exiting?: boolean;
 	};
 
-	let { show, gold, choices, onSelect }: Props = $props();
+	let { show, gold, choices, onSelect, exiting = false }: Props = $props();
 
 	const flip = useCardFlip();
+	const cardSelect = useCardSelect();
 
 	$effect(() => {
 		if (show) {
 			flip.startFlip(choices.length);
 		}
-		return () => flip.cleanup();
+		return () => {
+			flip.cleanup();
+			cardSelect.cleanup();
+		};
 	});
 
 	function handleSelect(upgrade: Upgrade, index: number) {
 		if (!flip.enabledCards[index]) return;
-		onSelect(upgrade);
+		if (cardSelect.selecting) return;
+		cardSelect.select(index, () => onSelect(upgrade));
 	}
 </script>
 
 {#if show}
-	<div class="modal-overlay">
-		<div class="modal">
-			<h2>Treasure Found!</h2>
-			<p class="gold-reward">+{formatNumber(gold)} Gold</p>
-			<p>Choose a reward:</p>
+	<div class="modal-overlay" class:exiting>
+		<div class="modal" class:selecting={cardSelect.selecting}>
+			<div class="modal-header" class:content-fade-out={cardSelect.selecting}>
+				<h2>Treasure Found!</h2>
+				<p class="gold-reward">+{formatNumber(gold)} Gold</p>
+				<p>Choose a reward:</p>
+			</div>
 			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, i (upgrade.id)}
-					<button
-						class="upgrade-btn"
-						disabled={!flip.enabledCards[i]}
+					<Button.Root
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						disabled={!flip.enabledCards[i] || cardSelect.selecting}
 						onclick={() => handleSelect(upgrade, i)}
 					>
 						<div class="card-flip" class:flipped={flip.flippedCards[i]}>
@@ -57,14 +67,14 @@
 								/>
 							</div>
 						</div>
-					</button>
+					</Button.Root>
 				{/each}
 			</div>
 			<CardCarousel count={choices.length}>
 				{#each choices as upgrade, i (upgrade.id)}
-					<button
-						class="upgrade-btn"
-						disabled={!flip.enabledCards[i]}
+					<Button.Root
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						disabled={!flip.enabledCards[i] || cardSelect.selecting}
 						onclick={() => handleSelect(upgrade, i)}
 					>
 						<div class="card-flip" class:flipped={flip.flippedCards[i]}>
@@ -82,7 +92,7 @@
 								/>
 							</div>
 						</div>
-					</button>
+					</Button.Root>
 				{/each}
 			</CardCarousel>
 		</div>
@@ -100,12 +110,46 @@
 		z-index: 100;
 	}
 
+	.modal-overlay.exiting {
+		background: transparent;
+		pointer-events: none;
+	}
+
+	.modal-overlay.exiting .modal {
+		animation: modal-exit 350ms ease-out forwards;
+	}
+
+	@keyframes modal-exit {
+		to {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+	}
+
 	.modal {
 		background: #1a1a2e;
 		padding: 32px;
 		border-radius: 16px;
 		text-align: center;
 		max-width: 90vw;
+	}
+
+	.modal.selecting {
+		animation: panel-pulse 350ms ease-in-out;
+	}
+
+	@keyframes panel-pulse {
+		0% { transform: scale(1); }
+		43% { transform: scale(0.98); }
+		100% { transform: scale(1); }
+	}
+
+	.modal-header {
+		transition: opacity 300ms ease-out;
+	}
+
+	.modal-header.content-fade-out {
+		opacity: 0;
 	}
 
 	.modal h2 {
@@ -132,20 +176,24 @@
 		gap: 16px;
 	}
 
-	.upgrade-btn {
-		background: none;
-		border: none;
-		padding: 0;
-		cursor: pointer;
-		perspective: 800px;
+	/* Card selection transitions */
+	:global(.card-wrapper) {
+		transition: transform 300ms ease-out, opacity 300ms ease-out, filter 300ms ease-out;
 	}
 
-	.upgrade-btn:hover:not(:disabled) .card-flip.flipped {
+	:global(.card-wrapper.card-selected) {
+		transform: translateY(-12px) scale(1.03) !important;
+		filter: brightness(1.2) drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));
+		z-index: 1;
+	}
+
+	:global(.card-wrapper.card-dismissed) {
+		opacity: 0;
+		transform: scale(0.92) !important;
+	}
+
+	:global(.group:hover:not(:disabled)) .card-flip.flipped {
 		transform: rotateY(180deg) translateY(-8px);
-	}
-
-	.upgrade-btn:disabled {
-		cursor: default;
 	}
 
 	.card-flip {

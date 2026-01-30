@@ -1,6 +1,8 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { Button } from 'bits-ui';
+	import { onMount, untrack } from 'svelte';
 	import { gameState } from '$lib/stores/gameState.svelte';
+	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import { VERSION } from '$lib/version';
 	import StatsPanel from '$lib/components/StatsPanel.svelte';
@@ -12,10 +14,87 @@
 	import ShopModal from '$lib/components/ShopModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
+	import UpgradeBadge from '$lib/components/UpgradeBadge.svelte';
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
 	let showSettingsModal = $state(false);
+
+	// Upgrade slot management for crossfade transitions
+	interface UpgradeSlot {
+		id: number;
+		type: 'levelup' | 'chest';
+		choices: Upgrade[];
+		pendingCount: number;
+		gold: number;
+		exiting: boolean;
+	}
+
+	let upgradeSlots = $state<UpgradeSlot[]>([]);
+	let nextSlotId = $state(0);
+
+	// Create initial slot when activeEvent appears (badge click, page load)
+	$effect(() => {
+		const event = gameState.activeEvent;
+
+		if (event) {
+			const hasActiveSlot = untrack(() => upgradeSlots.some((s) => !s.exiting));
+			if (!hasActiveSlot) {
+				nextSlotId++;
+				upgradeSlots = [
+					...untrack(() => upgradeSlots),
+					{
+						id: nextSlotId,
+						type: event.type,
+						choices: untrack(() => [...gameState.upgradeChoices]),
+						pendingCount: untrack(() => gameState.pendingUpgrades + 1),
+						gold: event.gold ?? 0,
+						exiting: false
+					}
+				];
+			}
+		} else {
+			// No event — mark any active slots as exiting (handles game reset)
+			untrack(() => {
+				const hasActive = upgradeSlots.some((s) => !s.exiting);
+				if (hasActive) {
+					upgradeSlots = upgradeSlots.map((s) => (s.exiting ? s : { ...s, exiting: true }));
+					setTimeout(() => {
+						upgradeSlots = upgradeSlots.filter((s) => !s.exiting);
+					}, 400);
+				}
+			});
+		}
+	});
+
+	function handleUpgradeSelect(upgrade: Upgrade) {
+		// Mark all active slots as exiting (starts fade-out animation)
+		upgradeSlots = upgradeSlots.map((s) => (s.exiting ? s : { ...s, exiting: true }));
+
+		// Apply the upgrade (may open next event internally)
+		gameState.selectUpgrade(upgrade);
+
+		// If there's a new event, add a fresh slot (enters with card-flip animation)
+		if (gameState.activeEvent) {
+			nextSlotId++;
+			upgradeSlots = [
+				...upgradeSlots,
+				{
+					id: nextSlotId,
+					type: gameState.activeEvent.type,
+					choices: [...gameState.upgradeChoices],
+					pendingCount: gameState.pendingUpgrades + 1,
+					gold: gameState.activeEvent.gold ?? 0,
+					exiting: false
+				}
+			];
+		}
+
+		// Remove exiting slots after animation completes
+		setTimeout(() => {
+			upgradeSlots = upgradeSlots.filter((s) => !s.exiting);
+		}, 400);
+	}
 
 	onMount(() => {
 		gameState.init();
@@ -30,18 +109,18 @@
 	<header>
 		<h1>Rogue Arena</h1>
 		<div class="header-buttons">
-			<button class="icon-btn upgrades-btn" onclick={() => showUpgradesModal = true} title="Upgrades">
+			<Button.Root class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(139,92,246,0.2)] text-[#a78bfa] border-[rgba(139,92,246,0.3)] hover:bg-[rgba(139,92,246,0.35)] hover:text-white" onclick={() => showUpgradesModal = true} title="Upgrades">
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
 					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
 				</svg>
-			</button>
-			<button class="icon-btn settings-btn" onclick={() => showSettingsModal = true} title="Settings">
+			</Button.Root>
+			<Button.Root class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-white/[0.08] text-white/60 border-white/15 hover:bg-white/15 hover:text-white" onclick={() => showSettingsModal = true} title="Settings">
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<circle cx="12" cy="12" r="3"/>
 					<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
 				</svg>
-			</button>
+			</Button.Root>
 		</div>
 	</header>
 
@@ -55,6 +134,7 @@
 			{:else}
 				<span class="wave-progress">{gameState.waveKills}/{gameState.killsPerWave} until boss</span>
 			{/if}
+			<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
 		</div>
 
 		<!-- Level Bar - Full Width -->
@@ -70,7 +150,9 @@
 
 		<!-- Main Content: Stats + Battle -->
 		<div class="game-layout">
-			<StatsPanel stats={gameState.playerStats} />
+			<div class="stats-column">
+				<StatsPanel stats={gameState.playerStats} />
+			</div>
 
 			<BattleArea
 				isBoss={gameState.isBoss}
@@ -87,12 +169,25 @@
 		</div>
 	</div>
 
-	<LevelUpModal
-		show={gameState.showLevelUp}
-		choices={gameState.upgradeChoices}
-		pendingCount={gameState.pendingLevelUps}
-		onSelect={gameState.selectUpgrade}
-	/>
+	{#each upgradeSlots as slot (slot.id)}
+		{#if slot.type === 'levelup'}
+			<LevelUpModal
+				show={true}
+				choices={slot.choices}
+				pendingCount={slot.exiting ? slot.pendingCount : gameState.pendingUpgrades + 1}
+				onSelect={handleUpgradeSelect}
+				exiting={slot.exiting}
+			/>
+		{:else if slot.type === 'chest'}
+			<ChestLootModal
+				show={true}
+				gold={slot.gold}
+				choices={slot.choices}
+				onSelect={handleUpgradeSelect}
+				exiting={slot.exiting}
+			/>
+		{/if}
+	{/each}
 
 	<GameOverModal
 		show={gameState.showGameOver && !gameState.showShop}
@@ -115,13 +210,6 @@
 		onBuy={gameState.buyUpgrade}
 		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
-	/>
-
-	<ChestLootModal
-		show={gameState.showChestLoot}
-		gold={gameState.chestGold}
-		choices={gameState.upgradeChoices}
-		onSelect={gameState.selectUpgrade}
 	/>
 
 	<UpgradesModal
@@ -181,39 +269,6 @@
 	.header-buttons {
 		display: flex;
 		gap: 8px;
-	}
-
-	.icon-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 38px;
-		height: 38px;
-		border: 1px solid rgba(255, 255, 255, 0.15);
-		border-radius: 8px;
-		cursor: pointer;
-		transition: background 0.15s, border-color 0.15s;
-	}
-
-	.icon-btn.upgrades-btn {
-		background: rgba(139, 92, 246, 0.2);
-		color: #a78bfa;
-		border-color: rgba(139, 92, 246, 0.3);
-	}
-
-	.icon-btn.upgrades-btn:hover {
-		background: rgba(139, 92, 246, 0.35);
-		color: white;
-	}
-
-	.icon-btn.settings-btn {
-		background: rgba(255, 255, 255, 0.08);
-		color: rgba(255, 255, 255, 0.6);
-	}
-
-	.icon-btn.settings-btn:hover {
-		background: rgba(255, 255, 255, 0.15);
-		color: white;
 	}
 
 	.game-container {
@@ -320,6 +375,13 @@
 		font-size: 0.8rem;
 		color: rgba(255, 255, 255, 0.7);
 	}
+
+	.stats-column {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+
 
 	.game-layout {
 		display: grid;
