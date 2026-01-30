@@ -1,117 +1,28 @@
 <script lang="ts">
 	import type { PlayerStats } from '$lib/types';
-	import { formatNumber } from '$lib/format';
+	import { createDefaultStats, statRegistry } from '$lib/engine/stats';
 
 	type Props = {
 		stats: PlayerStats;
 	};
 
 	let { stats }: Props = $props();
+
+	const defaults = createDefaultStats();
 </script>
 
 <aside class="stats-panel">
 	<h2>Stats</h2>
-	<!-- Always show damage -->
-	<div class="stat-row">
-		<span>⚔️ Damage</span>
-		<span>{formatNumber(stats.damage)}</span>
-	</div>
-	<!-- Only show other stats when improved from default -->
-	{#if stats.critChance > 0}
-		<div class="stat-row">
-			<span>🎯 Crit Chance</span>
-			<span>{Math.round(stats.critChance * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.critMultiplier > 1.5}
-		<div class="stat-row">
-			<span>💥 Crit Damage</span>
-			<span>{stats.critMultiplier.toFixed(1)}x</span>
-		</div>
-	{/if}
-	{#if stats.poison > 0}
-		<div class="stat-row poison">
-			<span>☠️ Poison</span>
-			<span>{formatNumber(stats.poison)}/stack</span>
-		</div>
-	{/if}
-	{#if stats.poison > 0}
-		<div class="stat-row poison">
-			<span>🧪 Max Stacks</span>
-			<span>{stats.poisonMaxStacks}</span>
-		</div>
-		<div class="stat-row poison">
-			<span>🕐 Duration</span>
-			<span>{stats.poisonDuration}s</span>
-		</div>
-	{/if}
-	{#if stats.poisonCritChance > 0}
-		<div class="stat-row poison">
-			<span>💀 Poison Crit</span>
-			<span>{Math.round(stats.poisonCritChance * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.multiStrike > 0}
-		<div class="stat-row">
-			<span>⚡ Multi-Strike</span>
-			<span>+{stats.multiStrike}</span>
-		</div>
-	{/if}
-	{#if stats.executeChance > 0}
-		<div class="stat-row">
-			<span>⚰️ Execute</span>
-			<span>{Math.round(stats.executeChance * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.overkill}
-		<div class="stat-row">
-			<span>💀 Overkill</span>
-			<span>Active</span>
-		</div>
-	{/if}
-	{#if stats.xpMultiplier > 1}
-		<div class="stat-row">
-			<span>✨ XP Bonus</span>
-			<span>+{Math.round((stats.xpMultiplier - 1) * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.bonusBossTime > 0}
-		<div class="stat-row">
-			<span>⏱️ Boss Time</span>
-			<span>+{stats.bonusBossTime}s</span>
-		</div>
-	{/if}
-	{#if stats.luckyChance > 0}
-		<div class="stat-row">
-			<span>🍀 Lucky</span>
-			<span>+{Math.round(stats.luckyChance * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.goldDropChance > 0.15}
-		<div class="stat-row gold">
-			<span>🪙 Gold Drop</span>
-			<span>{Math.round(stats.goldDropChance * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.goldPerKill > 0}
-		<div class="stat-row gold">
-			<span>💵 Gold/Kill</span>
-			<span>+{formatNumber(stats.goldPerKill)}</span>
-		</div>
-	{/if}
-	{#if stats.goldMultiplier > 1}
-		<div class="stat-row gold">
-			<span>🏆 Gold Bonus</span>
-			<span>+{Math.round((stats.goldMultiplier - 1) * 100)}%</span>
-		</div>
-	{/if}
-	{#if stats.greed > 0}
-		<div class="stat-row greed">
-			<span>💰 Greed</span>
-			<span>+{Math.round(stats.greed * 100)}%</span>
-		</div>
-	{/if}
-
+	{#each statRegistry as entry (entry.key)}
+		{@const value = stats[entry.key]}
+		{@const defaultValue = defaults[entry.key]}
+		{#if entry.alwaysShow || value !== defaultValue}
+			<div class="stat-row {entry.colorClass ?? ''}">
+				<span>{entry.icon} {entry.label}</span>
+				<span>{entry.format(value)}</span>
+			</div>
+		{/if}
+	{/each}
 </aside>
 
 <style>
