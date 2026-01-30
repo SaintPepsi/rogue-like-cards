@@ -215,8 +215,8 @@ describe('getXpReward', () => {
 	});
 
 	test('boss applies BOSS_XP_MULTIPLIER', () => {
-		// 50hp * 1.0 xpPerHp * 2 * sqrt(1) = 100
-		expect(getXpReward(50, 1, 1, BOSS_XP_MULTIPLIER)).toBe(100);
+		// 50hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 75
+		expect(getXpReward(50, 1, 1, BOSS_XP_MULTIPLIER)).toBe(75);
 	});
 
 	test('chest applies CHEST_XP_MULTIPLIER', () => {

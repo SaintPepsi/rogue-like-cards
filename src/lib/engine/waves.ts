@@ -44,7 +44,7 @@ export function shouldSpawnBossChest(chestChance: number, bossChestChance: numbe
 }
 
 export const XP_PER_HEALTH = 1;
-export const BOSS_XP_MULTIPLIER = 2;
+export const BOSS_XP_MULTIPLIER = 1.5;
 export const CHEST_XP_MULTIPLIER = 1.5;
 
 export function getXpPerHealth(stage: number): number {
