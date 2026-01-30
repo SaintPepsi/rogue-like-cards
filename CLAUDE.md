@@ -104,6 +104,52 @@ bun --hot ./index.ts
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
 
+## Temporary UI Effects
+
+Use the **store-driven, array-based, self-cleaning** pattern for any on-screen element that appears temporarily (hit numbers, gold drop popups, toast messages, etc.).
+
+### The pattern
+
+**Store** (`gameState.svelte.ts`):
+```ts
+let items = $state<Item[]>([]);
+let itemId = $state(0);
+
+function addItem(data: Omit<Item, 'id'>) {
+    itemId++;
+    items = [...items, { ...data, id: itemId }];
+    const id = itemId;
+    setTimeout(() => {
+        items = items.filter((i) => i.id !== id);
+    }, ANIMATION_DURATION_MS);
+}
+```
+
+**Component** (pure renderer — no `$effect`, no `$state`, no `setTimeout`):
+```svelte
+{#each items as item (item.id)}
+    <span class="animated-thing">{item.value}</span>
+{/each}
+```
+
+### Why
+
+- **Store owns lifecycle.** Components only render what the store gives them.
+- **Array-based.** Multiple items coexist when rapid actions fire (e.g. fast clicks producing overlapping popups).
+- **ID-based self-cleanup.** Each item removes only itself via `setTimeout`, regardless of what else was added or removed.
+- **No reactive loops.** IDs are assigned imperatively in game actions, never inside `$effect`.
+
+### Anti-patterns (do not use)
+
+- `$effect` that writes to `$state` it also reads (causes `effect_update_depth_exceeded` — infinite reactive loop).
+- Component-local `setTimeout` for show/hide visibility toggles (races with rapid triggers, loses cleanup on unmount).
+- Single-slot state (`lastValue = x`) for effects that can overlap (second event overwrites the first).
+
+### Canonical examples
+
+- **Hit numbers:** `addHits()` in `gameState.svelte.ts`, rendered in `BattleArea.svelte`.
+- **Gold drops:** `addGoldDrop()` in `gameState.svelte.ts`, rendered in `BattleArea.svelte`.
+
 ## Code Style
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
