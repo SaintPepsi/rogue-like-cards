@@ -13,6 +13,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.25.0',
+		date: '2026-01-30',
+		changes: [
+			{ category: 'changed', description: 'Rebalanced XP curve so early levels require more XP, making progression more gradual' },
+			{ category: 'changed', description: 'Increased shop card prices and reduced gold drop chance for a more meaningful economy' },
+			{ category: 'new', description: 'Added upgrade queue — level-ups and chest loot are now deferred until you choose to open them' },
+			{ category: 'new', description: 'Added upgrade badge button on the level bar to open pending upgrades on your terms' },
+			{ category: 'fixed', description: 'Fixed chest enemy sprite showing open chest instead of closed chest' }
+		]
+	},
+	{
 		version: '0.24.0',
 		date: '2026-01-30',
 		changes: [

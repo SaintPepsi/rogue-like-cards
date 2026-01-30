@@ -33,8 +33,6 @@ function createGameState() {
 
 	// UI state
 	let showGameOver = $state(false);
-	let showChestLoot = $state(false);
-	let chestGold = $state(0);
 
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
@@ -71,7 +69,7 @@ function createGameState() {
 
 	// Centralized check: is the game currently paused by a modal?
 	function isModalOpen() {
-		return showGameOver || leveling.showLevelUp || showChestLoot;
+		return showGameOver || leveling.hasActiveEvent;
 	}
 
 	function attack() {
@@ -156,15 +154,13 @@ function createGameState() {
 
 			if (enemy.isChest) {
 				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
-				chestGold = goldReward;
 				gold += goldReward;
 				const wasBossChest = enemy.isBossChest;
 				enemy.clearChestFlags();
 
-				leveling.setChoicesForChest(wasBossChest, upgradeContext());
-				showChestLoot = true;
-				timers.stopPoisonTick();
-				timers.pauseBossTimer();
+				leveling.queueChestLoot(wasBossChest, upgradeContext(), goldReward);
+				enemy.spawnNextTarget(playerStats);
+				saveGame();
 				return;
 			}
 
@@ -189,11 +185,7 @@ function createGameState() {
 				enemy.advanceStage();
 			}
 
-			const leveledUp = leveling.checkLevelUp(upgradeContext());
-			if (leveledUp) {
-				timers.stopPoisonTick();
-				timers.pauseBossTimer();
-			}
+			leveling.checkLevelUp(upgradeContext());
 
 			if (!enemy.isBoss && enemy.isWaveComplete()) {
 				if (enemy.shouldSpawnBossChestTarget(playerStats)) {
@@ -204,12 +196,6 @@ function createGameState() {
 				}
 			} else {
 				enemy.spawnNextTarget(playerStats);
-			}
-
-			// Ensure timers paused if level-up modal opened after spawn started a boss timer
-			if (leveling.showLevelUp) {
-				timers.stopPoisonTick();
-				timers.pauseBossTimer();
 			}
 
 			saveGame();
@@ -252,27 +238,21 @@ function createGameState() {
 			}
 		}
 
-		// Handle chest loot modal
-		if (showChestLoot) {
-			showChestLoot = false;
-			enemy.spawnNextTarget(playerStats);
+		const allConsumed = leveling.closeActiveEvent();
+		if (allConsumed) {
+			// All upgrades consumed — resume game
 			timers.startPoisonTick(applyPoison);
 			timers.resumeBossTimer(handleBossExpired);
-			saveGame();
-			return;
 		}
-
-		// Handle queued level ups
-		const allConsumed = leveling.consumeLevelUp(upgradeContext());
-		if (!allConsumed) {
-			saveGame();
-			return;
-		}
-
-		// All level-ups consumed — resume game
-		timers.startPoisonTick(applyPoison);
-		timers.resumeBossTimer(handleBossExpired);
 		saveGame();
+	}
+
+	function openNextUpgrade() {
+		const event = leveling.openNextUpgrade();
+		if (event) {
+			timers.stopPoisonTick();
+			timers.pauseBossTimer();
+		}
 	}
 
 	function saveGame() {
@@ -338,8 +318,6 @@ function createGameState() {
 		unlockedUpgrades = new Set();
 		gold = 0;
 		poisonStacks = [];
-		showChestLoot = false;
-		chestGold = 0;
 		ui.reset();
 		leveling.reset();
 		showGameOver = false;
@@ -415,9 +393,6 @@ function createGameState() {
 		get enemiesKilled() {
 			return enemy.enemiesKilled;
 		},
-		get showLevelUp() {
-			return leveling.showLevelUp;
-		},
 		get showGameOver() {
 			return showGameOver;
 		},
@@ -439,14 +414,14 @@ function createGameState() {
 		get isBossChest() {
 			return enemy.isBossChest;
 		},
-		get showChestLoot() {
-			return showChestLoot;
+		get pendingUpgrades() {
+			return leveling.pendingUpgrades;
 		},
-		get chestGold() {
-			return chestGold;
+		get activeEvent() {
+			return leveling.activeEvent;
 		},
-		get pendingLevelUps() {
-			return leveling.pendingLevelUps;
+		get hasActiveEvent() {
+			return leveling.hasActiveEvent;
 		},
 		get unlockedUpgrades() {
 			return unlockedUpgrades;
@@ -477,6 +452,7 @@ function createGameState() {
 		// Actions
 		attack,
 		selectUpgrade,
+		openNextUpgrade,
 		resetGame,
 		fullReset,
 		init,

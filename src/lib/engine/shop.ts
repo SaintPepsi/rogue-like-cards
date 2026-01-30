@@ -1,11 +1,11 @@
 import type { Rarity } from '$lib/types';
 
 const RARITY_BASE_PRICES: Record<Rarity, number> = {
-	common: 10,
-	uncommon: 20,
-	rare: 35,
-	epic: 60,
-	legendary: 100
+	common: 25,
+	uncommon: 50,
+	rare: 100,
+	epic: 175,
+	legendary: 300
 };
 
 const PURCHASE_MULTIPLIER = 1.5;

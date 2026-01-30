@@ -12,6 +12,7 @@
 	import ShopModal from '$lib/components/ShopModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
+	import UpgradeBadge from '$lib/components/UpgradeBadge.svelte';
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
@@ -66,6 +67,7 @@
 				</div>
 			{/key}
 			<span class="xp-text">{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span>
+			<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
 		</div>
 
 		<!-- Main Content: Stats + Battle -->
@@ -87,12 +89,21 @@
 		</div>
 	</div>
 
-	<LevelUpModal
-		show={gameState.showLevelUp}
-		choices={gameState.upgradeChoices}
-		pendingCount={gameState.pendingLevelUps}
-		onSelect={gameState.selectUpgrade}
-	/>
+	{#if gameState.activeEvent?.type === 'levelup'}
+		<LevelUpModal
+			show={true}
+			choices={gameState.upgradeChoices}
+			pendingCount={gameState.pendingUpgrades + 1}
+			onSelect={gameState.selectUpgrade}
+		/>
+	{:else if gameState.activeEvent?.type === 'chest'}
+		<ChestLootModal
+			show={true}
+			gold={gameState.activeEvent.gold ?? 0}
+			choices={gameState.upgradeChoices}
+			onSelect={gameState.selectUpgrade}
+		/>
+	{/if}
 
 	<GameOverModal
 		show={gameState.showGameOver && !gameState.showShop}
@@ -115,13 +126,6 @@
 		onBuy={gameState.buyUpgrade}
 		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
-	/>
-
-	<ChestLootModal
-		show={gameState.showChestLoot}
-		gold={gameState.chestGold}
-		choices={gameState.upgradeChoices}
-		onSelect={gameState.selectUpgrade}
 	/>
 
 	<UpgradesModal

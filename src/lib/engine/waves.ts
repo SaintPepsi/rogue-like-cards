@@ -79,9 +79,9 @@ export function getXpToNextLevel(level: number): number {
 	// Same soft cap approach as stage multiplier to prevent overflow
 	const SOFT_CAP_LEVEL = 100;
 	if (level <= SOFT_CAP_LEVEL) {
-		return Math.floor(10 * Math.pow(1.5, level - 1));
+		return Math.floor(25 * Math.pow(1.5, level - 1));
 	}
 	const base = Math.pow(1.5, SOFT_CAP_LEVEL - 1);
 	const beyond = level - SOFT_CAP_LEVEL;
-	return Math.floor(10 * base * Math.pow(1 + beyond * 0.1, 3));
+	return Math.floor(25 * base * Math.pow(1 + beyond * 0.1, 3));
 }
