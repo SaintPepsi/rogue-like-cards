@@ -11,9 +11,11 @@
 	import UpgradesModal from '$lib/components/UpgradesModal.svelte';
 	import ShopModal from '$lib/components/ShopModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
+	import SettingsModal from '$lib/components/SettingsModal.svelte';
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
+	let showSettingsModal = $state(false);
 
 	onMount(() => {
 		gameState.init();
@@ -28,9 +30,18 @@
 	<header>
 		<h1>Rogue Arena</h1>
 		<div class="header-buttons">
-			<button class="changelog-btn" onclick={() => showChangelogModal = true}>Changelog</button>
-			<button class="upgrades-btn" onclick={() => showUpgradesModal = true}>Upgrades</button>
-			<button class="reset-btn" onclick={gameState.fullReset}>Reset</button>
+			<button class="icon-btn upgrades-btn" onclick={() => showUpgradesModal = true} title="Upgrades">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+				</svg>
+			</button>
+			<button class="icon-btn settings-btn" onclick={() => showSettingsModal = true} title="Settings">
+				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="12" cy="12" r="3"/>
+					<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+				</svg>
+			</button>
 		</div>
 	</header>
 
@@ -59,7 +70,7 @@
 
 		<!-- Main Content: Stats + Battle -->
 		<div class="game-layout">
-			<StatsPanel stats={gameState.playerStats} effects={gameState.effects} />
+			<StatsPanel stats={gameState.playerStats} />
 
 			<BattleArea
 				isBoss={gameState.isBoss}
@@ -124,6 +135,13 @@
 		onClose={() => showChangelogModal = false}
 	/>
 
+	<SettingsModal
+		show={showSettingsModal}
+		onClose={() => showSettingsModal = false}
+		onOpenChangelog={() => showChangelogModal = true}
+		onReset={gameState.fullReset}
+	/>
+
 	<footer>
 		<p>
 			Assets by <a href="https://danieldiggle.itch.io/sunnyside" target="_blank" rel="noopener"
@@ -162,47 +180,40 @@
 
 	.header-buttons {
 		display: flex;
-		gap: 12px;
+		gap: 8px;
 	}
 
-	.changelog-btn {
-		padding: 8px 16px;
-		background: rgba(255, 255, 255, 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		border-radius: 4px;
-		color: rgba(255, 255, 255, 0.7);
+	.icon-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 8px;
 		cursor: pointer;
+		transition: background 0.15s, border-color 0.15s;
 	}
 
-	.changelog-btn:hover {
-		background: rgba(255, 255, 255, 0.2);
+	.icon-btn.upgrades-btn {
+		background: rgba(139, 92, 246, 0.2);
+		color: #a78bfa;
+		border-color: rgba(139, 92, 246, 0.3);
+	}
+
+	.icon-btn.upgrades-btn:hover {
+		background: rgba(139, 92, 246, 0.35);
 		color: white;
 	}
 
-	.upgrades-btn {
-		padding: 8px 16px;
-		background: #8b5cf6;
-		border: none;
-		border-radius: 4px;
+	.icon-btn.settings-btn {
+		background: rgba(255, 255, 255, 0.08);
+		color: rgba(255, 255, 255, 0.6);
+	}
+
+	.icon-btn.settings-btn:hover {
+		background: rgba(255, 255, 255, 0.15);
 		color: white;
-		cursor: pointer;
-	}
-
-	.upgrades-btn:hover {
-		background: #7c3aed;
-	}
-
-	.reset-btn {
-		padding: 8px 16px;
-		background: #ef4444;
-		border: none;
-		border-radius: 4px;
-		color: white;
-		cursor: pointer;
-	}
-
-	.reset-btn:hover {
-		background: #dc2626;
 	}
 
 	.game-container {
@@ -360,8 +371,34 @@
 	}
 
 	@media (max-width: 768px) {
+		header {
+			padding: 12px 16px;
+		}
+
+		header h1 {
+			font-size: 1.2rem;
+		}
+
+		.game-container {
+			padding: 16px;
+			gap: 14px;
+		}
+
+		.stage-info {
+			padding: 10px 14px;
+			gap: 10px;
+		}
+
+		.level-bar {
+			padding: 10px 14px;
+		}
+
 		.game-layout {
 			grid-template-columns: 1fr;
+		}
+
+		.game-layout :global(.battle-area) {
+			order: -1;
 		}
 	}
 </style>

@@ -1,13 +1,12 @@
 <script lang="ts">
-	import type { PlayerStats, Effect } from '$lib/types';
+	import type { PlayerStats } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 
 	type Props = {
 		stats: PlayerStats;
-		effects: Effect[];
 	};
 
-	let { stats, effects }: Props = $props();
+	let { stats }: Props = $props();
 </script>
 
 <aside class="stats-panel">
@@ -113,14 +112,6 @@
 		</div>
 	{/if}
 
-	{#if effects.length > 0}
-		<h3>Effects</h3>
-		<ul class="effects-list">
-			{#each effects as effect (effect.name)}
-				<li title={effect.description}>{effect.name}</li>
-			{/each}
-		</ul>
-	{/if}
 </aside>
 
 <style>
@@ -136,12 +127,6 @@
 		font-size: 1.1rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 		padding-bottom: 8px;
-	}
-
-	.stats-panel h3 {
-		margin: 16px 0 8px;
-		font-size: 0.9rem;
-		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.stat-row {
@@ -163,18 +148,4 @@
 		color: #fbbf24;
 	}
 
-	.effects-list {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-
-	.effects-list li {
-		padding: 4px 8px;
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 4px;
-		margin-bottom: 4px;
-		font-size: 0.8rem;
-		cursor: help;
-	}
 </style>
