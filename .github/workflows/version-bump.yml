@@ -53,6 +53,15 @@ jobs:
           # Update package.json to keep in sync
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
+          # Update the latest changelog entry version to match the new version
+          # This prevents the changelog from appearing one version behind the app
+          CHANGELOG_FILE="src/lib/changelog.ts"
+          LATEST_CHANGELOG_VERSION=$(grep -oP "version: '\K[^']+" "$CHANGELOG_FILE" | head -1)
+          if [ -n "$LATEST_CHANGELOG_VERSION" ]; then
+            # Replace only the first occurrence of the version in the changelog
+            sed -i "0,/version: '$LATEST_CHANGELOG_VERSION'/s/version: '$LATEST_CHANGELOG_VERSION'/version: '$NEW_VERSION'/" "$CHANGELOG_FILE"
+          fi
+
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Commit and push to master
@@ -60,7 +69,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add src/lib/version.ts package.json
+          git add src/lib/version.ts package.json src/lib/changelog.ts
           git diff --cached --quiet && exit 0
           git commit -m "chore: bump version to ${{ env.NEW_VERSION }} [skip ci]"
           git push
