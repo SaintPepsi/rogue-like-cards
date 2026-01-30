@@ -16,6 +16,10 @@ export const CHANGELOG: ChangelogEntry[] = [
 		version: '0.22.0',
 		date: '2026-01-30',
 		changes: [
+			{ category: 'fixed', description: 'Fixed upgrade card rarity selection so higher-rarity cards actually appear at intended rates' },
+			{ category: 'changed', description: 'Changed rarity drop rates to taper at 1/3 per tier for a steeper curve' },
+			{ category: 'changed', description: 'Changed chest loot to only offer uncommon or better cards' },
+			{ category: 'changed', description: 'Disabled execute from triggering on boss enemies' },
 			{ category: 'fixed', description: 'Fixed gold drop stats not appearing in the stats panel' }
 		]
 	},

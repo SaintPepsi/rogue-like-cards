@@ -69,7 +69,7 @@ export function createLeveling() {
 		if (wasBossChest) {
 			upgradeChoices = getRandomLegendaryUpgrades(3);
 		} else {
-			upgradeChoices = getRandomUpgrades(3, ctx.luckyChance + 0.5, ctx.executeChance, ctx.executeCap, ctx.poison);
+			upgradeChoices = getRandomUpgrades(3, ctx.luckyChance + 0.5, ctx.executeChance, ctx.executeCap, ctx.poison, 'uncommon');
 		}
 	}
 

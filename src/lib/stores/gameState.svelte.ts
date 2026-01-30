@@ -82,7 +82,8 @@ function createGameState() {
 			enemyMaxHealth: enemy.enemyMaxHealth,
 			overkillDamage: enemy.overkillDamage,
 			rng: Math.random,
-			executeCap: shop.getExecuteCapValue()
+			executeCap: shop.getExecuteCapValue(),
+			isBoss: enemy.isBoss
 		});
 
 		// Assign hit IDs (UI concern)

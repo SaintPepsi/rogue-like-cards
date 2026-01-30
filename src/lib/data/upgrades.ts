@@ -622,14 +622,45 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
+// Percent chance per pick that the ENTIRE rarity tier is chosen.
+// Within the chosen tier, each card has equal probability.
+// Each tier is roughly 1/3 the previous. These must sum to 100.
+const RARITY_TIER_CHANCES: Record<string, number> = {
+	common: 67,    // 67% chance per pick
+	uncommon: 22,  // 22% chance per pick  (~1/3 of common)
+	rare: 7,       //  7% chance per pick  (~1/3 of uncommon)
+	epic: 3,       //  3% chance per pick  (~1/3 of rare)
+	legendary: 1   //  1% chance per pick  (~1/3 of epic)
+};
+
+// Lucky chance shifts % points from common into higher tiers.
+// At luckyChance=1.0, the full bonus is applied.
+const LUCKY_TIER_BONUS: Record<string, number> = {
+	common: -20,    // loses 20% points
+	uncommon: 5,    // gains 5% points
+	rare: 7,        // gains 7% points
+	epic: 5,        // gains 5% points
+	legendary: 3    // gains 3% points
+};
+
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+
 export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,
 	currentExecuteChance: number = 0,
 	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
-	currentPoison: number = 0
+	currentPoison: number = 0,
+	minRarity: string = 'common'
 ): Upgrade[] {
 	let pool = [...allUpgrades];
+
+	// Filter by minimum rarity
+	const minIndex = RARITY_ORDER.indexOf(minRarity as typeof RARITY_ORDER[number]);
+	if (minIndex > 0) {
+		const allowed = new Set(RARITY_ORDER.slice(minIndex));
+		pool = pool.filter((u) => allowed.has(u.rarity as typeof RARITY_ORDER[number]));
+	}
 
 	// Filter out execute upgrades if player has hit their current cap
 	if (currentExecuteChance >= executeCap) {
@@ -641,15 +672,64 @@ export function getRandomUpgrades(
 		pool = pool.filter((u) => !poisonDependentIds.has(u.id));
 	}
 
-	const shuffled = [...pool].sort(() => Math.random() - 0.5);
+	// Group pool by rarity
+	const tiers: Record<string, Upgrade[]> = {};
+	for (const upgrade of pool) {
+		if (!tiers[upgrade.rarity]) tiers[upgrade.rarity] = [];
+		tiers[upgrade.rarity].push(upgrade);
+	}
 
-	// Apply lucky chance - boost rarer items
-	const weighted = shuffled.sort((a, b) => {
-		const rarityOrder = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
-		const aScore = rarityOrder[a.rarity] + (Math.random() < luckyChance ? 2 : 0);
-		const bScore = rarityOrder[b.rarity] + (Math.random() < luckyChance ? 2 : 0);
-		return aScore - bScore + (Math.random() - 0.3);
-	});
+	// Build effective tier chances (base + lucky bonus)
+	const tierChances: Record<string, number> = {};
+	for (const rarity of Object.keys(RARITY_TIER_CHANCES)) {
+		const base = RARITY_TIER_CHANCES[rarity] ?? 0;
+		const bonus = (LUCKY_TIER_BONUS[rarity] ?? 0) * luckyChance;
+		tierChances[rarity] = Math.max(0, base + bonus);
+	}
 
-	return weighted.slice(0, count);
+	// Build carousel: each tier gets tickets equal to its % chance,
+	// distributed evenly across cards in that tier.
+	// Use 100 total tickets so 1 ticket = 1% chance.
+	const carousel: Upgrade[] = [];
+	for (const [rarity, chance] of Object.entries(tierChances)) {
+		const cards = tiers[rarity];
+		if (!cards || cards.length === 0) continue;
+		// Round up tickets so every non-empty tier gets representation
+		const totalTickets = Math.max(1, Math.round(chance));
+		// Spread tickets across cards in the tier
+		for (let t = 0; t < totalTickets; t++) {
+			carousel.push(cards[t % cards.length]);
+		}
+	}
+
+	// Pick randomly from the carousel without duplicates
+	const selected: Upgrade[] = [];
+	const usedIds = new Set<string>();
+
+	for (let i = 0; i < count && carousel.length > 0; i++) {
+		let pick: Upgrade | null = null;
+		for (let attempt = 0; attempt < carousel.length; attempt++) {
+			const idx = Math.floor(Math.random() * carousel.length);
+			const candidate = carousel[idx];
+			if (!usedIds.has(candidate.id)) {
+				pick = candidate;
+				break;
+			}
+		}
+		// Fallback: linear scan for any remaining card not yet picked
+		if (!pick) {
+			for (const candidate of carousel) {
+				if (!usedIds.has(candidate.id)) {
+					pick = candidate;
+					break;
+				}
+			}
+		}
+		if (pick) {
+			selected.push(pick);
+			usedIds.add(pick.id);
+		}
+	}
+
+	return selected;
 }

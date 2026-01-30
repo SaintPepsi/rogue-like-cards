@@ -56,6 +56,24 @@ describe('calculateAttack', () => {
 		expect(result.hits[0].type).toBe('execute');
 	});
 
+	test('execute does not trigger against bosses', () => {
+		const stats: PlayerStats = {
+			...createDefaultStats(),
+			executeChance: 1.0 // guaranteed execute normally
+		};
+		const result = calculateAttack(stats, {
+			enemyHealth: 50,
+			enemyMaxHealth: 100,
+			overkillDamage: 0,
+			rng: () => 0.0, // would always trigger execute
+			isBoss: true
+		});
+
+		// Should NOT execute — must deal normal damage instead
+		expect(result.hits[0].type).not.toBe('execute');
+		expect(result.totalDamage).not.toBe(50);
+	});
+
 	test('execute does not trigger when chance roll fails', () => {
 		const stats: PlayerStats = {
 			...createDefaultStats(),
