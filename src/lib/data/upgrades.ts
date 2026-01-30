@@ -622,23 +622,25 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
-// Base number of tickets each rarity gets in the carousel pool.
-// Higher = more likely to be picked.
-const RARITY_WEIGHTS: Record<string, number> = {
-	common: 50,
-	uncommon: 30,
-	rare: 15,
-	epic: 5,
-	legendary: 1
+// Percent chance per pick that the ENTIRE rarity tier is chosen.
+// Within the chosen tier, each card has equal probability.
+// These must sum to 100.
+const RARITY_TIER_CHANCES: Record<string, number> = {
+	common: 50,    // 50% chance per pick
+	uncommon: 30,  // 30% chance per pick
+	rare: 15,      // 15% chance per pick
+	epic: 4,       //  4% chance per pick
+	legendary: 1   //  1% chance per pick
 };
 
-// Lucky chance bonus tickets per rarity tier
-const LUCKY_BONUS_WEIGHTS: Record<string, number> = {
-	common: 0,
-	uncommon: 5,
-	rare: 10,
-	epic: 15,
-	legendary: 10
+// Lucky chance shifts % points from common into higher tiers.
+// At luckyChance=1.0, the full bonus is applied.
+const LUCKY_TIER_BONUS: Record<string, number> = {
+	common: -20,    // loses 20% points
+	uncommon: 5,    // gains 5% points
+	rare: 7,        // gains 7% points
+	epic: 5,        // gains 5% points
+	legendary: 3    // gains 3% points
 };
 
 export function getRandomUpgrades(
@@ -660,14 +662,33 @@ export function getRandomUpgrades(
 		pool = pool.filter((u) => !poisonDependentIds.has(u.id));
 	}
 
-	// Build carousel: each card gets tickets based on its rarity weight
-	// luckyChance adds bonus tickets to higher-rarity cards
-	const carousel: Upgrade[] = [];
+	// Group pool by rarity
+	const tiers: Record<string, Upgrade[]> = {};
 	for (const upgrade of pool) {
-		let tickets = RARITY_WEIGHTS[upgrade.rarity] ?? 1;
-		tickets += Math.round((LUCKY_BONUS_WEIGHTS[upgrade.rarity] ?? 0) * luckyChance);
-		for (let t = 0; t < tickets; t++) {
-			carousel.push(upgrade);
+		if (!tiers[upgrade.rarity]) tiers[upgrade.rarity] = [];
+		tiers[upgrade.rarity].push(upgrade);
+	}
+
+	// Build effective tier chances (base + lucky bonus)
+	const tierChances: Record<string, number> = {};
+	for (const rarity of Object.keys(RARITY_TIER_CHANCES)) {
+		const base = RARITY_TIER_CHANCES[rarity] ?? 0;
+		const bonus = (LUCKY_TIER_BONUS[rarity] ?? 0) * luckyChance;
+		tierChances[rarity] = Math.max(0, base + bonus);
+	}
+
+	// Build carousel: each tier gets tickets equal to its % chance,
+	// distributed evenly across cards in that tier.
+	// Use 100 total tickets so 1 ticket = 1% chance.
+	const carousel: Upgrade[] = [];
+	for (const [rarity, chance] of Object.entries(tierChances)) {
+		const cards = tiers[rarity];
+		if (!cards || cards.length === 0) continue;
+		// Round up tickets so every non-empty tier gets representation
+		const totalTickets = Math.max(1, Math.round(chance));
+		// Spread tickets across cards in the tier
+		for (let t = 0; t < totalTickets; t++) {
+			carousel.push(cards[t % cards.length]);
 		}
 	}
 
@@ -676,7 +697,6 @@ export function getRandomUpgrades(
 	const usedIds = new Set<string>();
 
 	for (let i = 0; i < count && carousel.length > 0; i++) {
-		// Try up to carousel length times to find a non-duplicate
 		let pick: Upgrade | null = null;
 		for (let attempt = 0; attempt < carousel.length; attempt++) {
 			const idx = Math.floor(Math.random() * carousel.length);
