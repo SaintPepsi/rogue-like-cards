@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { gameState } from '$lib/stores/gameState.svelte';
+	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import { VERSION } from '$lib/version';
 	import StatsPanel from '$lib/components/StatsPanel.svelte';
@@ -18,6 +19,82 @@
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
 	let showSettingsModal = $state(false);
+
+	// Upgrade slot management for crossfade transitions
+	interface UpgradeSlot {
+		id: number;
+		type: 'levelup' | 'chest';
+		choices: Upgrade[];
+		pendingCount: number;
+		gold: number;
+		exiting: boolean;
+	}
+
+	let upgradeSlots = $state<UpgradeSlot[]>([]);
+	let nextSlotId = $state(0);
+
+	// Create initial slot when activeEvent appears (badge click, page load)
+	$effect(() => {
+		const event = gameState.activeEvent;
+
+		if (event) {
+			const hasActiveSlot = untrack(() => upgradeSlots.some((s) => !s.exiting));
+			if (!hasActiveSlot) {
+				nextSlotId++;
+				upgradeSlots = [
+					...untrack(() => upgradeSlots),
+					{
+						id: nextSlotId,
+						type: event.type,
+						choices: untrack(() => [...gameState.upgradeChoices]),
+						pendingCount: untrack(() => gameState.pendingUpgrades + 1),
+						gold: event.gold ?? 0,
+						exiting: false
+					}
+				];
+			}
+		} else {
+			// No event — mark any active slots as exiting (handles game reset)
+			untrack(() => {
+				const hasActive = upgradeSlots.some((s) => !s.exiting);
+				if (hasActive) {
+					upgradeSlots = upgradeSlots.map((s) => (s.exiting ? s : { ...s, exiting: true }));
+					setTimeout(() => {
+						upgradeSlots = upgradeSlots.filter((s) => !s.exiting);
+					}, 400);
+				}
+			});
+		}
+	});
+
+	function handleUpgradeSelect(upgrade: Upgrade) {
+		// Mark all active slots as exiting (starts fade-out animation)
+		upgradeSlots = upgradeSlots.map((s) => (s.exiting ? s : { ...s, exiting: true }));
+
+		// Apply the upgrade (may open next event internally)
+		gameState.selectUpgrade(upgrade);
+
+		// If there's a new event, add a fresh slot (enters with card-flip animation)
+		if (gameState.activeEvent) {
+			nextSlotId++;
+			upgradeSlots = [
+				...upgradeSlots,
+				{
+					id: nextSlotId,
+					type: gameState.activeEvent.type,
+					choices: [...gameState.upgradeChoices],
+					pendingCount: gameState.pendingUpgrades + 1,
+					gold: gameState.activeEvent.gold ?? 0,
+					exiting: false
+				}
+			];
+		}
+
+		// Remove exiting slots after animation completes
+		setTimeout(() => {
+			upgradeSlots = upgradeSlots.filter((s) => !s.exiting);
+		}, 400);
+	}
 
 	onMount(() => {
 		gameState.init();
@@ -57,6 +134,7 @@
 			{:else}
 				<span class="wave-progress">{gameState.waveKills}/{gameState.killsPerWave} until boss</span>
 			{/if}
+			<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
 		</div>
 
 		<!-- Level Bar - Full Width -->
@@ -74,7 +152,6 @@
 		<div class="game-layout">
 			<div class="stats-column">
 				<StatsPanel stats={gameState.playerStats} />
-				<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
 			</div>
 
 			<BattleArea
@@ -92,21 +169,25 @@
 		</div>
 	</div>
 
-	{#if gameState.activeEvent?.type === 'levelup'}
-		<LevelUpModal
-			show={true}
-			choices={gameState.upgradeChoices}
-			pendingCount={gameState.pendingUpgrades + 1}
-			onSelect={gameState.selectUpgrade}
-		/>
-	{:else if gameState.activeEvent?.type === 'chest'}
-		<ChestLootModal
-			show={true}
-			gold={gameState.activeEvent.gold ?? 0}
-			choices={gameState.upgradeChoices}
-			onSelect={gameState.selectUpgrade}
-		/>
-	{/if}
+	{#each upgradeSlots as slot (slot.id)}
+		{#if slot.type === 'levelup'}
+			<LevelUpModal
+				show={true}
+				choices={slot.choices}
+				pendingCount={slot.exiting ? slot.pendingCount : gameState.pendingUpgrades + 1}
+				onSelect={handleUpgradeSelect}
+				exiting={slot.exiting}
+			/>
+		{:else if slot.type === 'chest'}
+			<ChestLootModal
+				show={true}
+				gold={slot.gold}
+				choices={slot.choices}
+				onSelect={handleUpgradeSelect}
+				exiting={slot.exiting}
+			/>
+		{/if}
+	{/each}
 
 	<GameOverModal
 		show={gameState.showGameOver && !gameState.showShop}
@@ -300,6 +381,7 @@
 		flex-direction: column;
 		gap: 12px;
 	}
+
 
 	.game-layout {
 		display: grid;

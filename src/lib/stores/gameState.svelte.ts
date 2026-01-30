@@ -258,6 +258,14 @@ function createGameState() {
 		}
 	}
 
+	function serializeEvent(event: { type: string; choices: Upgrade[]; gold?: number }) {
+		return {
+			type: event.type as 'levelup' | 'chest',
+			choiceIds: event.choices.map((c) => c.id),
+			gold: event.gold
+		};
+	}
+
 	function saveGame() {
 		persistence.saveSession({
 			playerStats: { ...playerStats },
@@ -274,6 +282,8 @@ function createGameState() {
 			isBoss: enemy.isBoss,
 			isChest: enemy.isChest,
 			isBossChest: enemy.isBossChest,
+			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
+			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
 			timestamp: Date.now()
 		});
 	}
@@ -293,7 +303,12 @@ function createGameState() {
 		delete (playerStats as Record<string, unknown>).executeThreshold;
 		effects = [...data.effects];
 		unlockedUpgrades = new Set(data.unlockedUpgradeIds);
-		leveling.restore({ xp: data.xp, level: data.level });
+		leveling.restore({
+			xp: data.xp,
+			level: data.level,
+			upgradeQueue: data.upgradeQueue,
+			activeEvent: data.activeEvent
+		});
 		gold = data.gold;
 		enemy.restore({
 			stage: data.stage,

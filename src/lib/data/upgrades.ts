@@ -602,6 +602,12 @@ export const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
 export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 
+const upgradeMap = new Map<string, Upgrade>(allUpgrades.map((u) => [u.id, u]));
+
+export function getUpgradeById(id: string): Upgrade | undefined {
+	return upgradeMap.get(id);
+}
+
 const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
 
 // Upgrades that require the player to already have base poison

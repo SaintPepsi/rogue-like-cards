@@ -1,6 +1,7 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { createLeveling } from './leveling.svelte';
 import type { UpgradeContext } from './leveling.svelte';
+import type { SavedUpgradeEvent } from './persistence.svelte';
 
 const defaultCtx: UpgradeContext = {
 	luckyChance: 0,
@@ -160,5 +161,71 @@ describe('createLeveling', () => {
 
 		expect(lev.xp).toBe(50);
 		expect(lev.level).toBe(5);
+	});
+
+	test('restore reconstructs upgradeQueue from saved events', () => {
+		const lev = createLeveling();
+		const savedQueue: SavedUpgradeEvent[] = [
+			{ type: 'levelup', choiceIds: ['damage1', 'crit1', 'xp1'] },
+			{ type: 'chest', choiceIds: ['damage2', 'critdmg1', 'poison1'], gold: 100 }
+		];
+
+		lev.restore({ xp: 50, level: 5, upgradeQueue: savedQueue });
+
+		expect(lev.pendingUpgrades).toBe(2);
+
+		// Open first event and check it
+		const event1 = lev.openNextUpgrade();
+		expect(event1).not.toBeNull();
+		expect(event1!.type).toBe('levelup');
+		expect(event1!.choices).toHaveLength(3);
+		expect(event1!.choices.map(c => c.id)).toEqual(['damage1', 'crit1', 'xp1']);
+
+		lev.closeActiveEvent();
+
+		// Open second event and check it
+		const event2 = lev.openNextUpgrade();
+		expect(event2).not.toBeNull();
+		expect(event2!.type).toBe('chest');
+		expect(event2!.gold).toBe(100);
+		expect(event2!.choices).toHaveLength(3);
+	});
+
+	test('restore reconstructs activeEvent from saved event', () => {
+		const lev = createLeveling();
+		const savedActive: SavedUpgradeEvent = {
+			type: 'levelup',
+			choiceIds: ['damage1', 'crit1', 'xp1']
+		};
+
+		lev.restore({ xp: 50, level: 5, activeEvent: savedActive });
+
+		expect(lev.hasActiveEvent).toBe(true);
+		expect(lev.activeEvent!.type).toBe('levelup');
+		expect(lev.upgradeChoices).toHaveLength(3);
+		expect(lev.upgradeChoices.map(c => c.id)).toEqual(['damage1', 'crit1', 'xp1']);
+	});
+
+	test('restore skips events with invalid upgrade IDs', () => {
+		const lev = createLeveling();
+		const savedQueue: SavedUpgradeEvent[] = [
+			{ type: 'levelup', choiceIds: ['nonexistent1', 'nonexistent2', 'nonexistent3'] },
+			{ type: 'levelup', choiceIds: ['damage1', 'crit1', 'xp1'] }
+		];
+
+		lev.restore({ xp: 50, level: 5, upgradeQueue: savedQueue });
+
+		// First event should be filtered out (all IDs invalid), only second remains
+		expect(lev.pendingUpgrades).toBe(1);
+		const event = lev.openNextUpgrade();
+		expect(event!.choices.map(c => c.id)).toEqual(['damage1', 'crit1', 'xp1']);
+	});
+
+	test('restore with empty upgradeQueue and no activeEvent leaves clean state', () => {
+		const lev = createLeveling();
+		lev.restore({ xp: 50, level: 5, upgradeQueue: [], activeEvent: null });
+
+		expect(lev.pendingUpgrades).toBe(0);
+		expect(lev.hasActiveEvent).toBe(false);
 	});
 });

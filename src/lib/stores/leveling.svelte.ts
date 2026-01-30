@@ -1,6 +1,7 @@
 import type { Upgrade } from '$lib/types';
-import { getRandomUpgrades, getRandomLegendaryUpgrades } from '$lib/data/upgrades';
+import { getRandomUpgrades, getRandomLegendaryUpgrades, getUpgradeById } from '$lib/data/upgrades';
 import { getXpToNextLevel } from '$lib/engine/waves';
+import type { SavedUpgradeEvent } from './persistence.svelte';
 
 export interface UpgradeContext {
 	luckyChance: number;
@@ -92,9 +93,36 @@ export function createLeveling() {
 		upgradeChoices = [];
 	}
 
-	function restore(data: { xp: number; level: number }) {
+	function restore(data: {
+		xp: number;
+		level: number;
+		upgradeQueue?: SavedUpgradeEvent[];
+		activeEvent?: SavedUpgradeEvent | null;
+	}) {
 		xp = data.xp;
 		level = data.level;
+
+		// Reconstruct upgrade events from saved IDs
+		if (data.upgradeQueue) {
+			upgradeQueue = data.upgradeQueue
+				.map(deserializeEvent)
+				.filter((e): e is UpgradeEvent => e !== null);
+		}
+		if (data.activeEvent) {
+			const restored = deserializeEvent(data.activeEvent);
+			if (restored) {
+				activeEvent = restored;
+				upgradeChoices = restored.choices;
+			}
+		}
+	}
+
+	function deserializeEvent(saved: SavedUpgradeEvent): UpgradeEvent | null {
+		const choices = saved.choiceIds
+			.map(getUpgradeById)
+			.filter((u): u is Upgrade => u !== undefined);
+		if (choices.length === 0) return null;
+		return { type: saved.type, choices, gold: saved.gold };
 	}
 
 	return {

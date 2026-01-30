@@ -12,9 +12,10 @@
 		gold: number;
 		choices: Upgrade[];
 		onSelect: (upgrade: Upgrade) => void;
+		exiting?: boolean;
 	};
 
-	let { show, gold, choices, onSelect }: Props = $props();
+	let { show, gold, choices, onSelect, exiting = false }: Props = $props();
 
 	const flip = useCardFlip();
 	const cardSelect = useCardSelect();
@@ -37,14 +38,14 @@
 </script>
 
 {#if show}
-	<div class="modal-overlay">
+	<div class="modal-overlay" class:exiting>
 		<div class="modal" class:selecting={cardSelect.selecting}>
-			<div class="modal-header" class:content-fade-out={cardSelect.selecting} class:content-fade-in={cardSelect.phaseIn}>
+			<div class="modal-header" class:content-fade-out={cardSelect.selecting}>
 				<h2>Treasure Found!</h2>
 				<p class="gold-reward">+{formatNumber(gold)} Gold</p>
 				<p>Choose a reward:</p>
 			</div>
-			<div class="upgrade-choices desktop-grid" class:content-fade-in={cardSelect.phaseIn}>
+			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, i (upgrade.id)}
 					<Button.Root
 						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
@@ -109,6 +110,22 @@
 		z-index: 100;
 	}
 
+	.modal-overlay.exiting {
+		background: transparent;
+		pointer-events: none;
+	}
+
+	.modal-overlay.exiting .modal {
+		animation: modal-exit 350ms ease-out forwards;
+	}
+
+	@keyframes modal-exit {
+		to {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+	}
+
 	.modal {
 		background: #1a1a2e;
 		padding: 32px;
@@ -135,10 +152,6 @@
 		opacity: 0;
 	}
 
-	.modal-header.content-fade-in {
-		animation: fade-in 200ms ease-out;
-	}
-
 	.modal h2 {
 		margin: 0 0 8px;
 		font-size: 1.8rem;
@@ -161,15 +174,6 @@
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 16px;
-	}
-
-	.upgrade-choices.content-fade-in {
-		animation: fade-in 200ms ease-out;
-	}
-
-	@keyframes fade-in {
-		from { opacity: 0; }
-		to { opacity: 1; }
 	}
 
 	/* Card selection transitions */

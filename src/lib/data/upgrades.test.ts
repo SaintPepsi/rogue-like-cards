@@ -13,7 +13,30 @@ vi.mock('$lib/assets/images/cards/coins.png', () => ({ default: '' }));
 vi.mock('$lib/assets/images/cards/hammer.png', () => ({ default: '' }));
 vi.mock('$lib/assets/images/cards/pickaxe.png', () => ({ default: '' }));
 
-const { getRandomUpgrades, EXECUTE_CHANCE_BASE_CAP } = await import('./upgrades');
+const { getRandomUpgrades, getUpgradeById, allUpgrades, EXECUTE_CHANCE_BASE_CAP } = await import('./upgrades');
+
+describe('getUpgradeById', () => {
+	test('returns the correct upgrade for a valid ID', () => {
+		const upgrade = getUpgradeById('damage1');
+		expect(upgrade).toBeDefined();
+		expect(upgrade!.id).toBe('damage1');
+		expect(upgrade!.title).toBe('Sharpen Blade');
+	});
+
+	test('returns undefined for an invalid ID', () => {
+		const upgrade = getUpgradeById('nonexistent');
+		expect(upgrade).toBeUndefined();
+	});
+
+	test('returns correct upgrade for every ID in allUpgrades', () => {
+		for (const u of allUpgrades) {
+			const found = getUpgradeById(u.id);
+			expect(found).toBeDefined();
+			expect(found!.id).toBe(u.id);
+			expect(found!.title).toBe(u.title);
+		}
+	});
+});
 
 describe('getRandomUpgrades', () => {
 	test('returns the requested number of upgrades', () => {
