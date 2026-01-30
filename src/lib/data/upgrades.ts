@@ -622,6 +622,25 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
+// Base number of tickets each rarity gets in the carousel pool.
+// Higher = more likely to be picked.
+const RARITY_WEIGHTS: Record<string, number> = {
+	common: 50,
+	uncommon: 30,
+	rare: 15,
+	epic: 5,
+	legendary: 1
+};
+
+// Lucky chance bonus tickets per rarity tier
+const LUCKY_BONUS_WEIGHTS: Record<string, number> = {
+	common: 0,
+	uncommon: 5,
+	rare: 10,
+	epic: 15,
+	legendary: 10
+};
+
 export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,
@@ -641,15 +660,46 @@ export function getRandomUpgrades(
 		pool = pool.filter((u) => !poisonDependentIds.has(u.id));
 	}
 
-	const shuffled = [...pool].sort(() => Math.random() - 0.5);
+	// Build carousel: each card gets tickets based on its rarity weight
+	// luckyChance adds bonus tickets to higher-rarity cards
+	const carousel: Upgrade[] = [];
+	for (const upgrade of pool) {
+		let tickets = RARITY_WEIGHTS[upgrade.rarity] ?? 1;
+		tickets += Math.round((LUCKY_BONUS_WEIGHTS[upgrade.rarity] ?? 0) * luckyChance);
+		for (let t = 0; t < tickets; t++) {
+			carousel.push(upgrade);
+		}
+	}
 
-	// Apply lucky chance - boost rarer items
-	const weighted = shuffled.sort((a, b) => {
-		const rarityOrder = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4 };
-		const aScore = rarityOrder[a.rarity] + (Math.random() < luckyChance ? 2 : 0);
-		const bScore = rarityOrder[b.rarity] + (Math.random() < luckyChance ? 2 : 0);
-		return aScore - bScore + (Math.random() - 0.3);
-	});
+	// Pick randomly from the carousel without duplicates
+	const selected: Upgrade[] = [];
+	const usedIds = new Set<string>();
 
-	return weighted.slice(0, count);
+	for (let i = 0; i < count && carousel.length > 0; i++) {
+		// Try up to carousel length times to find a non-duplicate
+		let pick: Upgrade | null = null;
+		for (let attempt = 0; attempt < carousel.length; attempt++) {
+			const idx = Math.floor(Math.random() * carousel.length);
+			const candidate = carousel[idx];
+			if (!usedIds.has(candidate.id)) {
+				pick = candidate;
+				break;
+			}
+		}
+		// Fallback: linear scan for any remaining card not yet picked
+		if (!pick) {
+			for (const candidate of carousel) {
+				if (!usedIds.has(candidate.id)) {
+					pick = candidate;
+					break;
+				}
+			}
+		}
+		if (pick) {
+			selected.push(pick);
+			usedIds.add(pick.id);
+		}
+	}
+
+	return selected;
 }

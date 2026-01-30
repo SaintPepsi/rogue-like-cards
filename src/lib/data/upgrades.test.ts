@@ -80,4 +80,43 @@ describe('getRandomUpgrades', () => {
 		}
 		expect(foundExecute).toBe(true);
 	});
+
+	test('returns unique upgrades (no duplicates)', () => {
+		for (let i = 0; i < 50; i++) {
+			const result = getRandomUpgrades(5, 0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
+			const ids = result.map((u) => u.id);
+			expect(new Set(ids).size).toBe(ids.length);
+		}
+	});
+
+	test('rare+ cards can appear with zero lucky chance', () => {
+		const rarityCounts: Record<string, number> = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 };
+
+		for (let i = 0; i < 1000; i++) {
+			const result = getRandomUpgrades(3, 0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
+			for (const u of result) {
+				rarityCounts[u.rarity]++;
+			}
+		}
+
+		// With 3000 total picks and proper weighting, uncommon and rare should both appear
+		expect(rarityCounts.uncommon).toBeGreaterThan(0);
+		expect(rarityCounts.rare).toBeGreaterThan(0);
+	});
+
+	test('lucky chance increases rate of higher-rarity cards', () => {
+		let rareCountNoLuck = 0;
+		let rareCountHighLuck = 0;
+
+		for (let i = 0; i < 2000; i++) {
+			const noLuck = getRandomUpgrades(3, 0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
+			rareCountNoLuck += noLuck.filter((u) => u.rarity === 'rare' || u.rarity === 'epic' || u.rarity === 'legendary').length;
+
+			const highLuck = getRandomUpgrades(3, 1.0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
+			rareCountHighLuck += highLuck.filter((u) => u.rarity === 'rare' || u.rarity === 'epic' || u.rarity === 'legendary').length;
+		}
+
+		// With max lucky chance, rare+ cards should appear more often
+		expect(rareCountHighLuck).toBeGreaterThan(rareCountNoLuck);
+	});
 });
