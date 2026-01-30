@@ -13,7 +13,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
-		version: '0.25.0',
+		version: '0.26.0',
 		date: '2026-01-30',
 		changes: [
 			{ category: 'changed', description: 'Rebalanced XP curve so early levels require more XP, making progression more gradual' },
