@@ -243,6 +243,9 @@ function createGameState() {
 			// All upgrades consumed — resume game
 			timers.startPoisonTick(applyPoison);
 			timers.resumeBossTimer(handleBossExpired);
+		} else {
+			// More queued — auto-open the next one
+			leveling.openNextUpgrade();
 		}
 		saveGame();
 	}
