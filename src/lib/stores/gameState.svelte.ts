@@ -4,7 +4,7 @@ import { createTimers } from './timers.svelte';
 import { createPersistence } from './persistence.svelte';
 import { createEnemy } from './enemy.svelte';
 import { createLeveling } from './leveling.svelte';
-import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
+import { createShop } from './shop.svelte';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
@@ -18,7 +18,6 @@ import {
 	BOSS_XP_MULTIPLIER,
 	CHEST_XP_MULTIPLIER,
 } from '$lib/engine/waves';
-import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -28,14 +27,6 @@ function createGameState() {
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
-
-	// Persistent state (survives game over)
-	let persistentGold = $state(0);
-	let purchasedUpgrades = $state<Set<string>>(new Set());
-	let executeCapBonus = $state(0);
-	let goldPerKillBonus = $state(0);
-	let showShop = $state(false);
-	let shopChoices = $state<Upgrade[]>([]);
 
 	// Poison stacks - each entry is remaining ticks for that stack
 	let poisonStacks = $state<number[]>([]);
@@ -57,6 +48,9 @@ function createGameState() {
 	// Leveling / XP / upgrade choices
 	const leveling = createLeveling();
 
+	// Shop / persistent upgrades
+	const shop = createShop(persistence);
+
 	// Derived values
 	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
 
@@ -64,14 +58,13 @@ function createGameState() {
 		return {
 			luckyChance: playerStats.luckyChance,
 			executeChance: playerStats.executeChance,
-			executeCap: getExecuteCap(executeCapBonus),
+			executeCap: shop.getExecuteCapValue(),
 			poison: playerStats.poison
 		};
 	}
 
 	function handleBossExpired() {
-		persistentGold += gold;
-		savePersistent();
+		shop.depositGold(gold);
 		showGameOver = true;
 		persistence.clearSession();
 	}
@@ -89,7 +82,7 @@ function createGameState() {
 			enemyMaxHealth: enemy.enemyMaxHealth,
 			overkillDamage: enemy.overkillDamage,
 			rng: Math.random,
-			executeCap: getExecuteCap(executeCapBonus)
+			executeCap: shop.getExecuteCapValue()
 		});
 
 		// Assign hit IDs (UI concern)
@@ -177,7 +170,7 @@ function createGameState() {
 			enemy.advanceWave();
 
 			// Gold drop check - mobs have a percentage chance to drop gold
-			const effectiveGoldPerKill = playerStats.goldPerKill + goldPerKillBonus;
+			const effectiveGoldPerKill = playerStats.goldPerKill + shop.getGoldPerKillBonus();
 			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
 				const goldReward = enemy.isBoss
 					? getBossGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier)
@@ -340,86 +333,8 @@ function createGameState() {
 		return true;
 	}
 
-	function savePersistent() {
-		persistence.savePersistent({
-			gold: persistentGold,
-			purchasedUpgradeIds: [...purchasedUpgrades],
-			executeCapBonus,
-			goldPerKillBonus
-		});
-	}
-
-	function loadPersistent() {
-		const data = persistence.loadPersistent();
-		if (!data) return;
-		persistentGold = data.gold || 0;
-		purchasedUpgrades = new Set(data.purchasedUpgradeIds || []);
-		executeCapBonus = data.executeCapBonus || 0;
-		goldPerKillBonus = data.goldPerKillBonus || 0;
-	}
-
-	function getCardPrice(upgrade: Upgrade): number {
-		if (upgrade.id === 'execute_cap') {
-			const level = Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
-			return calculateCardPrice(upgrade.rarity, level);
-		}
-		if (upgrade.id === 'gold_per_kill') {
-			const level = Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
-			return calculateCardPrice(upgrade.rarity, level);
-		}
-		// Count how many times this specific card has been bought
-		// For regular cards it's 0 or 1 (can't rebuy), but price still reflects total purchases
-		return calculateCardPrice(upgrade.rarity, purchasedUpgrades.size);
-	}
-
-	function generateShopChoices(): Upgrade[] {
-		// Generate 1 random upgrade choice + always include gold per kill + execute cap cards
-		const randomCards = getRandomUpgrades(1, 0.2, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
-		return [...randomCards, goldPerKillUpgrade, executeCapUpgrade];
-	}
-
-	function openShop() {
-		shopChoices = generateShopChoices();
-		showShop = true;
-	}
-
-	function closeShop() {
-		showShop = false;
-	}
-
-	function buyUpgrade(upgrade: Upgrade): boolean {
-		const price = getCardPrice(upgrade);
-		if (persistentGold < price) return false;
-
-		persistentGold -= price;
-
-		if (upgrade.id === 'execute_cap') {
-			executeCapBonus += EXECUTE_CAP_BONUS_PER_LEVEL;
-		} else if (upgrade.id === 'gold_per_kill') {
-			goldPerKillBonus += GOLD_PER_KILL_BONUS_PER_LEVEL;
-		} else {
-			purchasedUpgrades = new Set([...purchasedUpgrades, upgrade.id]);
-		}
-
-		savePersistent();
-
-		// Refresh shop choices after purchase (delayed to let animation play)
-		setTimeout(() => {
-			shopChoices = generateShopChoices();
-		}, 400);
-		return true;
-	}
-
 	function applyPurchasedUpgrades() {
-		// Apply all purchased upgrades at the start of a new game
-		for (const upgradeId of purchasedUpgrades) {
-			const upgrade = allUpgrades.find((u) => u.id === upgradeId);
-			if (upgrade) {
-				upgrade.apply(playerStats);
-				// Track in unlocked upgrades for collection
-				unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
-			}
-		}
+		unlockedUpgrades = shop.applyPurchasedUpgrades(playerStats, unlockedUpgrades);
 	}
 
 	function resetGame() {
@@ -435,7 +350,7 @@ function createGameState() {
 		ui.reset();
 		leveling.reset();
 		showGameOver = false;
-		showShop = false;
+		shop.resetShopUI();
 		persistence.clearSession();
 
 		// Apply purchased upgrades from shop
@@ -446,20 +361,13 @@ function createGameState() {
 	}
 
 	function fullReset() {
-		// Clear persistent data (bank purchases, gold, execute cap)
-		persistentGold = 0;
-		purchasedUpgrades = new Set();
-		executeCapBonus = 0;
-		goldPerKillBonus = 0;
-		persistence.clearPersistent();
-
-		// Then do a normal game reset (without purchased upgrades since they're gone)
+		shop.fullReset();
 		resetGame();
 	}
 
 	function init() {
 		// Always load persistent data first
-		loadPersistent();
+		shop.load();
 
 		const loaded = loadGame();
 		if (!loaded) {
@@ -551,26 +459,26 @@ function createGameState() {
 			return unlockedUpgrades;
 		},
 		get persistentGold() {
-			return persistentGold;
+			return shop.persistentGold;
 		},
 		get purchasedUpgrades() {
-			return purchasedUpgrades;
+			return shop.purchasedUpgrades;
 		},
 		get showShop() {
-			return showShop;
+			return shop.showShop;
 		},
 		get shopChoices() {
-			return shopChoices;
+			return shop.shopChoices;
 		},
 
 		get goldDrops() {
 			return ui.goldDrops;
 		},
 		get executeCapLevel() {
-			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+			return shop.executeCapLevel;
 		},
 		get goldPerKillLevel() {
-			return Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
+			return shop.goldPerKillLevel;
 		},
 
 		// Actions
@@ -579,10 +487,10 @@ function createGameState() {
 		resetGame,
 		fullReset,
 		init,
-		openShop,
-		closeShop,
-		buyUpgrade,
-		getCardPrice
+		openShop: (stats?: PlayerStats) => shop.open(stats ?? playerStats),
+		closeShop: () => shop.close(),
+		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, playerStats),
+		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade)
 	};
 }
 
