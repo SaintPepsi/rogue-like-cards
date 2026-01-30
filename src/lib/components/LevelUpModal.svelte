@@ -2,6 +2,7 @@
 	import type { Upgrade } from '$lib/types';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
+	import { useCardFlip } from './useCardFlip.svelte';
 
 	type Props = {
 		show: boolean;
@@ -12,35 +13,17 @@
 
 	let { show, choices, pendingCount, onSelect }: Props = $props();
 
-	let flippedCards = $state<boolean[]>([]);
-	let enabledCards = $state<boolean[]>([]);
-	let flipTimers: ReturnType<typeof setTimeout>[] = [];
+	const flip = useCardFlip();
 
 	$effect(() => {
 		if (show) {
-			flippedCards = choices.map(() => false);
-			enabledCards = choices.map(() => false);
-			flipTimers.forEach(clearTimeout);
-			flipTimers = [];
-
-			choices.forEach((_, i) => {
-				const flipTimer = setTimeout(() => {
-					flippedCards[i] = true;
-				}, 200 + i * 250);
-				flipTimers.push(flipTimer);
-
-				// Enable after flip animation completes (0.6s CSS transition)
-				const enableTimer = setTimeout(() => {
-					enabledCards[i] = true;
-				}, 200 + i * 250 + 600);
-				flipTimers.push(enableTimer);
-			});
+			flip.startFlip(choices.length);
 		}
-		return () => flipTimers.forEach(clearTimeout);
+		return () => flip.cleanup();
 	});
 
 	function handleSelect(upgrade: Upgrade, index: number) {
-		if (!enabledCards[index]) return;
+		if (!flip.enabledCards[index]) return;
 		onSelect(upgrade);
 	}
 </script>
@@ -57,10 +40,10 @@
 				{#each choices as upgrade, i (upgrade.id)}
 					<button
 						class="upgrade-btn"
-						disabled={!enabledCards[i]}
+						disabled={!flip.enabledCards[i]}
 						onclick={() => handleSelect(upgrade, i)}
 					>
-						<div class="card-flip" class:flipped={flippedCards[i]}>
+						<div class="card-flip" class:flipped={flip.flippedCards[i]}>
 							<div class="card-face card-back">
 								<div class="card-back-design">
 									<div class="card-back-inner">?</div>
@@ -82,10 +65,10 @@
 				{#each choices as upgrade, i (upgrade.id)}
 					<button
 						class="upgrade-btn"
-						disabled={!enabledCards[i]}
+						disabled={!flip.enabledCards[i]}
 						onclick={() => handleSelect(upgrade, i)}
 					>
-						<div class="card-flip" class:flipped={flippedCards[i]}>
+						<div class="card-flip" class:flipped={flip.flippedCards[i]}>
 							<div class="card-face card-back">
 								<div class="card-back-design">
 									<div class="card-back-inner">?</div>

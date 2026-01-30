@@ -52,3 +52,8 @@ export type HitInfo = {
 	id: number;
 	index: number; // For positioning multiple hits
 };
+
+export type GoldDrop = {
+	id: number;
+	amount: number;
+};
