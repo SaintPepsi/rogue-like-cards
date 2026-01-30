@@ -624,13 +624,13 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 
 // Percent chance per pick that the ENTIRE rarity tier is chosen.
 // Within the chosen tier, each card has equal probability.
-// These must sum to 100.
+// Each tier is roughly 1/3 the previous. These must sum to 100.
 const RARITY_TIER_CHANCES: Record<string, number> = {
-	common: 50,    // 50% chance per pick
-	uncommon: 30,  // 30% chance per pick
-	rare: 15,      // 15% chance per pick
-	epic: 4,       //  4% chance per pick
-	legendary: 1   //  1% chance per pick
+	common: 67,    // 67% chance per pick
+	uncommon: 22,  // 22% chance per pick  (~1/3 of common)
+	rare: 7,       //  7% chance per pick  (~1/3 of uncommon)
+	epic: 3,       //  3% chance per pick  (~1/3 of rare)
+	legendary: 1   //  1% chance per pick  (~1/3 of epic)
 };
 
 // Lucky chance shifts % points from common into higher tiers.
@@ -643,14 +643,24 @@ const LUCKY_TIER_BONUS: Record<string, number> = {
 	legendary: 3    // gains 3% points
 };
 
+const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+
 export function getRandomUpgrades(
 	count: number,
 	luckyChance: number = 0,
 	currentExecuteChance: number = 0,
 	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
-	currentPoison: number = 0
+	currentPoison: number = 0,
+	minRarity: string = 'common'
 ): Upgrade[] {
 	let pool = [...allUpgrades];
+
+	// Filter by minimum rarity
+	const minIndex = RARITY_ORDER.indexOf(minRarity as typeof RARITY_ORDER[number]);
+	if (minIndex > 0) {
+		const allowed = new Set(RARITY_ORDER.slice(minIndex));
+		pool = pool.filter((u) => allowed.has(u.rarity as typeof RARITY_ORDER[number]));
+	}
 
 	// Filter out execute upgrades if player has hit their current cap
 	if (currentExecuteChance >= executeCap) {

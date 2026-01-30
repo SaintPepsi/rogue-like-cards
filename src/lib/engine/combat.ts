@@ -6,6 +6,7 @@ export interface AttackContext {
 	overkillDamage: number;
 	rng: () => number;
 	executeCap?: number;
+	isBoss?: boolean;
 }
 
 export interface AttackResult {
@@ -18,9 +19,11 @@ export function calculateAttack(stats: PlayerStats, ctx: AttackContext): AttackR
 	const hits: Omit<HitInfo, 'id'>[] = [];
 	let totalDamage = 0;
 
-	const effectiveExecuteChance = ctx.executeCap != null
-		? Math.min(stats.executeChance, ctx.executeCap)
-		: stats.executeChance;
+	// Execute cannot trigger on bosses
+	const effectiveExecuteChance = ctx.isBoss ? 0
+		: ctx.executeCap != null
+			? Math.min(stats.executeChance, ctx.executeCap)
+			: stats.executeChance;
 	const isExecute = effectiveExecuteChance > 0 && ctx.rng() < effectiveExecuteChance;
 
 	if (isExecute) {
