@@ -1,20 +1,14 @@
-import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
+import type { PlayerStats, Upgrade, Effect, HitInfo } from '$lib/types';
 import { createUIEffects } from './uiEffects.svelte';
 import { createTimers } from './timers.svelte';
 import { createPersistence } from './persistence.svelte';
+import { createEnemy } from './enemy.svelte';
 import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
-	KILLS_PER_WAVE,
 	BASE_BOSS_TIME,
-	getEnemyHealth,
-	getBossHealth,
-	getChestHealth,
-	getBossChestHealth,
 	getGreedMultiplier,
-	shouldSpawnChest,
-	shouldSpawnBossChest,
 	shouldDropGold,
 	getXpReward,
 	getChestGoldReward,
@@ -45,19 +39,6 @@ function createGameState() {
 	let showShop = $state(false);
 	let shopChoices = $state<Upgrade[]>([]);
 
-	// Stage/Wave system
-	let stage = $state(1);
-	let waveKills = $state(0);
-	let isBoss = $state(false);
-	let isChest = $state(false);
-	let isBossChest = $state(false);
-
-	// Enemy
-	let enemyHealth = $state(10);
-	let enemyMaxHealth = $state(10);
-	let enemiesKilled = $state(0);
-	let overkillDamage = $state(0);
-
 	// Poison stacks - each entry is remaining ticks for that stack
 	let poisonStacks = $state<number[]>([]);
 
@@ -74,6 +55,9 @@ function createGameState() {
 
 	// Timers (boss countdown + poison tick)
 	const timers = createTimers();
+
+	// Enemy / wave / stage management
+	const enemy = createEnemy();
 
 	// Derived values (for rendering only — game logic should call getXpToNextLevel(level) directly)
 	let xpToNextLevel = $derived(getXpToNextLevel(level));
@@ -92,12 +76,12 @@ function createGameState() {
 	}
 
 	function attack() {
-		if (isModalOpen() || enemyHealth <= 0) return;
+		if (isModalOpen() || enemy.isDead()) return;
 
 		const result = calculateAttack(playerStats, {
-			enemyHealth,
-			enemyMaxHealth,
-			overkillDamage,
+			enemyHealth: enemy.enemyHealth,
+			enemyMaxHealth: enemy.enemyMaxHealth,
+			overkillDamage: enemy.overkillDamage,
 			rng: Math.random,
 			executeCap: getExecuteCap(executeCapBonus)
 		});
@@ -108,8 +92,8 @@ function createGameState() {
 		});
 
 		// Apply results to state
-		overkillDamage = result.overkillDamageOut;
-		enemyHealth -= result.totalDamage;
+		enemy.setOverkillDamage(result.overkillDamageOut);
+		enemy.takeDamage(result.totalDamage);
 		ui.addHits(newHits);
 
 		// Add or refresh poison stacks — one per strike
@@ -132,19 +116,19 @@ function createGameState() {
 			}
 		}
 
-		if (enemyHealth <= 0) {
+		if (enemy.isDead()) {
 			killEnemy();
 		}
 	}
 
 	function applyPoison() {
-		if (playerStats.poison <= 0 || enemyHealth <= 0 || isModalOpen()) return;
+		if (playerStats.poison <= 0 || enemy.isDead() || isModalOpen()) return;
 		if (poisonStacks.length === 0) return;
 
 		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
 		if (result.damage <= 0) return;
 
-		enemyHealth -= result.damage;
+		enemy.takeDamage(result.damage);
 		ui.addHits([{ damage: result.damage, type: result.type, id: ui.nextHitId(), index: 0 }]);
 
 		// Tick down all stacks and remove expired ones
@@ -152,7 +136,7 @@ function createGameState() {
 			.map((remaining) => remaining - 1)
 			.filter((remaining) => remaining > 0);
 
-		if (enemyHealth <= 0) {
+		if (enemy.isDead()) {
 			killEnemy();
 		}
 	}
@@ -166,17 +150,16 @@ function createGameState() {
 		killingEnemy = true;
 
 		try {
-			enemiesKilled++;
+			enemy.recordKill();
 			poisonStacks = [];
 
-			if (isChest) {
+			if (enemy.isChest) {
 				// Chest gives gold + guaranteed upgrade
-				const goldReward = getChestGoldReward(stage, playerStats.goldMultiplier);
+				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
 				chestGold = goldReward;
 				gold += goldReward;
-				const wasBossChest = isBossChest;
-				isChest = false;
-				isBossChest = false;
+				const wasBossChest = enemy.isBossChest;
+				enemy.clearChestFlags();
 
 				// Boss chests drop legendary-only; regular chests get rarity boost
 				if (wasBossChest) {
@@ -190,29 +173,27 @@ function createGameState() {
 				return;
 			}
 
-			waveKills++;
+			enemy.advanceWave();
 
 			// Gold drop check - mobs have a percentage chance to drop gold
 			const effectiveGoldPerKill = playerStats.goldPerKill + goldPerKillBonus;
 			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
-				const goldReward = isBoss
-					? getBossGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier)
-					: getEnemyGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier);
+				const goldReward = enemy.isBoss
+					? getBossGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier)
+					: getEnemyGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
 				ui.addGoldDrop(goldReward);
 			}
 
 			// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
-			const enemyXpMultiplier = isBoss ? BOSS_XP_MULTIPLIER : isChest ? CHEST_XP_MULTIPLIER : 1;
+			const enemyXpMultiplier = enemy.isBoss ? BOSS_XP_MULTIPLIER : enemy.isChest ? CHEST_XP_MULTIPLIER : 1;
 			const greedMult = getGreedMultiplier(playerStats.greed);
-			const xpGain = getXpReward(enemyMaxHealth, stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
+			const xpGain = getXpReward(enemy.enemyMaxHealth, enemy.stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
 			xp += xpGain;
 
-			if (isBoss) {
+			if (enemy.isBoss) {
 				timers.stopBossTimer();
-				stage++;
-				waveKills = 0;
-				isBoss = false;
+				enemy.advanceStage();
 			}
 
 			// Check for level up (non-blocking - game continues)
@@ -221,15 +202,16 @@ function createGameState() {
 			}
 
 			// Always spawn next target (game continues during level up)
-			if (!isBoss && waveKills >= KILLS_PER_WAVE) {
+			if (!enemy.isBoss && enemy.isWaveComplete()) {
 				// Check if boss should become a chest
-				if (shouldSpawnBossChest(playerStats.chestChance, playerStats.bossChestChance, Math.random)) {
-					spawnBossChest();
+				if (enemy.shouldSpawnBossChestTarget(playerStats)) {
+					enemy.spawnBossChest(playerStats.greed);
 				} else {
-					spawnBoss();
+					enemy.spawnBoss(playerStats.greed);
+					timers.startBossTimer(bossTimerMax, handleBossExpired);
 				}
 			} else {
-				spawnNextTarget();
+				enemy.spawnNextTarget(playerStats);
 			}
 
 			// If a level-up modal opened during this kill, ensure timers are paused.
@@ -245,27 +227,6 @@ function createGameState() {
 		} finally {
 			killingEnemy = false;
 		}
-	}
-
-	function spawnNextTarget() {
-		if (shouldSpawnChest(playerStats.chestChance, Math.random)) {
-			spawnChest();
-		} else {
-			spawnEnemy();
-		}
-	}
-
-	function spawnChest() {
-		isChest = true;
-		enemyMaxHealth = getChestHealth(stage, playerStats.greed);
-		enemyHealth = enemyMaxHealth;
-	}
-
-	function spawnBossChest() {
-		isChest = true;
-		isBossChest = true;
-		enemyMaxHealth = getBossChestHealth(stage, playerStats.greed);
-		enemyHealth = enemyMaxHealth;
 	}
 
 	function startLevelUp() {
@@ -328,7 +289,7 @@ function createGameState() {
 		// Handle chest loot modal
 		if (showChestLoot) {
 			showChestLoot = false;
-			spawnNextTarget();
+			enemy.spawnNextTarget(playerStats);
 			timers.startPoisonTick(applyPoison);
 			timers.resumeBossTimer(handleBossExpired);
 			saveGame();
@@ -351,19 +312,6 @@ function createGameState() {
 		saveGame();
 	}
 
-	function spawnEnemy() {
-		enemyMaxHealth = getEnemyHealth(stage, playerStats.greed);
-		enemyHealth = enemyMaxHealth;
-		isBoss = false;
-	}
-
-	function spawnBoss() {
-		isBoss = true;
-		enemyMaxHealth = getBossHealth(stage, playerStats.greed);
-		enemyHealth = enemyMaxHealth;
-		timers.startBossTimer(bossTimerMax, handleBossExpired);
-	}
-
 	function saveGame() {
 		persistence.saveSession({
 			playerStats: { ...playerStats },
@@ -372,14 +320,14 @@ function createGameState() {
 			xp,
 			level,
 			gold,
-			stage,
-			waveKills,
-			enemiesKilled,
-			enemyHealth,
-			enemyMaxHealth,
-			isBoss,
-			isChest,
-			isBossChest,
+			stage: enemy.stage,
+			waveKills: enemy.waveKills,
+			enemiesKilled: enemy.enemiesKilled,
+			enemyHealth: enemy.enemyHealth,
+			enemyMaxHealth: enemy.enemyMaxHealth,
+			isBoss: enemy.isBoss,
+			isChest: enemy.isChest,
+			isBossChest: enemy.isBossChest,
 			timestamp: Date.now()
 		});
 	}
@@ -402,14 +350,16 @@ function createGameState() {
 		xp = data.xp;
 		level = data.level;
 		gold = data.gold;
-		stage = data.stage;
-		waveKills = data.waveKills;
-		enemiesKilled = data.enemiesKilled;
-		enemyHealth = data.enemyHealth;
-		enemyMaxHealth = data.enemyMaxHealth;
-		isBoss = data.isBoss;
-		isChest = data.isChest;
-		isBossChest = data.isBossChest ?? false;
+		enemy.restore({
+			stage: data.stage,
+			waveKills: data.waveKills,
+			enemiesKilled: data.enemiesKilled,
+			enemyHealth: data.enemyHealth,
+			enemyMaxHealth: data.enemyMaxHealth,
+			isBoss: data.isBoss,
+			isChest: data.isChest,
+			isBossChest: data.isBossChest ?? false
+		});
 
 		return true;
 	}
@@ -504,15 +454,8 @@ function createGameState() {
 		unlockedUpgrades = new Set();
 		xp = 0;
 		level = 1;
-		stage = 1;
-		waveKills = 0;
-		isBoss = false;
-		overkillDamage = 0;
-		poisonStacks = [];
-		enemiesKilled = 0;
 		gold = 0;
-		isChest = false;
-		isBossChest = false;
+		poisonStacks = [];
 		showChestLoot = false;
 		chestGold = 0;
 		ui.reset();
@@ -525,7 +468,7 @@ function createGameState() {
 		// Apply purchased upgrades from shop
 		applyPurchasedUpgrades();
 
-		spawnEnemy();
+		enemy.reset(playerStats.greed);
 		timers.startPoisonTick(applyPoison);
 	}
 
@@ -549,8 +492,8 @@ function createGameState() {
 		if (!loaded) {
 			// Apply purchased upgrades for new game
 			applyPurchasedUpgrades();
-			spawnEnemy();
-		} else if (isBoss) {
+			enemy.spawnEnemy(playerStats.greed);
+		} else if (enemy.isBoss) {
 			// Resume boss timer if we were fighting a boss
 			timers.startBossTimer(bossTimerMax, handleBossExpired);
 		}
@@ -575,28 +518,28 @@ function createGameState() {
 			return xpToNextLevel;
 		},
 		get stage() {
-			return stage;
+			return enemy.stage;
 		},
 		get waveKills() {
-			return waveKills;
+			return enemy.waveKills;
 		},
 		get killsPerWave() {
-			return KILLS_PER_WAVE;
+			return enemy.killsPerWave;
 		},
 		get isBoss() {
-			return isBoss;
+			return enemy.isBoss;
 		},
 		get bossTimer() {
 			return timers.bossTimer;
 		},
 		get enemyHealth() {
-			return enemyHealth;
+			return enemy.enemyHealth;
 		},
 		get enemyMaxHealth() {
-			return enemyMaxHealth;
+			return enemy.enemyMaxHealth;
 		},
 		get enemiesKilled() {
-			return enemiesKilled;
+			return enemy.enemiesKilled;
 		},
 		get showLevelUp() {
 			return showLevelUp;
@@ -617,10 +560,10 @@ function createGameState() {
 			return gold;
 		},
 		get isChest() {
-			return isChest;
+			return enemy.isChest;
 		},
 		get isBossChest() {
-			return isBossChest;
+			return enemy.isBossChest;
 		},
 		get showChestLoot() {
 			return showChestLoot;
