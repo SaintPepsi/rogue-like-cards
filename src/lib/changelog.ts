@@ -13,7 +13,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
-		version: '0.21.0',
+		version: '0.22.0',
 		date: '2026-01-30',
 		changes: [
 			{ category: 'fixed', description: 'Fixed gold drop stats not appearing in the stats panel' }
