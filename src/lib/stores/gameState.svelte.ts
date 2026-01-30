@@ -3,7 +3,8 @@ import { createUIEffects } from './uiEffects.svelte';
 import { createTimers } from './timers.svelte';
 import { createPersistence } from './persistence.svelte';
 import { createEnemy } from './enemy.svelte';
-import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
+import { createLeveling } from './leveling.svelte';
+import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
@@ -14,7 +15,6 @@ import {
 	getChestGoldReward,
 	getEnemyGoldReward,
 	getBossGoldReward,
-	getXpToNextLevel,
 	BOSS_XP_MULTIPLIER,
 	CHEST_XP_MULTIPLIER,
 } from '$lib/engine/waves';
@@ -27,8 +27,6 @@ function createGameState() {
 
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
-	let xp = $state(0);
-	let level = $state(1);
 	let gold = $state(0);
 
 	// Persistent state (survives game over)
@@ -43,12 +41,9 @@ function createGameState() {
 	let poisonStacks = $state<number[]>([]);
 
 	// UI state
-	let showLevelUp = $state(false);
-	let pendingLevelUps = $state(0);
 	let showGameOver = $state(false);
 	let showChestLoot = $state(false);
 	let chestGold = $state(0);
-	let upgradeChoices = $state<Upgrade[]>([]);
 
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
@@ -59,9 +54,20 @@ function createGameState() {
 	// Enemy / wave / stage management
 	const enemy = createEnemy();
 
-	// Derived values (for rendering only — game logic should call getXpToNextLevel(level) directly)
-	let xpToNextLevel = $derived(getXpToNextLevel(level));
+	// Leveling / XP / upgrade choices
+	const leveling = createLeveling();
+
+	// Derived values
 	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
+
+	function upgradeContext() {
+		return {
+			luckyChance: playerStats.luckyChance,
+			executeChance: playerStats.executeChance,
+			executeCap: getExecuteCap(executeCapBonus),
+			poison: playerStats.poison
+		};
+	}
 
 	function handleBossExpired() {
 		persistentGold += gold;
@@ -72,7 +78,7 @@ function createGameState() {
 
 	// Centralized check: is the game currently paused by a modal?
 	function isModalOpen() {
-		return showGameOver || showLevelUp || showChestLoot;
+		return showGameOver || leveling.showLevelUp || showChestLoot;
 	}
 
 	function attack() {
@@ -161,12 +167,7 @@ function createGameState() {
 				const wasBossChest = enemy.isBossChest;
 				enemy.clearChestFlags();
 
-				// Boss chests drop legendary-only; regular chests get rarity boost
-				if (wasBossChest) {
-					upgradeChoices = getRandomLegendaryUpgrades(3);
-				} else {
-					upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
-				}
+				leveling.setChoicesForChest(wasBossChest, upgradeContext());
 				showChestLoot = true;
 				timers.stopPoisonTick();
 				timers.pauseBossTimer();
@@ -189,7 +190,7 @@ function createGameState() {
 			const enemyXpMultiplier = enemy.isBoss ? BOSS_XP_MULTIPLIER : enemy.isChest ? CHEST_XP_MULTIPLIER : 1;
 			const greedMult = getGreedMultiplier(playerStats.greed);
 			const xpGain = getXpReward(enemy.enemyMaxHealth, enemy.stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
-			xp += xpGain;
+			leveling.addXp(xpGain);
 
 			if (enemy.isBoss) {
 				timers.stopBossTimer();
@@ -197,8 +198,10 @@ function createGameState() {
 			}
 
 			// Check for level up (non-blocking - game continues)
-			if (xp >= getXpToNextLevel(level)) {
-				startLevelUp();
+			const leveledUp = leveling.checkLevelUp(upgradeContext());
+			if (leveledUp) {
+				timers.stopPoisonTick();
+				timers.pauseBossTimer();
 			}
 
 			// Always spawn next target (game continues during level up)
@@ -216,8 +219,8 @@ function createGameState() {
 
 			// If a level-up modal opened during this kill, ensure timers are paused.
 			// This handles the case where spawnBoss() starts a boss timer AFTER
-			// startLevelUp() already attempted to pause timers.
-			if (showLevelUp) {
+			// checkLevelUp() already attempted to pause timers.
+			if (leveling.showLevelUp) {
 				timers.stopPoisonTick();
 				timers.pauseBossTimer();
 			}
@@ -227,29 +230,6 @@ function createGameState() {
 		} finally {
 			killingEnemy = false;
 		}
-	}
-
-	function startLevelUp() {
-		// Consume all available level-ups from current XP.
-		// IMPORTANT: call getXpToNextLevel(level) directly — the $derived xpToNextLevel
-		// may not recompute mid-loop in Svelte 5's synchronous batch.
-		// Bounded iteration to avoid any possibility of infinite looping.
-		const MAX_LEVELUPS = 100;
-		for (let i = 0; i < MAX_LEVELUPS && xp >= getXpToNextLevel(level); i++) {
-			pendingLevelUps++;
-			xp -= getXpToNextLevel(level);
-			level++;
-		}
-
-		// If already showing level up modal, just queue the additional levels
-		if (showLevelUp) {
-			return;
-		}
-
-		upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
-		showLevelUp = true;
-		timers.stopPoisonTick();
-		timers.pauseBossTimer();
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
@@ -297,16 +277,13 @@ function createGameState() {
 		}
 
 		// Handle queued level ups
-		pendingLevelUps = Math.max(0, pendingLevelUps - 1);
-		if (pendingLevelUps > 0) {
-			// Show next level up
-			upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
+		const allConsumed = leveling.consumeLevelUp(upgradeContext());
+		if (!allConsumed) {
 			saveGame();
 			return;
 		}
 
-		// All level-ups consumed — close modal and resume game
-		showLevelUp = false;
+		// All level-ups consumed — resume game
 		timers.startPoisonTick(applyPoison);
 		timers.resumeBossTimer(handleBossExpired);
 		saveGame();
@@ -317,8 +294,8 @@ function createGameState() {
 			playerStats: { ...playerStats },
 			effects: [...effects],
 			unlockedUpgradeIds: [...unlockedUpgrades],
-			xp,
-			level,
+			xp: leveling.xp,
+			level: leveling.level,
 			gold,
 			stage: enemy.stage,
 			waveKills: enemy.waveKills,
@@ -347,8 +324,7 @@ function createGameState() {
 		delete (playerStats as Record<string, unknown>).executeThreshold;
 		effects = [...data.effects];
 		unlockedUpgrades = new Set(data.unlockedUpgradeIds);
-		xp = data.xp;
-		level = data.level;
+		leveling.restore({ xp: data.xp, level: data.level });
 		gold = data.gold;
 		enemy.restore({
 			stage: data.stage,
@@ -452,17 +428,14 @@ function createGameState() {
 		playerStats = createDefaultStats();
 		effects = [];
 		unlockedUpgrades = new Set();
-		xp = 0;
-		level = 1;
 		gold = 0;
 		poisonStacks = [];
 		showChestLoot = false;
 		chestGold = 0;
 		ui.reset();
-		showLevelUp = false;
+		leveling.reset();
 		showGameOver = false;
 		showShop = false;
-		pendingLevelUps = 0;
 		persistence.clearSession();
 
 		// Apply purchased upgrades from shop
@@ -509,13 +482,13 @@ function createGameState() {
 			return effects;
 		},
 		get xp() {
-			return xp;
+			return leveling.xp;
 		},
 		get level() {
-			return level;
+			return leveling.level;
 		},
 		get xpToNextLevel() {
-			return xpToNextLevel;
+			return leveling.xpToNextLevel;
 		},
 		get stage() {
 			return enemy.stage;
@@ -542,13 +515,13 @@ function createGameState() {
 			return enemy.enemiesKilled;
 		},
 		get showLevelUp() {
-			return showLevelUp;
+			return leveling.showLevelUp;
 		},
 		get showGameOver() {
 			return showGameOver;
 		},
 		get upgradeChoices() {
-			return upgradeChoices;
+			return leveling.upgradeChoices;
 		},
 		get hits() {
 			return ui.hits;
@@ -572,7 +545,7 @@ function createGameState() {
 			return chestGold;
 		},
 		get pendingLevelUps() {
-			return pendingLevelUps;
+			return leveling.pendingLevelUps;
 		},
 		get unlockedUpgrades() {
 			return unlockedUpgrades;
