@@ -4,6 +4,7 @@
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
 	import { useCardFlip } from './useCardFlip.svelte';
+	import { useCardSelect } from './useCardSelect.svelte';
 
 	type Props = {
 		show: boolean;
@@ -15,33 +16,40 @@
 	let { show, choices, pendingCount, onSelect }: Props = $props();
 
 	const flip = useCardFlip();
+	const cardSelect = useCardSelect();
 
 	$effect(() => {
 		if (show) {
 			flip.startFlip(choices.length);
 		}
-		return () => flip.cleanup();
+		return () => {
+			flip.cleanup();
+			cardSelect.cleanup();
+		};
 	});
 
 	function handleSelect(upgrade: Upgrade, index: number) {
 		if (!flip.enabledCards[index]) return;
-		onSelect(upgrade);
+		if (cardSelect.selecting) return;
+		cardSelect.select(index, () => onSelect(upgrade));
 	}
 </script>
 
 {#if show}
 	<div class="modal-overlay">
-		<div class="modal">
+		<div class="modal" class:selecting={cardSelect.selecting}>
 			{#if pendingCount > 1}
 				<div class="pending-badge">+{pendingCount - 1} more</div>
 			{/if}
-			<h2>Level Up!</h2>
-			<p>Choose an upgrade:</p>
-			<div class="upgrade-choices desktop-grid">
+			<div class="modal-header" class:content-fade-out={cardSelect.selecting} class:content-fade-in={cardSelect.phaseIn}>
+				<h2>Level Up!</h2>
+				<p>Choose an upgrade:</p>
+			</div>
+			<div class="upgrade-choices desktop-grid" class:content-fade-in={cardSelect.phaseIn}>
 				{#each choices as upgrade, i (upgrade.id)}
 					<Button.Root
-						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default"
-						disabled={!flip.enabledCards[i]}
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						disabled={!flip.enabledCards[i] || cardSelect.selecting}
 						onclick={() => handleSelect(upgrade, i)}
 					>
 						<div class="card-flip" class:flipped={flip.flippedCards[i]}>
@@ -65,8 +73,8 @@
 			<CardCarousel count={choices.length}>
 				{#each choices as upgrade, i (upgrade.id)}
 					<Button.Root
-						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default"
-						disabled={!flip.enabledCards[i]}
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						disabled={!flip.enabledCards[i] || cardSelect.selecting}
 						onclick={() => handleSelect(upgrade, i)}
 					>
 						<div class="card-flip" class:flipped={flip.flippedCards[i]}>
@@ -111,6 +119,16 @@
 		position: relative;
 	}
 
+	.modal.selecting {
+		animation: panel-pulse 350ms ease-in-out;
+	}
+
+	@keyframes panel-pulse {
+		0% { transform: scale(1); }
+		43% { transform: scale(0.98); }
+		100% { transform: scale(1); }
+	}
+
 	.pending-badge {
 		position: absolute;
 		top: 12px;
@@ -129,6 +147,18 @@
 		50% { transform: scale(1.05); }
 	}
 
+	.modal-header {
+		transition: opacity 300ms ease-out;
+	}
+
+	.modal-header.content-fade-out {
+		opacity: 0;
+	}
+
+	.modal-header.content-fade-in {
+		animation: fade-in 200ms ease-out;
+	}
+
 	.modal h2 {
 		margin: 0 0 8px;
 		font-size: 1.8rem;
@@ -144,6 +174,31 @@
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
 		gap: 16px;
+	}
+
+	.upgrade-choices.content-fade-in {
+		animation: fade-in 200ms ease-out;
+	}
+
+	@keyframes fade-in {
+		from { opacity: 0; }
+		to { opacity: 1; }
+	}
+
+	/* Card selection transitions */
+	:global(.card-wrapper) {
+		transition: transform 300ms ease-out, opacity 300ms ease-out, filter 300ms ease-out;
+	}
+
+	:global(.card-wrapper.card-selected) {
+		transform: translateY(-12px) scale(1.03) !important;
+		filter: brightness(1.2) drop-shadow(0 0 12px rgba(251, 191, 36, 0.5));
+		z-index: 1;
+	}
+
+	:global(.card-wrapper.card-dismissed) {
+		opacity: 0;
+		transform: scale(0.92) !important;
 	}
 
 	:global(.group:hover:not(:disabled)) .card-flip.flipped {
