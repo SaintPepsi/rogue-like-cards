@@ -88,6 +88,24 @@
 			<span>+{Math.round(stats.luckyChance * 100)}%</span>
 		</div>
 	{/if}
+	{#if stats.goldDropChance > 0.15}
+		<div class="stat-row gold">
+			<span>🪙 Gold Drop</span>
+			<span>{Math.round(stats.goldDropChance * 100)}%</span>
+		</div>
+	{/if}
+	{#if stats.goldPerKill > 0}
+		<div class="stat-row gold">
+			<span>💵 Gold/Kill</span>
+			<span>+{formatNumber(stats.goldPerKill)}</span>
+		</div>
+	{/if}
+	{#if stats.goldMultiplier > 1}
+		<div class="stat-row gold">
+			<span>🏆 Gold Bonus</span>
+			<span>+{Math.round((stats.goldMultiplier - 1) * 100)}%</span>
+		</div>
+	{/if}
 	{#if stats.greed > 0}
 		<div class="stat-row greed">
 			<span>💰 Greed</span>
@@ -135,6 +153,10 @@
 
 	.stat-row.poison {
 		color: #a855f7;
+	}
+
+	.stat-row.gold {
+		color: #f59e0b;
 	}
 
 	.stat-row.greed {
