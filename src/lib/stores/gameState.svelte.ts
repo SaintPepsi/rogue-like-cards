@@ -1,6 +1,7 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
 import { createUIEffects } from './uiEffects.svelte';
 import { createTimers } from './timers.svelte';
+import { createPersistence } from './persistence.svelte';
 import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
@@ -25,35 +26,8 @@ import {
 } from '$lib/engine/waves';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 
-const STORAGE_KEY = 'roguelike-cards-save';
-const PERSISTENT_STORAGE_KEY = 'roguelike-cards-persistent';
-
-interface SaveData {
-	playerStats: PlayerStats;
-	effects: Effect[];
-	unlockedUpgradeIds: string[];
-	xp: number;
-	level: number;
-	gold: number;
-	stage: number;
-	waveKills: number;
-	enemiesKilled: number;
-	enemyHealth: number;
-	enemyMaxHealth: number;
-	isBoss: boolean;
-	isChest: boolean;
-	isBossChest: boolean;
-	timestamp: number;
-}
-
-interface PersistentData {
-	gold: number;
-	purchasedUpgradeIds: string[];
-	executeCapBonus: number;
-	goldPerKillBonus: number;
-}
-
 function createGameState() {
+	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
 	// Player stats
 	let playerStats = $state<PlayerStats>(createDefaultStats());
 
@@ -109,7 +83,7 @@ function createGameState() {
 		persistentGold += gold;
 		savePersistent();
 		showGameOver = true;
-		clearSave();
+		persistence.clearSession();
 	}
 
 	// Centralized check: is the game currently paused by a modal?
@@ -391,7 +365,7 @@ function createGameState() {
 	}
 
 	function saveGame() {
-		const saveData: SaveData = {
+		persistence.saveSession({
 			playerStats: { ...playerStats },
 			effects: [...effects],
 			unlockedUpgradeIds: [...unlockedUpgrades],
@@ -407,94 +381,55 @@ function createGameState() {
 			isChest,
 			isBossChest,
 			timestamp: Date.now()
-		};
-		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-		} catch (e) {
-			console.warn('Failed to save game:', e);
-		}
+		});
 	}
 
 	function loadGame(): boolean {
-		try {
-			const saved = localStorage.getItem(STORAGE_KEY);
-			if (!saved) return false;
+		const data = persistence.loadSession();
+		if (!data) return false;
 
-			const data: SaveData = JSON.parse(saved);
-
-			// Restore player stats, merging with defaults for forward-compat
-			const savedStats = data.playerStats as Record<string, unknown>;
-			playerStats = { ...createDefaultStats(), ...data.playerStats };
-			// Migrate old executeThreshold → executeChance
-			if ('executeThreshold' in savedStats && !('executeChance' in savedStats)) {
-				const threshold = savedStats.executeThreshold as number;
-				playerStats.executeChance = threshold > 0 ? 0.005 : 0;
-			}
-			delete (playerStats as Record<string, unknown>).executeThreshold;
-			effects = [...data.effects];
-			unlockedUpgrades = new Set(data.unlockedUpgradeIds);
-			xp = data.xp;
-			level = data.level;
-			gold = data.gold;
-			stage = data.stage;
-			waveKills = data.waveKills;
-			enemiesKilled = data.enemiesKilled;
-			enemyHealth = data.enemyHealth;
-			enemyMaxHealth = data.enemyMaxHealth;
-			isBoss = data.isBoss;
-			isChest = data.isChest;
-			isBossChest = data.isBossChest ?? false;
-
-			return true;
-		} catch (e) {
-			console.warn('Failed to load game:', e);
-			return false;
+		// Restore player stats, merging with defaults for forward-compat
+		const savedStats = data.playerStats as Record<string, unknown>;
+		playerStats = { ...createDefaultStats(), ...data.playerStats };
+		// Migrate old executeThreshold → executeChance
+		if ('executeThreshold' in savedStats && !('executeChance' in savedStats)) {
+			const threshold = savedStats.executeThreshold as number;
+			playerStats.executeChance = threshold > 0 ? 0.005 : 0;
 		}
-	}
+		delete (playerStats as Record<string, unknown>).executeThreshold;
+		effects = [...data.effects];
+		unlockedUpgrades = new Set(data.unlockedUpgradeIds);
+		xp = data.xp;
+		level = data.level;
+		gold = data.gold;
+		stage = data.stage;
+		waveKills = data.waveKills;
+		enemiesKilled = data.enemiesKilled;
+		enemyHealth = data.enemyHealth;
+		enemyMaxHealth = data.enemyMaxHealth;
+		isBoss = data.isBoss;
+		isChest = data.isChest;
+		isBossChest = data.isBossChest ?? false;
 
-	function clearSave() {
-		try {
-			localStorage.removeItem(STORAGE_KEY);
-		} catch (e) {
-			console.warn('Failed to clear save:', e);
-		}
-	}
-
-	function clearPersistent() {
-		try {
-			localStorage.removeItem(PERSISTENT_STORAGE_KEY);
-		} catch (e) {
-			console.warn('Failed to clear persistent data:', e);
-		}
+		return true;
 	}
 
 	function savePersistent() {
-		const data: PersistentData = {
+		persistence.savePersistent({
 			gold: persistentGold,
 			purchasedUpgradeIds: [...purchasedUpgrades],
 			executeCapBonus,
 			goldPerKillBonus
-		};
-		try {
-			localStorage.setItem(PERSISTENT_STORAGE_KEY, JSON.stringify(data));
-		} catch (e) {
-			console.warn('Failed to save persistent data:', e);
-		}
+		});
 	}
 
 	function loadPersistent() {
-		try {
-			const saved = localStorage.getItem(PERSISTENT_STORAGE_KEY);
-			if (!saved) return;
-
-			const data: PersistentData = JSON.parse(saved);
-			persistentGold = data.gold || 0;
-			purchasedUpgrades = new Set(data.purchasedUpgradeIds || []);
-			executeCapBonus = data.executeCapBonus || 0;
-			goldPerKillBonus = data.goldPerKillBonus || 0;
-		} catch (e) {
-			console.warn('Failed to load persistent data:', e);
-		}
+		const data = persistence.loadPersistent();
+		if (!data) return;
+		persistentGold = data.gold || 0;
+		purchasedUpgrades = new Set(data.purchasedUpgradeIds || []);
+		executeCapBonus = data.executeCapBonus || 0;
+		goldPerKillBonus = data.goldPerKillBonus || 0;
 	}
 
 	function getCardPrice(upgrade: Upgrade): number {
@@ -585,7 +520,7 @@ function createGameState() {
 		showGameOver = false;
 		showShop = false;
 		pendingLevelUps = 0;
-		clearSave();
+		persistence.clearSession();
 
 		// Apply purchased upgrades from shop
 		applyPurchasedUpgrades();
@@ -600,7 +535,7 @@ function createGameState() {
 		purchasedUpgrades = new Set();
 		executeCapBonus = 0;
 		goldPerKillBonus = 0;
-		clearPersistent();
+		persistence.clearPersistent();
 
 		// Then do a normal game reset (without purchased upgrades since they're gone)
 		resetGame();
