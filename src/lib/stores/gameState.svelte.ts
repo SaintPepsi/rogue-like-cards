@@ -1,4 +1,5 @@
-import type { PlayerStats, Upgrade, Effect, HitInfo, HitType, GoldDrop } from '$lib/types';
+import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
+import { createUIEffects } from './uiEffects.svelte';
 import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
@@ -94,13 +95,10 @@ function createGameState() {
 	let showGameOver = $state(false);
 	let showChestLoot = $state(false);
 	let chestGold = $state(0);
-	let goldDrops = $state<GoldDrop[]>([]);
-	let goldDropId = $state(0);
 	let upgradeChoices = $state<Upgrade[]>([]);
 
-	// Hit display
-	let hits = $state<HitInfo[]>([]);
-	let hitId = $state(0);
+	// UI effects (hits + gold drops)
+	const ui = createUIEffects();
 
 	// Derived values (for rendering only — game logic should call getXpToNextLevel(level) directly)
 	let xpToNextLevel = $derived(getXpToNextLevel(level));
@@ -109,24 +107,6 @@ function createGameState() {
 	// Centralized check: is the game currently paused by a modal?
 	function isModalOpen() {
 		return showGameOver || showLevelUp || showChestLoot;
-	}
-
-	function addHits(newHits: HitInfo[]) {
-		hits = [...hits, ...newHits];
-		// Clean up old hits after animation completes
-		const hitIds = newHits.map((h) => h.id);
-		setTimeout(() => {
-			hits = hits.filter((h) => !hitIds.includes(h.id));
-		}, 700);
-	}
-
-	function addGoldDrop(amount: number) {
-		goldDropId++;
-		goldDrops = [...goldDrops, { id: goldDropId, amount }];
-		const dropId = goldDropId;
-		setTimeout(() => {
-			goldDrops = goldDrops.filter((d) => d.id !== dropId);
-		}, 1200);
 	}
 
 	function attack() {
@@ -142,14 +122,13 @@ function createGameState() {
 
 		// Assign hit IDs (UI concern)
 		const newHits: HitInfo[] = result.hits.map((h) => {
-			hitId++;
-			return { ...h, id: hitId };
+			return { ...h, id: ui.nextHitId() };
 		});
 
 		// Apply results to state
 		overkillDamage = result.overkillDamageOut;
 		enemyHealth -= result.totalDamage;
-		addHits(newHits);
+		ui.addHits(newHits);
 
 		// Add or refresh poison stacks — one per strike
 		if (playerStats.poison > 0) {
@@ -184,8 +163,7 @@ function createGameState() {
 		if (result.damage <= 0) return;
 
 		enemyHealth -= result.damage;
-		hitId++;
-		addHits([{ damage: result.damage, type: result.type, id: hitId, index: 0 }]);
+		ui.addHits([{ damage: result.damage, type: result.type, id: ui.nextHitId(), index: 0 }]);
 
 		// Tick down all stacks and remove expired ones
 		poisonStacks = poisonStacks
@@ -251,7 +229,7 @@ function createGameState() {
 					? getBossGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier)
 					: getEnemyGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
-				addGoldDrop(goldReward);
+				ui.addGoldDrop(goldReward);
 			}
 
 			// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
@@ -654,7 +632,7 @@ function createGameState() {
 		isBossChest = false;
 		showChestLoot = false;
 		chestGold = 0;
-		goldDrops = [];
+		ui.reset();
 		showLevelUp = false;
 		showGameOver = false;
 		showShop = false;
@@ -747,7 +725,7 @@ function createGameState() {
 			return upgradeChoices;
 		},
 		get hits() {
-			return hits;
+			return ui.hits;
 		},
 		get poisonStacks() {
 			return poisonStacks;
@@ -787,7 +765,7 @@ function createGameState() {
 		},
 
 		get goldDrops() {
-			return goldDrops;
+			return ui.goldDrops;
 		},
 		get executeCapLevel() {
 			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
