@@ -217,32 +217,22 @@ There's no written convention for how to add temporary UI effects. The next deve
 
 ---
 
-## Task 4 — Audit remaining `$effect` blocks for reactive safety
+## Task 4 — Audit remaining `$effect` blocks for reactive safety ✅
 
 ### Problem
 The `goldDropKey++` bug was caused by `$effect` reading and writing the same `$state`. Other effects should be checked for the same anti-pattern.
 
-### What to do
+### Audit results
 
-**Audit** every `$effect` in the codebase. For each one, verify:
-1. It does NOT write to any `$state` that it also reads in the same execution.
-2. If it uses `setTimeout`, the timeout callback does not write to a dependency of the effect.
-3. If it manages multiple timers, cleanup is handled via the `$effect` return function.
+Only 2 `$effect` blocks remain in the codebase (after Tasks 1-3):
 
-**Known `$effect` blocks to check:**
-- `BattleArea.svelte` — should be gone after Task 1.
-- `LevelUpModal.svelte` — should be simplified after Task 2 (just `flip.startFlip()`).
-- `ChestLootModal.svelte` — same as above.
-- Any new `$effect` blocks added since last audit.
+1. **`LevelUpModal.svelte:18`** — SAFE. Reads: `show` (prop), `choices.length` (prop). Writes: `flip.startFlip()` mutates encapsulated state not read by the effect. Cleanup returns `flip.cleanup()`.
+2. **`ChestLootModal.svelte:19`** — SAFE. Identical pattern to LevelUpModal.
 
-**If any violations found:** fix them following the same principle — move state writes to imperative functions called from game actions, not reactive effects.
+**`BattleArea.svelte`** — No `$effect` blocks (removed in Task 1). ✅
+**`gameState.svelte.ts`** — No `$effect` blocks. ✅
 
-### Steps
-1. Search for all `$effect` blocks: `grep -rn '\$effect' src/`.
-2. For each, trace reads and writes. Document findings.
-3. Fix any violations found.
-4. Run `bun test && bun run check`.
-5. Commit: `fix: resolve any remaining $effect reactive safety issues` (skip if none found).
+No violations found. No commit needed.
 
 ---
 
