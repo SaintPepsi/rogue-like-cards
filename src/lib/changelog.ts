@@ -13,7 +13,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
-		version: '0.23.0',
+		version: '0.24.0',
 		date: '2026-01-30',
 		changes: [
 			{ category: 'fixed', description: 'Fixed upgrade card rarity selection so higher-rarity cards actually appear at intended rates' },
