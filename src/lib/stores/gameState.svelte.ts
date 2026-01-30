@@ -1,5 +1,6 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
 import { createUIEffects } from './uiEffects.svelte';
+import { createTimers } from './timers.svelte';
 import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
@@ -76,9 +77,6 @@ function createGameState() {
 	let isBoss = $state(false);
 	let isChest = $state(false);
 	let isBossChest = $state(false);
-	let bossTimer = $state(0);
-	let bossInterval: ReturnType<typeof setInterval> | null = null;
-	let poisonInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Enemy
 	let enemyHealth = $state(10);
@@ -100,9 +98,19 @@ function createGameState() {
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
+	// Timers (boss countdown + poison tick)
+	const timers = createTimers();
+
 	// Derived values (for rendering only — game logic should call getXpToNextLevel(level) directly)
 	let xpToNextLevel = $derived(getXpToNextLevel(level));
 	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
+
+	function handleBossExpired() {
+		persistentGold += gold;
+		savePersistent();
+		showGameOver = true;
+		clearSave();
+	}
 
 	// Centralized check: is the game currently paused by a modal?
 	function isModalOpen() {
@@ -175,18 +183,6 @@ function createGameState() {
 		}
 	}
 
-	function startPoisonTick() {
-		if (poisonInterval) clearInterval(poisonInterval);
-		poisonInterval = setInterval(applyPoison, 1000);
-	}
-
-	function stopPoisonTick() {
-		if (poisonInterval) {
-			clearInterval(poisonInterval);
-			poisonInterval = null;
-		}
-	}
-
 	let killingEnemy = false;
 
 	function killEnemy() {
@@ -215,8 +211,8 @@ function createGameState() {
 					upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance + 0.5, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison); // +50% rarity boost
 				}
 				showChestLoot = true;
-				stopPoisonTick();
-				pauseBossTimer();
+				timers.stopPoisonTick();
+				timers.pauseBossTimer();
 				return;
 			}
 
@@ -239,7 +235,7 @@ function createGameState() {
 			xp += xpGain;
 
 			if (isBoss) {
-				stopBossTimer();
+				timers.stopBossTimer();
 				stage++;
 				waveKills = 0;
 				isBoss = false;
@@ -266,8 +262,8 @@ function createGameState() {
 			// This handles the case where spawnBoss() starts a boss timer AFTER
 			// startLevelUp() already attempted to pause timers.
 			if (showLevelUp) {
-				stopPoisonTick();
-				pauseBossTimer();
+				timers.stopPoisonTick();
+				timers.pauseBossTimer();
 			}
 
 			// Auto-save after each kill
@@ -317,8 +313,8 @@ function createGameState() {
 
 		upgradeChoices = getRandomUpgrades(3, playerStats.luckyChance, playerStats.executeChance, getExecuteCap(executeCapBonus), playerStats.poison);
 		showLevelUp = true;
-		stopPoisonTick();
-		pauseBossTimer();
+		timers.stopPoisonTick();
+		timers.pauseBossTimer();
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
@@ -359,8 +355,8 @@ function createGameState() {
 		if (showChestLoot) {
 			showChestLoot = false;
 			spawnNextTarget();
-			startPoisonTick();
-			resumeBossTimer();
+			timers.startPoisonTick(applyPoison);
+			timers.resumeBossTimer(handleBossExpired);
 			saveGame();
 			return;
 		}
@@ -376,8 +372,8 @@ function createGameState() {
 
 		// All level-ups consumed — close modal and resume game
 		showLevelUp = false;
-		startPoisonTick();
-		resumeBossTimer();
+		timers.startPoisonTick(applyPoison);
+		timers.resumeBossTimer(handleBossExpired);
 		saveGame();
 	}
 
@@ -391,54 +387,7 @@ function createGameState() {
 		isBoss = true;
 		enemyMaxHealth = getBossHealth(stage, playerStats.greed);
 		enemyHealth = enemyMaxHealth;
-		startBossTimer();
-	}
-
-	function startBossTimer() {
-		bossTimer = bossTimerMax;
-		if (bossInterval) clearInterval(bossInterval);
-		bossInterval = setInterval(() => {
-			bossTimer--;
-			if (bossTimer <= 0) {
-				stopBossTimer();
-				// Transfer current gold to persistent gold
-				persistentGold += gold;
-				savePersistent();
-				showGameOver = true;
-				clearSave(); // Clear save on game over
-			}
-		}, 1000);
-	}
-
-	function stopBossTimer() {
-		if (bossInterval) {
-			clearInterval(bossInterval);
-			bossInterval = null;
-		}
-		bossTimer = 0;
-	}
-
-	function pauseBossTimer() {
-		if (bossInterval) {
-			clearInterval(bossInterval);
-			bossInterval = null;
-		}
-		// bossTimer is preserved so it can be resumed
-	}
-
-	function resumeBossTimer() {
-		if (bossTimer > 0 && !bossInterval) {
-			bossInterval = setInterval(() => {
-				bossTimer--;
-				if (bossTimer <= 0) {
-					stopBossTimer();
-					persistentGold += gold;
-					savePersistent();
-					showGameOver = true;
-					clearSave();
-				}
-			}, 1000);
-		}
+		timers.startBossTimer(bossTimerMax, handleBossExpired);
 	}
 
 	function saveGame() {
@@ -613,8 +562,7 @@ function createGameState() {
 	}
 
 	function resetGame() {
-		stopBossTimer();
-		if (poisonInterval) clearInterval(poisonInterval);
+		timers.stopAll();
 
 		playerStats = createDefaultStats();
 		effects = [];
@@ -643,7 +591,7 @@ function createGameState() {
 		applyPurchasedUpgrades();
 
 		spawnEnemy();
-		startPoisonTick();
+		timers.startPoisonTick(applyPoison);
 	}
 
 	function fullReset() {
@@ -669,9 +617,9 @@ function createGameState() {
 			spawnEnemy();
 		} else if (isBoss) {
 			// Resume boss timer if we were fighting a boss
-			startBossTimer();
+			timers.startBossTimer(bossTimerMax, handleBossExpired);
 		}
-		startPoisonTick();
+		timers.startPoisonTick(applyPoison);
 	}
 
 	return {
@@ -704,7 +652,7 @@ function createGameState() {
 			return isBoss;
 		},
 		get bossTimer() {
-			return bossTimer;
+			return timers.bossTimer;
 		},
 		get enemyHealth() {
 			return enemyHealth;
