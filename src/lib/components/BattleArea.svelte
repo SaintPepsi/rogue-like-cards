@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { HitInfo } from '$lib/types';
+	import type { HitInfo, GoldDrop } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest.png';
@@ -12,8 +12,7 @@
 		enemyMaxHealth: number;
 		enemiesKilled: number;
 		gold: number;
-		lastGoldDrop: number;
-		goldDropId: number;
+		goldDrops: GoldDrop[];
 		hits: HitInfo[];
 		poisonStacks: number;
 		onAttack: () => void;
@@ -26,23 +25,11 @@
 		enemyMaxHealth,
 		enemiesKilled,
 		gold,
-		lastGoldDrop,
-		goldDropId,
+		goldDrops,
 		hits,
 		poisonStacks,
 		onAttack
 	}: Props = $props();
-
-	let showGoldDrop = $state(false);
-
-	$effect(() => {
-		if (lastGoldDrop > 0) {
-			showGoldDrop = true;
-			setTimeout(() => {
-				showGoldDrop = false;
-			}, 1200);
-		}
-	});
 </script>
 
 <div class="battle-area">
@@ -78,11 +65,9 @@
 		<p class="kills">Enemies Killed: {formatNumber(enemiesKilled)}</p>
 		<p class="gold">
 			Gold: {formatNumber(gold)}
-			{#if showGoldDrop}
-				{#key goldDropId}
-					<span class="gold-drop-popup">+{lastGoldDrop}g</span>
-				{/key}
-			{/if}
+			{#each goldDrops as drop (drop.id)}
+				<span class="gold-drop-popup">+{drop.amount}g</span>
+			{/each}
 		</p>
 	</div>
 </div>

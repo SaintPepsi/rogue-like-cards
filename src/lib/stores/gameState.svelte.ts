@@ -1,4 +1,4 @@
-import type { PlayerStats, Upgrade, Effect, HitInfo, HitType } from '$lib/types';
+import type { PlayerStats, Upgrade, Effect, HitInfo, HitType, GoldDrop } from '$lib/types';
 import { getRandomUpgrades, getRandomLegendaryUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { createDefaultStats } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
@@ -94,7 +94,7 @@ function createGameState() {
 	let showGameOver = $state(false);
 	let showChestLoot = $state(false);
 	let chestGold = $state(0);
-	let lastGoldDrop = $state(0);
+	let goldDrops = $state<GoldDrop[]>([]);
 	let goldDropId = $state(0);
 	let upgradeChoices = $state<Upgrade[]>([]);
 
@@ -118,6 +118,15 @@ function createGameState() {
 		setTimeout(() => {
 			hits = hits.filter((h) => !hitIds.includes(h.id));
 		}, 700);
+	}
+
+	function addGoldDrop(amount: number) {
+		goldDropId++;
+		goldDrops = [...goldDrops, { id: goldDropId, amount }];
+		const dropId = goldDropId;
+		setTimeout(() => {
+			goldDrops = goldDrops.filter((d) => d.id !== dropId);
+		}, 1200);
 	}
 
 	function attack() {
@@ -236,15 +245,13 @@ function createGameState() {
 			waveKills++;
 
 			// Gold drop check - mobs have a percentage chance to drop gold
-			lastGoldDrop = 0;
 			const effectiveGoldPerKill = playerStats.goldPerKill + goldPerKillBonus;
 			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
 				const goldReward = isBoss
 					? getBossGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier)
 					: getEnemyGoldReward(stage, effectiveGoldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
-				lastGoldDrop = goldReward;
-				goldDropId++;
+				addGoldDrop(goldReward);
 			}
 
 			// XP scales with base enemy health (excluding greed), rate decreases per stage, boosted for bosses/chests
@@ -647,7 +654,7 @@ function createGameState() {
 		isBossChest = false;
 		showChestLoot = false;
 		chestGold = 0;
-		lastGoldDrop = 0;
+		goldDrops = [];
 		showLevelUp = false;
 		showGameOver = false;
 		showShop = false;
@@ -779,11 +786,8 @@ function createGameState() {
 			return shopChoices;
 		},
 
-		get lastGoldDrop() {
-			return lastGoldDrop;
-		},
-		get goldDropId() {
-			return goldDropId;
+		get goldDrops() {
+			return goldDrops;
 		},
 		get executeCapLevel() {
 			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
