@@ -33,7 +33,9 @@
       "Bash(npx vitest run)",
       "Skill(superpowers:systematic-debugging)",
       "Bash(npx vitest:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Skill(superpowers:writing-plans)",
+      "Bash(npx svelte-check:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
