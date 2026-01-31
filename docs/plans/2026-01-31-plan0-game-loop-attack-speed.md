@@ -22,6 +22,47 @@
 
 ---
 
+## Testing Philosophy: Deterministic Game Loop Simulation
+
+Because all gameplay timing flows through `timerRegistry.tick(deltaMs)`, tests can **deterministically simulate any amount of game time** without real timers, async waits, or flaky timing. This is the foundation for testing all game systems.
+
+### Core pattern
+
+```typescript
+// Simulate exactly 100ms of game time
+registry.tick(100);
+
+// Simulate 2 seconds
+registry.tick(2000);
+
+// Simulate 5 seconds at ~60fps granularity
+for (let i = 0; i < 300; i++) {
+  registry.tick(16.67);
+}
+```
+
+### What this enables
+
+- **Unit tests** for individual systems (timers, stat pipeline, attack speed)
+- **Integration tests** that simulate full game scenarios by ticking time forward:
+  - Spawn enemy → tick through attacks → verify kill → verify gold/xp → verify next spawn
+  - Apply poison → tick 5 seconds → verify 5 damage ticks applied
+  - Start boss timer → tick 30s → verify boss flee triggers
+  - Tap attack → tick cooldown → verify auto-attack fires when held
+  - Apply frost aura debuff → verify attack speed halved → remove debuff → verify restored
+- **Lifecycle tests** that simulate entire game sessions (e.g. clear 10 waves, verify progression)
+- **Regression tests** for exploits (e.g. boss timer reset on reload)
+
+### Testing rules
+
+1. **Every engine file gets a companion `.test.ts`** — `statPipeline.test.ts`, `timerRegistry.test.ts`, `gameLoop.test.ts`
+2. **Every store gets integration tests** — `statPipeline.test.ts` (store-level), `gameLoop.test.ts` (store-level)
+3. **Game loop simulation tests use `tick()`** — never `setTimeout`, never `async/await` for timing
+4. **Tests verify behaviour, not implementation** — assert outcomes (damage dealt, enemy killed, stat value) not internals (which layer is dirty)
+5. **Bounded iteration in tests** — use `for` loops with explicit limits, never `while`
+
+---
+
 ## Phase 0: Stat Pipeline
 
 ### Task 0.1: Define Stat Pipeline Types and Engine
@@ -857,6 +898,153 @@ Expected: PASS
 
 ---
 
+### Task 1.2: Timer Registry Simulation Tests
+
+**Files:**
+- Modify: `src/lib/engine/timerRegistry.test.ts`
+
+Add tests that validate complex multi-timer game scenarios using only `tick()`:
+
+```typescript
+describe('game loop simulation', () => {
+	test('simulate poison ticking for 5 seconds deals 5 ticks', () => {
+		const registry = createTimerRegistry();
+		let poisonTicks = 0;
+		registry.register('poison_tick', {
+			remaining: 1000,
+			onExpire: () => { poisonTicks++; },
+			repeat: 1000
+		});
+
+		// Simulate 5 seconds at ~60fps
+		for (let frame = 0; frame < 300; frame++) {
+			registry.tick(16.67);
+		}
+
+		expect(poisonTicks).toBe(5);
+	});
+
+	test('simulate boss timer expiring after 30 seconds', () => {
+		const registry = createTimerRegistry();
+		let bossExpired = false;
+		let secondsLeft = 30;
+
+		registry.register('boss_countdown', {
+			remaining: 1000,
+			repeat: 1000,
+			onExpire: () => {
+				secondsLeft--;
+				if (secondsLeft <= 0) {
+					registry.remove('boss_countdown');
+					bossExpired = true;
+				}
+			}
+		});
+
+		// Tick 29 seconds — boss should still be alive
+		registry.tick(29000);
+		expect(bossExpired).toBe(false);
+		expect(secondsLeft).toBe(1);
+
+		// Tick final second
+		registry.tick(1000);
+		expect(bossExpired).toBe(true);
+		expect(registry.has('boss_countdown')).toBe(false);
+	});
+
+	test('simulate attack cooldown cycle: fire → wait → fire', () => {
+		const registry = createTimerRegistry();
+		let attacks = 0;
+		const attackInterval = 1250; // 0.8 attacks/sec
+
+		function fireAttack() {
+			attacks++;
+			registry.register('attack_cooldown', {
+				remaining: attackInterval,
+				onExpire: () => { fireAttack(); }
+			});
+		}
+
+		// First attack
+		fireAttack();
+		expect(attacks).toBe(1);
+
+		// Tick 1249ms — no second attack yet
+		registry.tick(1249);
+		expect(attacks).toBe(1);
+
+		// Tick 1ms more — cooldown expires, second attack fires
+		registry.tick(1);
+		expect(attacks).toBe(2);
+
+		// Tick full interval — third attack
+		registry.tick(1250);
+		expect(attacks).toBe(3);
+	});
+
+	test('simulate concurrent timers: attack + poison + boss all ticking', () => {
+		const registry = createTimerRegistry();
+		let attacks = 0;
+		let poisonTicks = 0;
+		let bossSeconds = 30;
+
+		// Attack every 1250ms
+		function fireAttack() {
+			attacks++;
+			registry.register('attack_cooldown', {
+				remaining: 1250,
+				onExpire: () => { fireAttack(); }
+			});
+		}
+
+		// Poison every 1000ms
+		registry.register('poison_tick', {
+			remaining: 1000,
+			onExpire: () => { poisonTicks++; },
+			repeat: 1000
+		});
+
+		// Boss countdown every 1000ms
+		registry.register('boss_countdown', {
+			remaining: 1000,
+			repeat: 1000,
+			onExpire: () => { bossSeconds--; }
+		});
+
+		fireAttack();
+
+		// Simulate 5 seconds
+		registry.tick(5000);
+
+		expect(attacks).toBe(5);      // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
+		expect(poisonTicks).toBe(5);   // at 1000, 2000, 3000, 4000, 5000
+		expect(bossSeconds).toBe(25);  // 30 - 5
+	});
+
+	test('simulate pausing: timers do not advance when not ticked', () => {
+		const registry = createTimerRegistry();
+		let fired = false;
+		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+
+		// "Pause" by simply not calling tick for a while
+		// Then resume by ticking
+		registry.tick(50);
+		expect(fired).toBe(false);
+
+		// No tick calls = paused
+		// Resume
+		registry.tick(50);
+		expect(fired).toBe(true);
+	});
+});
+```
+
+**Run:** `bun test src/lib/engine/timerRegistry.test.ts`
+
+**Commit:** `test: add game loop simulation tests for timer registry`
+
+---
+
 ## Phase 2: Attack Speed Helpers
 
 ### Task 2.1: Add New Stats to PlayerStats
@@ -1425,6 +1613,257 @@ Verify: tap, hold, release, frenzy decay, queued tap, boss timer, poison ticks, 
 
 ---
 
+### Task 3.4: Game Loop Integration Tests
+
+**Files:**
+- Create: `src/lib/stores/gameLoop.test.ts`
+
+These tests simulate full game scenarios by wiring together the timer registry, stat pipeline, and game loop logic — all driven by `tick()`. No rAF, no DOM, no async.
+
+```typescript
+import { describe, test, expect } from 'bun:test';
+import { createTimerRegistry } from '$lib/engine/timerRegistry';
+import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/gameLoop';
+
+describe('game loop integration', () => {
+	test('simulate full encounter: attack until enemy dies', () => {
+		const registry = createTimerRegistry();
+		const playerDamage = 3;
+		let enemyHp = 10;
+		let enemyKilled = false;
+		let totalAttacks = 0;
+
+		function fireAttack() {
+			if (enemyKilled) return;
+			totalAttacks++;
+			enemyHp -= playerDamage;
+			if (enemyHp <= 0) {
+				enemyKilled = true;
+				registry.remove('attack_cooldown');
+				return;
+			}
+			registry.register('attack_cooldown', {
+				remaining: 1250,
+				onExpire: () => fireAttack()
+			});
+		}
+
+		fireAttack(); // First attack: 10 - 3 = 7
+
+		// Tick until enemy dies (should take 4 attacks: 10/3 = 3.33, rounds up to 4)
+		for (let frame = 0; frame < 600; frame++) {
+			if (enemyKilled) break;
+			registry.tick(16.67);
+		}
+
+		expect(enemyKilled).toBe(true);
+		expect(totalAttacks).toBe(4); // 3, 6, 9, 12 (overkill)
+	});
+
+	test('simulate poison damage over time alongside attacks', () => {
+		const registry = createTimerRegistry();
+		let totalDamageFromAttacks = 0;
+		let totalDamageFromPoison = 0;
+		const attackDamage = 5;
+		const poisonDamage = 2;
+
+		// Attack every 1250ms
+		function fireAttack() {
+			totalDamageFromAttacks += attackDamage;
+			registry.register('attack_cooldown', {
+				remaining: 1250,
+				onExpire: () => fireAttack()
+			});
+		}
+
+		// Poison every 1000ms
+		registry.register('poison_tick', {
+			remaining: 1000,
+			onExpire: () => { totalDamageFromPoison += poisonDamage; },
+			repeat: 1000
+		});
+
+		fireAttack();
+
+		// Simulate exactly 5 seconds
+		registry.tick(5000);
+
+		// Attacks: initial + at 1250, 2500, 3750, 5000 = 5 total
+		expect(totalDamageFromAttacks).toBe(25);
+		// Poison: at 1000, 2000, 3000, 4000, 5000 = 5 ticks
+		expect(totalDamageFromPoison).toBe(10);
+	});
+
+	test('simulate frenzy stacks decaying over time', () => {
+		const registry = createTimerRegistry();
+		let frenzyCount = 0;
+		const frenzyDuration = 3000; // 3 seconds
+
+		function addFrenzyStack() {
+			frenzyCount++;
+			const name = `frenzy_${frenzyCount}`;
+			registry.register(name, {
+				remaining: frenzyDuration,
+				onExpire: () => { frenzyCount--; }
+			});
+		}
+
+		// Add 3 stacks at t=0
+		addFrenzyStack();
+		addFrenzyStack();
+		addFrenzyStack();
+		expect(frenzyCount).toBe(3);
+
+		// Tick 3 seconds — all 3 stacks expire (all added at same time)
+		registry.tick(3000);
+		expect(frenzyCount).toBe(0);
+	});
+
+	test('simulate frenzy stacks added at different times decay independently', () => {
+		const registry = createTimerRegistry();
+		let frenzyCount = 0;
+		let frenzyId = 0;
+		const frenzyDuration = 3000;
+
+		function addFrenzyStack() {
+			frenzyId++;
+			frenzyCount++;
+			const name = `frenzy_${frenzyId}`;
+			registry.register(name, {
+				remaining: frenzyDuration,
+				onExpire: () => { frenzyCount--; }
+			});
+		}
+
+		// Stack 1 at t=0
+		addFrenzyStack();
+		registry.tick(1000); // t=1000
+
+		// Stack 2 at t=1000
+		addFrenzyStack();
+		registry.tick(1000); // t=2000
+
+		// Stack 3 at t=2000
+		addFrenzyStack();
+		expect(frenzyCount).toBe(3);
+
+		// t=3000: stack 1 expires (added at 0, duration 3000)
+		registry.tick(1000);
+		expect(frenzyCount).toBe(2);
+
+		// t=4000: stack 2 expires
+		registry.tick(1000);
+		expect(frenzyCount).toBe(1);
+
+		// t=5000: stack 3 expires
+		registry.tick(1000);
+		expect(frenzyCount).toBe(0);
+	});
+
+	test('simulate tap queuing: tap during cooldown fires when ready', () => {
+		const registry = createTimerRegistry();
+		let attacks = 0;
+		let queuedTap = false;
+
+		function fireAttack() {
+			attacks++;
+			queuedTap = false;
+			registry.register('attack_cooldown', {
+				remaining: 1250,
+				onExpire: () => {
+					if (queuedTap) {
+						fireAttack();
+					}
+				}
+			});
+		}
+
+		// First attack
+		fireAttack();
+		expect(attacks).toBe(1);
+
+		// Tap during cooldown (queues)
+		queuedTap = true;
+
+		// Tick past cooldown
+		registry.tick(1250);
+		expect(attacks).toBe(2); // Queued tap fired
+
+		// No queue this time — cooldown expires without firing
+		registry.tick(1250);
+		expect(attacks).toBe(2); // No attack since no queue and no hold
+	});
+
+	test('simulate attack speed changing mid-combat via frenzy', () => {
+		const baseSpeed = 0.8;
+		const frenzyBonus = 0.05;
+
+		// 0 stacks: 0.8/s = 1250ms
+		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 0, frenzyBonus))).toBe(1250);
+
+		// 5 stacks: 0.8 * (1 + 5*0.05) = 1.0/s = 1000ms
+		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 5, frenzyBonus))).toBe(1000);
+
+		// 10 stacks: 0.8 * (1 + 10*0.05) = 1.2/s ≈ 833ms
+		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 10, frenzyBonus))).toBeCloseTo(833.33, 0);
+	});
+
+	test('simulate boss timer with reload persistence', () => {
+		const registry = createTimerRegistry();
+		let bossSeconds = 30;
+		let bossExpired = false;
+
+		registry.register('boss_countdown', {
+			remaining: 1000,
+			repeat: 1000,
+			onExpire: () => {
+				bossSeconds--;
+				if (bossSeconds <= 0) {
+					registry.remove('boss_countdown');
+					bossExpired = true;
+				}
+			}
+		});
+
+		// Simulate 20 seconds of boss fight
+		registry.tick(20000);
+		expect(bossSeconds).toBe(10);
+
+		// "Save" remaining time
+		const savedRemaining = bossSeconds;
+
+		// "Reload" — create fresh registry with saved time
+		const registry2 = createTimerRegistry();
+		let bossSeconds2 = savedRemaining;
+		let bossExpired2 = false;
+
+		registry2.register('boss_countdown', {
+			remaining: 1000,
+			repeat: 1000,
+			onExpire: () => {
+				bossSeconds2--;
+				if (bossSeconds2 <= 0) {
+					registry2.remove('boss_countdown');
+					bossExpired2 = true;
+				}
+			}
+		});
+
+		// Simulate remaining 10 seconds
+		registry2.tick(10000);
+		expect(bossExpired2).toBe(true);
+		expect(bossSeconds2).toBe(0);
+	});
+});
+```
+
+**Run:** `bun test src/lib/stores/gameLoop.test.ts`
+Expected: PASS
+
+**Commit:** `test: add game loop integration tests simulating full game scenarios`
+
+---
+
 ## Phase 4: Upgrade Cards + Changelog
 
 ### Task 4.1: Add Attack Speed Upgrade Cards
@@ -1485,7 +1924,8 @@ Phase 0: Stat Pipeline
 └─ Task 0.5  Stat pipeline integration tests
 
 Phase 1: Timer Registry
-└─ Task 1.1  Timer registry engine (types + tick + tests)
+├─ Task 1.1  Timer registry engine (types + tick + tests)
+└─ Task 1.2  Timer registry simulation tests (game scenarios via tick())
 
 Phase 2: Attack Speed Helpers
 ├─ Task 2.1  Add new stats to PlayerStats
@@ -1494,14 +1934,15 @@ Phase 2: Attack Speed Helpers
 Phase 3: rAF Store + Migration + Pointer Input
 ├─ Task 3.1  Game loop store (rAF + timer registry + frenzy)
 ├─ Task 3.2  Migrate gameState from timers to game loop
-└─ Task 3.3  BattleArea pointer input + frenzy UI
+├─ Task 3.3  BattleArea pointer input + frenzy UI
+└─ Task 3.4  Game loop integration tests (full game scenario simulation)
 
 Phase 4: Upgrade Cards + Changelog
 ├─ Task 4.1  Attack speed cards (modifiers format)
 └─ Task 4.2  Changelog
 ```
 
-**Total tasks: 12**
+**Total tasks: 14**
 
 ---
 
