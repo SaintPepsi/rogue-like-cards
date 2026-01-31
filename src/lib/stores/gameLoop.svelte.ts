@@ -1,7 +1,7 @@
 import {
 	getEffectiveAttackSpeed,
 	getAttackIntervalMs
-} from '$lib/engine/gameLoop';
+} from '$lib/engine/attackSpeed';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
 
 export function createGameLoop() {

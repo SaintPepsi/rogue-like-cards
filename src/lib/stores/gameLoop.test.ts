@@ -3,7 +3,7 @@ import { createTimerRegistry } from '$lib/engine/timerRegistry';
 import {
 	getEffectiveAttackSpeed,
 	getAttackIntervalMs
-} from '$lib/engine/gameLoop';
+} from '$lib/engine/attackSpeed';
 
 // These tests simulate game loop scenarios using the timer registry directly,
 // without rAF (which requires a browser). This validates the timer-driven

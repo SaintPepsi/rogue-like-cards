@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/gameLoop';
+import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/attackSpeed';
 
 describe('getEffectiveAttackSpeed', () => {
 	test('returns base speed with 0 frenzy stacks', () => {

@@ -1,4 +1,4 @@
-import { getEffectiveAttackSpeed } from '$lib/engine/gameLoop';
+import { getEffectiveAttackSpeed } from '$lib/engine/attackSpeed';
 import { multiply } from '$lib/engine/statPipeline';
 import { BASE_STATS, statRegistry } from '$lib/engine/stats';
 import { createPipelineRunner } from '$lib/engine/systemPipeline';
@@ -57,7 +57,7 @@ function createGameState() {
 	// Derived values
 	let bossTimerMax = $derived(BASE_BOSS_TIME + statPipeline.get('bonusBossTime'));
 
-	// Helper: build a PlayerStats object from pipeline for combat functions
+	// Helper: build a PlayerStats object from pipeline
 	function getEffectiveStats(): PlayerStats {
 		const stats = {} as PlayerStats;
 		for (const key of Object.keys(BASE_STATS) as (keyof PlayerStats)[]) {
