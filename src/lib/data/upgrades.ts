@@ -20,32 +20,28 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Sharpen Blade',
 		rarity: 'common',
 		image: swordImg,
-		stats: [{ icon: '⚔️', label: 'Damage', value: '+1' }],
-		apply: (s) => (s.damage += 1)
+		modifiers: [{ stat: 'damage', value: 1 }]
 	},
 	{
 		id: 'damage2',
 		title: 'Heavy Strike',
 		rarity: 'uncommon',
 		image: swordImg,
-		stats: [{ icon: '⚔️', label: 'Damage', value: '+3' }],
-		apply: (s) => (s.damage += 3)
+		modifiers: [{ stat: 'damage', value: 3 }]
 	},
 	{
 		id: 'damage3',
 		title: 'Devastating Blow',
 		rarity: 'rare',
 		image: axeImg,
-		stats: [{ icon: '⚔️', label: 'Damage', value: '+5' }],
-		apply: (s) => (s.damage += 5)
+		modifiers: [{ stat: 'damage', value: 5 }]
 	},
 	{
 		id: 'damage4',
 		title: 'Titan Strength',
 		rarity: 'epic',
 		image: hammerImg,
-		stats: [{ icon: '⚔️', label: 'Damage', value: '+10' }],
-		apply: (s) => (s.damage += 10)
+		modifiers: [{ stat: 'damage', value: 10 }]
 	},
 
 	// === CRIT CHANCE UPGRADES ===
@@ -54,30 +50,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Keen Eye',
 		rarity: 'common',
 		image: attackImg,
-		stats: [{ icon: '🎯', label: 'Crit Chance', value: '+5%' }],
-		apply: (s) => (s.critChance += 0.05)
+		modifiers: [{ stat: 'critChance', value: 0.05 }]
 	},
 	{
 		id: 'crit2',
 		title: "Assassin's Focus",
 		rarity: 'uncommon',
 		image: attackImg,
-		stats: [{ icon: '🎯', label: 'Crit Chance', value: '+10%' }],
-		apply: (s) => (s.critChance += 0.1)
+		modifiers: [{ stat: 'critChance', value: 0.1 }]
 	},
 	{
 		id: 'crit3',
 		title: 'Death Mark',
 		rarity: 'rare',
 		image: attackImg,
-		stats: [
-			{ icon: '🎯', label: 'Crit Chance', value: '+15%' },
-			{ icon: '💥', label: 'Crit Damage', value: '+0.5x' }
-		],
-		apply: (s) => {
-			s.critChance += 0.15;
-			s.critMultiplier += 0.5;
-		}
+		modifiers: [{ stat: 'critChance', value: 0.15 }, { stat: 'critMultiplier', value: 0.5 }]
 	},
 
 	// === CRIT DAMAGE UPGRADES ===
@@ -86,16 +73,14 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Brutal Force',
 		rarity: 'uncommon',
 		image: fireImg,
-		stats: [{ icon: '💥', label: 'Crit Damage', value: '+0.5x' }],
-		apply: (s) => (s.critMultiplier += 0.5)
+		modifiers: [{ stat: 'critMultiplier', value: 0.5 }]
 	},
 	{
 		id: 'critdmg2',
 		title: 'Executioner',
 		rarity: 'epic',
 		image: fireImg,
-		stats: [{ icon: '💥', label: 'Crit Damage', value: '+1x' }],
-		apply: (s) => (s.critMultiplier += 1)
+		modifiers: [{ stat: 'critMultiplier', value: 1 }]
 	},
 
 	// === XP UPGRADES ===
@@ -104,16 +89,14 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Quick Learner',
 		rarity: 'common',
 		image: bookImg,
-		stats: [{ icon: '✨', label: 'XP Gain', value: '+25%' }],
-		apply: (s) => (s.xpMultiplier += 0.25)
+		modifiers: [{ stat: 'xpMultiplier', value: 0.25 }]
 	},
 	{
 		id: 'xp2',
 		title: 'Wisdom',
 		rarity: 'uncommon',
 		image: bookImg,
-		stats: [{ icon: '✨', label: 'XP Gain', value: '+50%' }],
-		apply: (s) => (s.xpMultiplier += 0.5)
+		modifiers: [{ stat: 'xpMultiplier', value: 0.5 }]
 	},
 
 	// === POISON UPGRADES ===
@@ -122,24 +105,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Toxic Coating',
 		rarity: 'common',
 		image: poisonImg,
-		stats: [{ icon: '☠️', label: 'Poison', value: '+1/sec' }],
-		apply: (s) => (s.poison += 1)
+		modifiers: [{ stat: 'poison', value: 1 }]
 	},
 	{
 		id: 'poison2',
 		title: 'Venomous Strike',
 		rarity: 'uncommon',
 		image: poisonImg,
-		stats: [{ icon: '☠️', label: 'Poison', value: '+3/sec' }],
-		apply: (s) => (s.poison += 3)
+		modifiers: [{ stat: 'poison', value: 3 }]
 	},
 	{
 		id: 'poison3',
 		title: 'Plague Bearer',
 		rarity: 'rare',
 		image: poisonImg,
-		stats: [{ icon: '☠️', label: 'Poison', value: '+5/sec' }],
-		apply: (s) => (s.poison += 5)
+		modifiers: [{ stat: 'poison', value: 5 }]
 	},
 
 	// === POISON DURATION UPGRADES ===
@@ -148,24 +128,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Lingering Toxin',
 		rarity: 'common',
 		image: poisonImg,
-		stats: [{ icon: '🕐', label: 'Poison Duration', value: '+2s' }],
-		apply: (s) => (s.poisonDuration += 2)
+		modifiers: [{ stat: 'poisonDuration', value: 2 }]
 	},
 	{
 		id: 'poisondur2',
 		title: 'Slow Rot',
 		rarity: 'uncommon',
 		image: poisonImg,
-		stats: [{ icon: '🕐', label: 'Poison Duration', value: '+4s' }],
-		apply: (s) => (s.poisonDuration += 4)
+		modifiers: [{ stat: 'poisonDuration', value: 4 }]
 	},
 	{
 		id: 'poisondur3',
 		title: 'Eternal Blight',
 		rarity: 'rare',
 		image: poisonImg,
-		stats: [{ icon: '🕐', label: 'Poison Duration', value: '+8s' }],
-		apply: (s) => (s.poisonDuration += 8)
+		modifiers: [{ stat: 'poisonDuration', value: 8 }]
 	},
 
 	// === POISON MAX STACKS UPGRADES ===
@@ -174,24 +151,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Compound Toxin',
 		rarity: 'uncommon',
 		image: poisonImg,
-		stats: [{ icon: '🧪', label: 'Max Poison Stacks', value: '+3' }],
-		apply: (s) => (s.poisonMaxStacks += 3)
+		modifiers: [{ stat: 'poisonMaxStacks', value: 3 }]
 	},
 	{
 		id: 'poisonstack2',
 		title: 'Venom Cascade',
 		rarity: 'rare',
 		image: poisonImg,
-		stats: [{ icon: '🧪', label: 'Max Poison Stacks', value: '+5' }],
-		apply: (s) => (s.poisonMaxStacks += 5)
+		modifiers: [{ stat: 'poisonMaxStacks', value: 5 }]
 	},
 	{
 		id: 'poisonstack3',
 		title: 'Pandemic',
 		rarity: 'epic',
 		image: poisonImg,
-		stats: [{ icon: '🧪', label: 'Max Poison Stacks', value: '+10' }],
-		apply: (s) => (s.poisonMaxStacks += 10)
+		modifiers: [{ stat: 'poisonMaxStacks', value: 10 }]
 	},
 
 	// === POISON CRIT UPGRADES ===
@@ -200,24 +174,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Virulent Toxin',
 		rarity: 'uncommon',
 		image: poisonImg,
-		stats: [{ icon: '💀', label: 'Poison Crit', value: '+10%' }],
-		apply: (s) => (s.poisonCritChance += 0.1)
+		modifiers: [{ stat: 'poisonCritChance', value: 0.1 }]
 	},
 	{
 		id: 'poisoncrit2',
 		title: 'Deadly Venom',
 		rarity: 'rare',
 		image: poisonImg,
-		stats: [{ icon: '💀', label: 'Poison Crit', value: '+20%' }],
-		apply: (s) => (s.poisonCritChance += 0.2)
+		modifiers: [{ stat: 'poisonCritChance', value: 0.2 }]
 	},
 	{
 		id: 'poisoncrit3',
 		title: 'Necrotic Touch',
 		rarity: 'epic',
 		image: poisonImg,
-		stats: [{ icon: '💀', label: 'Poison Crit', value: '+30%' }],
-		apply: (s) => (s.poisonCritChance += 0.3)
+		modifiers: [{ stat: 'poisonCritChance', value: 0.3 }]
 	},
 
 	// === MULTI-STRIKE UPGRADES ===
@@ -226,24 +197,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Double Tap',
 		rarity: 'uncommon',
 		image: swordImg,
-		stats: [{ icon: '⚡', label: 'Multi-Strike', value: '+1' }],
-		apply: (s) => (s.multiStrike += 1)
+		modifiers: [{ stat: 'multiStrike', value: 1 }]
 	},
 	{
 		id: 'multi2',
 		title: 'Flurry',
 		rarity: 'rare',
 		image: swordImg,
-		stats: [{ icon: '⚡', label: 'Multi-Strike', value: '+2' }],
-		apply: (s) => (s.multiStrike += 2)
+		modifiers: [{ stat: 'multiStrike', value: 2 }]
 	},
 	{
 		id: 'multi3',
 		title: 'Blade Storm',
 		rarity: 'epic',
 		image: axeImg,
-		stats: [{ icon: '⚡', label: 'Multi-Strike', value: '+3' }],
-		apply: (s) => (s.multiStrike += 3)
+		modifiers: [{ stat: 'multiStrike', value: 3 }]
 	},
 
 	// === OVERKILL ===
@@ -252,8 +220,7 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Overkill',
 		rarity: 'rare',
 		image: hammerImg,
-		stats: [{ icon: '💀', label: 'Overkill', value: 'Enabled' }],
-		apply: (s) => (s.overkill = true)
+		modifiers: [{ stat: 'overkill', value: 1 }]
 	},
 
 	// === EXECUTE ===
@@ -262,24 +229,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Mercy Kill',
 		rarity: 'uncommon',
 		image: pickaxeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '+0.5% chance' }],
-		apply: (s) => (s.executeChance += 0.005)
+		modifiers: [{ stat: 'executeChance', value: 0.005 }]
 	},
 	{
 		id: 'execute2',
 		title: 'Culling Blade',
 		rarity: 'rare',
 		image: axeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '+1% chance' }],
-		apply: (s) => (s.executeChance += 0.01)
+		modifiers: [{ stat: 'executeChance', value: 0.01 }]
 	},
 	{
 		id: 'execute3',
 		title: 'Death Sentence',
 		rarity: 'epic',
 		image: axeImg,
-		stats: [{ icon: '⚰️', label: 'Execute', value: '+2% chance' }],
-		apply: (s) => (s.executeChance += 0.02)
+		modifiers: [{ stat: 'executeChance', value: 0.02 }]
 	},
 
 	// === BOSS TIMER ===
@@ -288,16 +252,14 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Borrowed Time',
 		rarity: 'common',
 		image: timerImg,
-		stats: [{ icon: '⏱️', label: 'Boss Timer', value: '+5s' }],
-		apply: (s) => (s.bonusBossTime += 5)
+		modifiers: [{ stat: 'bonusBossTime', value: 5 }]
 	},
 	{
 		id: 'timer2',
 		title: 'Time Warp',
 		rarity: 'uncommon',
 		image: timerImg,
-		stats: [{ icon: '⏱️', label: 'Boss Timer', value: '+10s' }],
-		apply: (s) => (s.bonusBossTime += 10)
+		modifiers: [{ stat: 'bonusBossTime', value: 10 }]
 	},
 
 	// === GREED (Risk/Reward) ===
@@ -306,28 +268,14 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Greed',
 		rarity: 'uncommon',
 		image: coinsImg,
-		stats: [
-			{ icon: '💰', label: 'Enemy HP', value: '+50%' },
-			{ icon: '✨', label: 'XP Gain', value: '+100%' }
-		],
-		apply: (s) => {
-			s.greed += 0.5;
-			s.xpMultiplier += 1;
-		}
+		modifiers: [{ stat: 'greed', value: 0.5 }, { stat: 'xpMultiplier', value: 1 }]
 	},
 	{
 		id: 'greed2',
 		title: 'Avarice',
 		rarity: 'rare',
 		image: coinsImg,
-		stats: [
-			{ icon: '💰', label: 'Enemy HP', value: '+100%' },
-			{ icon: '✨', label: 'XP Gain', value: '+200%' }
-		],
-		apply: (s) => {
-			s.greed += 1;
-			s.xpMultiplier += 2;
-		}
+		modifiers: [{ stat: 'greed', value: 1 }, { stat: 'xpMultiplier', value: 2 }]
 	},
 
 	// === CHEST SPAWN ===
@@ -336,30 +284,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Keen Nose',
 		rarity: 'uncommon',
 		image: chestImg,
-		stats: [{ icon: '📦', label: 'Chest Chance', value: '+0.1%' }],
-		apply: (s) => (s.chestChance += 0.001)
+		modifiers: [{ stat: 'chestChance', value: 0.001 }]
 	},
 	{
 		id: 'chest2',
 		title: 'Treasure Sense',
 		rarity: 'rare',
 		image: chestImg,
-		stats: [{ icon: '📦', label: 'Chest Chance', value: '+0.1%' }],
-		apply: (s) => (s.chestChance += 0.001)
+		modifiers: [{ stat: 'chestChance', value: 0.001 }]
 	},
 	{
 		id: 'chest3',
 		title: 'Hoarder',
 		rarity: 'epic',
 		image: chestImg,
-		stats: [
-			{ icon: '📦', label: 'Chest Chance', value: '+0.1%' },
-			{ icon: '💰', label: 'Gold Mult', value: '+0.5x' }
-		],
-		apply: (s) => {
-			s.chestChance += 0.001;
-			s.goldMultiplier += 0.5;
-		}
+		modifiers: [{ stat: 'chestChance', value: 0.001 }, { stat: 'goldMultiplier', value: 0.5 }]
 	},
 
 	// === BOSS CHEST SPAWN (Legendary only) ===
@@ -368,28 +307,14 @@ export const allUpgrades: Upgrade[] = [
 		title: "Mimic's Blessing",
 		rarity: 'legendary',
 		image: chestImg,
-		stats: [
-			{ icon: '👑', label: 'Boss Chest', value: '+0.1%' },
-			{ icon: '📦', label: 'Chest Chance', value: '+0.1%' }
-		],
-		apply: (s) => {
-			s.bossChestChance += 0.001;
-			s.chestChance += 0.001;
-		}
+		modifiers: [{ stat: 'bossChestChance', value: 0.001 }, { stat: 'chestChance', value: 0.001 }]
 	},
 	{
 		id: 'bosschest2',
 		title: "Dragon's Hoard",
 		rarity: 'legendary',
 		image: chestImg,
-		stats: [
-			{ icon: '👑', label: 'Boss Chest', value: '+0.1%' },
-			{ icon: '💰', label: 'Gold Mult', value: '+1x' }
-		],
-		apply: (s) => {
-			s.bossChestChance += 0.001;
-			s.goldMultiplier += 1;
-		}
+		modifiers: [{ stat: 'bossChestChance', value: 0.001 }, { stat: 'goldMultiplier', value: 1 }]
 	},
 
 	// === LUCKY ===
@@ -398,16 +323,14 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Lucky Charm',
 		rarity: 'uncommon',
 		image: chestImg,
-		stats: [{ icon: '🍀', label: 'Rare Chance', value: '+10%' }],
-		apply: (s) => (s.luckyChance += 0.1)
+		modifiers: [{ stat: 'luckyChance', value: 0.1 }]
 	},
 	{
 		id: 'lucky2',
 		title: "Fortune's Favor",
 		rarity: 'rare',
 		image: chestImg,
-		stats: [{ icon: '🍀', label: 'Rare Chance', value: '+25%' }],
-		apply: (s) => (s.luckyChance += 0.25)
+		modifiers: [{ stat: 'luckyChance', value: 0.25 }]
 	},
 
 	// === GOLD DROP CHANCE ===
@@ -416,30 +339,21 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Keen Scavenger',
 		rarity: 'common',
 		image: coinsImg,
-		stats: [{ icon: '💰', label: 'Gold Drop', value: '+5%' }],
-		apply: (s) => (s.goldDropChance += 0.05)
+		modifiers: [{ stat: 'goldDropChance', value: 0.05 }]
 	},
 	{
 		id: 'golddrop2',
 		title: 'Treasure Hunter',
 		rarity: 'uncommon',
 		image: coinsImg,
-		stats: [{ icon: '💰', label: 'Gold Drop', value: '+10%' }],
-		apply: (s) => (s.goldDropChance += 0.1)
+		modifiers: [{ stat: 'goldDropChance', value: 0.1 }]
 	},
 	{
 		id: 'golddrop3',
 		title: 'Golden Touch',
 		rarity: 'rare',
 		image: coinsImg,
-		stats: [
-			{ icon: '💰', label: 'Gold Drop', value: '+15%' },
-			{ icon: '✨', label: 'Gold Mult', value: '+25%' }
-		],
-		apply: (s) => {
-			s.goldDropChance += 0.15;
-			s.goldMultiplier += 0.25;
-		}
+		modifiers: [{ stat: 'goldDropChance', value: 0.15 }, { stat: 'goldMultiplier', value: 0.25 }]
 	},
 
 	// === DAMAGE MULTIPLIER ===
@@ -448,16 +362,14 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Power Surge',
 		rarity: 'epic',
 		image: fireImg,
-		stats: [{ icon: '🔥', label: 'Damage Mult', value: '+25%' }],
-		apply: (s) => (s.damageMultiplier += 0.25)
+		modifiers: [{ stat: 'damageMultiplier', value: 0.25 }]
 	},
 	{
 		id: 'dmgmult2',
 		title: 'Overwhelming Force',
 		rarity: 'legendary',
 		image: fireImg,
-		stats: [{ icon: '🔥', label: 'Damage Mult', value: '+50%' }],
-		apply: (s) => (s.damageMultiplier += 0.5)
+		modifiers: [{ stat: 'damageMultiplier', value: 0.5 }]
 	},
 
 	// === COMBO/LEGENDARY ===
@@ -466,110 +378,49 @@ export const allUpgrades: Upgrade[] = [
 		title: 'Berserker',
 		rarity: 'epic',
 		image: axeImg,
-		stats: [
-			{ icon: '⚔️', label: 'Damage', value: '+8' },
-			{ icon: '🎯', label: 'Crit Chance', value: '+10%' }
-		],
-		apply: (s) => {
-			s.damage += 8;
-			s.critChance += 0.1;
-		}
+		modifiers: [{ stat: 'damage', value: 8 }, { stat: 'critChance', value: 0.1 }]
 	},
 	{
 		id: 'combo2',
 		title: 'Poison Master',
 		rarity: 'epic',
 		image: poisonImg,
-		stats: [
-			{ icon: '☠️', label: 'Poison', value: '+8/sec' },
-			{ icon: '⚔️', label: 'Damage', value: '+5' }
-		],
-		apply: (s) => {
-			s.poison += 8;
-			s.damage += 5;
-		}
+		modifiers: [{ stat: 'poison', value: 8 }, { stat: 'damage', value: 5 }]
 	},
 	{
 		id: 'combo3',
 		title: 'Plague Doctor',
 		rarity: 'epic',
 		image: poisonImg,
-		stats: [
-			{ icon: '☠️', label: 'Poison', value: '+5/stack' },
-			{ icon: '🧪', label: 'Max Stacks', value: '+5' },
-			{ icon: '🕐', label: 'Duration', value: '+3s' }
-		],
-		apply: (s) => {
-			s.poison += 5;
-			s.poisonMaxStacks += 5;
-			s.poisonDuration += 3;
-		}
+		modifiers: [{ stat: 'poison', value: 5 }, { stat: 'poisonMaxStacks', value: 5 }, { stat: 'poisonDuration', value: 3 }]
 	},
 	{
 		id: 'legendary4',
 		title: 'Toxic Apocalypse',
 		rarity: 'legendary',
 		image: poisonImg,
-		stats: [
-			{ icon: '☠️', label: 'Poison', value: '+12/stack' },
-			{ icon: '🧪', label: 'Max Stacks', value: '+10' },
-			{ icon: '🕐', label: 'Duration', value: '+5s' },
-			{ icon: '💀', label: 'Poison Crit', value: '+15%' }
-		],
-		apply: (s) => {
-			s.poison += 12;
-			s.poisonMaxStacks += 10;
-			s.poisonDuration += 5;
-			s.poisonCritChance += 0.15;
-		}
+		modifiers: [{ stat: 'poison', value: 12 }, { stat: 'poisonMaxStacks', value: 10 }, { stat: 'poisonDuration', value: 5 }, { stat: 'poisonCritChance', value: 0.15 }]
 	},
 	{
 		id: 'legendary1',
 		title: "Dragon's Fury",
 		rarity: 'legendary',
 		image: chestImg,
-		stats: [
-			{ icon: '⚔️', label: 'Damage', value: '+15' },
-			{ icon: '🎯', label: 'Crit Chance', value: '+20%' },
-			{ icon: '💥', label: 'Crit Damage', value: '+1x' }
-		],
-		apply: (s) => {
-			s.damage += 15;
-			s.critChance += 0.2;
-			s.critMultiplier += 1;
-		}
+		modifiers: [{ stat: 'damage', value: 15 }, { stat: 'critChance', value: 0.2 }, { stat: 'critMultiplier', value: 1 }]
 	},
 	{
 		id: 'legendary2',
 		title: 'Death Incarnate',
 		rarity: 'legendary',
 		image: fireImg,
-		stats: [
-			{ icon: '☠️', label: 'Poison', value: '+10/sec' },
-			{ icon: '⚰️', label: 'Execute', value: '+2% chance' },
-			{ icon: '⚡', label: 'Multi-Strike', value: '+2' }
-		],
-		apply: (s) => {
-			s.poison += 10;
-			s.executeChance += 0.02;
-			s.multiStrike += 2;
-		}
+		modifiers: [{ stat: 'poison', value: 10 }, { stat: 'executeChance', value: 0.02 }, { stat: 'multiStrike', value: 2 }]
 	},
 	{
 		id: 'legendary3',
 		title: 'Time Lord',
 		rarity: 'legendary',
 		image: timerImg,
-		stats: [
-			{ icon: '⏱️', label: 'Boss Timer', value: '+20s' },
-			{ icon: '⚡', label: 'Multi-Strike', value: '+3' },
-			{ icon: '✨', label: 'XP Gain', value: '+100%' }
-		],
-		apply: (s) => {
-			s.bonusBossTime += 20;
-			s.multiStrike += 3;
-			s.xpMultiplier += 1;
-		}
+		modifiers: [{ stat: 'bonusBossTime', value: 20 }, { stat: 'multiStrike', value: 3 }, { stat: 'xpMultiplier', value: 1 }]
 	}
 ];
 
@@ -579,10 +430,7 @@ export const executeCapUpgrade: Upgrade = {
 	title: "Executioner's Pact",
 	rarity: 'epic',
 	image: pickaxeImg,
-	stats: [{ icon: '⚰️', label: 'Execute Cap', value: '+0.5%' }],
-	apply: () => {
-		// Applied via executeCapBonus in gameState, not through normal stats
-	}
+	modifiers: [] // Applied via executeCapBonus in gameState, not through normal stats
 };
 
 // === GOLD PER KILL (shop-only stackable card) ===
@@ -591,10 +439,7 @@ export const goldPerKillUpgrade: Upgrade = {
 	title: "Prospector's Pick",
 	rarity: 'uncommon',
 	image: coinsImg,
-	stats: [{ icon: '💰', label: 'Gold Per Kill', value: '+1' }],
-	apply: () => {
-		// Applied via goldPerKillBonus in gameState, not through normal stats
-	}
+	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
 };
 
 export const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
