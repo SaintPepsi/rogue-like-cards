@@ -5,6 +5,8 @@ import {
 	getAttackIntervalMs
 } from '$lib/engine/attackSpeed';
 
+// Frenzy decay tests live in frenzy.test.ts — gameLoop no longer owns frenzy state.
+
 // These tests simulate game loop scenarios using the timer registry directly,
 // without rAF (which requires a browser). This validates the timer-driven
 // game loop logic deterministically.
@@ -72,48 +74,6 @@ describe('game loop integration', () => {
 
 		expect(attacks).toBe(4); // 1 initial + 3 from cooldowns
 		expect(poisonTicks).toBe(3);
-	});
-
-	test('frenzy decay: stacks expire independently', () => {
-		const timers = createTimerRegistry();
-		let frenzyCount = 0;
-		let frenzyId = 0;
-
-		function addFrenzyStack(duration: number) {
-			frenzyId++;
-			frenzyCount++;
-			const id = frenzyId;
-			timers.register(`frenzy_${id}`, {
-				remaining: duration,
-				onExpire: () => {
-					frenzyCount = Math.max(0, frenzyCount - 1);
-				}
-			});
-		}
-
-		// Add 3 stacks at different times
-		addFrenzyStack(3000);
-		expect(frenzyCount).toBe(1);
-
-		timers.tick(500);
-		addFrenzyStack(3000);
-		expect(frenzyCount).toBe(2);
-
-		timers.tick(500);
-		addFrenzyStack(3000);
-		expect(frenzyCount).toBe(3);
-
-		// After 2000ms more, first stack expires (3000 - 0 - 500 - 500 - 2000 = 0)
-		timers.tick(2000);
-		expect(frenzyCount).toBe(2);
-
-		// After 500ms more, second stack expires
-		timers.tick(500);
-		expect(frenzyCount).toBe(1);
-
-		// After 500ms more, third stack expires
-		timers.tick(500);
-		expect(frenzyCount).toBe(0);
 	});
 
 	test('tap queuing: queued tap fires after cooldown', () => {

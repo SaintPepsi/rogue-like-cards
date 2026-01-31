@@ -1,8 +1,4 @@
-import {
-	getEffectiveAttackSpeed,
-	getAttackIntervalMs
-} from '$lib/engine/attackSpeed';
-import { BASE_STATS } from '$lib/engine/stats';
+import { getAttackIntervalMs } from '$lib/engine/attackSpeed';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
 
 export function createGameLoop() {
@@ -17,10 +13,6 @@ export function createGameLoop() {
 	let pointerHeld = $state(false);
 	let attackQueuedTap = $state(false);
 
-	// Frenzy — tracked as named timers, count derived
-	let frenzyCount = $state(0);
-	let frenzyId = $state(0);
-
 	// Boss countdown — exposed for UI display
 	let bossTimeRemaining = $state(0);
 
@@ -28,54 +20,28 @@ export function createGameLoop() {
 	let callbacks = {
 		onAttack: () => {},
 		onSystemTick: () => {},
-		onBossExpired: () => {},
-		onFrenzyChanged: (_count: number) => {}
+		onBossExpired: () => {}
 	};
 
 	// Stat readers (set by gameState, read from pipeline)
-	let getAttackSpeed = () => BASE_STATS.attackSpeed;
-	let getTapFrenzyBonus = () => BASE_STATS.tapFrenzyBonus;
-	let getTapFrenzyDuration = () => BASE_STATS.tapFrenzyDuration;
+	let getAttackSpeed = () => 0.8;
+	let getFrenzyCount = () => 0;
 
-	function addFrenzyStack() {
-		frenzyId++;
-		frenzyCount++;
-		const id = frenzyId;
-		const name = `frenzy_${id}`;
-		const duration = getTapFrenzyDuration() * 1000;
-
-		timers.register(name, {
-			remaining: duration,
-			onExpire: () => {
-				frenzyCount = Math.max(0, frenzyCount - 1);
-				callbacks.onFrenzyChanged(frenzyCount);
-			}
-		});
-
-		callbacks.onFrenzyChanged(frenzyCount);
-	}
-
-	function fireAttack(userInitiated: boolean) {
+	function fireAttack() {
 		callbacks.onAttack();
-		if (userInitiated) {
-			addFrenzyStack();
-		}
 		attackQueuedTap = false;
 
-		// Re-register attack cooldown
-		const effectiveSpeed = getEffectiveAttackSpeed(
-			getAttackSpeed(),
-			frenzyCount,
-			getTapFrenzyBonus()
-		);
-		const interval = getAttackIntervalMs(effectiveSpeed);
+		// DECISION: Read pipeline attackSpeed directly, not getEffectiveAttackSpeed()
+		// Why: The stat pipeline already includes the frenzy transient multiplier
+		// (added by frenzy.onChanged → statPipeline.addTransientStep). Calling
+		// getEffectiveAttackSpeed() here would double-count the frenzy bonus.
+		const interval = getAttackIntervalMs(getAttackSpeed());
 		timers.register('attack_cooldown', {
 			remaining: interval,
 			onExpire: () => {
-				// Auto-attacks from cooldown are not user-initiated
-				const canAttack = pointerHeld || frenzyCount > 0;
+				const canAttack = pointerHeld || getFrenzyCount() > 0;
 				if (canAttack || attackQueuedTap) {
-					fireAttack(attackQueuedTap);
+					fireAttack();
 				}
 			}
 		});
@@ -102,20 +68,16 @@ export function createGameLoop() {
 		onAttack: () => void;
 		onSystemTick: () => void;
 		onBossExpired: () => void;
-		onFrenzyChanged?: (count: number) => void;
 		getAttackSpeed: () => number;
-		getTapFrenzyBonus: () => number;
-		getTapFrenzyDuration: () => number;
+		getFrenzyCount: () => number;
 	}) {
 		callbacks = {
 			onAttack: cbs.onAttack,
 			onSystemTick: cbs.onSystemTick,
-			onBossExpired: cbs.onBossExpired,
-			onFrenzyChanged: cbs.onFrenzyChanged ?? (() => {})
+			onBossExpired: cbs.onBossExpired
 		};
 		getAttackSpeed = cbs.getAttackSpeed;
-		getTapFrenzyBonus = cbs.getTapFrenzyBonus;
-		getTapFrenzyDuration = cbs.getTapFrenzyDuration;
+		getFrenzyCount = cbs.getFrenzyCount;
 
 		// Register system tick (repeating 1000ms) — runs all pipeline onTick handlers
 		timers.register('system_tick', {
@@ -146,8 +108,7 @@ export function createGameLoop() {
 	function pointerDown() {
 		pointerHeld = true;
 		if (!timers.has('attack_cooldown')) {
-			// No cooldown active — fire immediately (user-initiated)
-			fireAttack(true);
+			fireAttack();
 		} else {
 			attackQueuedTap = true;
 		}
@@ -183,8 +144,6 @@ export function createGameLoop() {
 		paused = false;
 		pointerHeld = false;
 		attackQueuedTap = false;
-		frenzyCount = 0;
-		frenzyId = 0;
 		bossTimeRemaining = 0;
 		lastFrameTime = 0;
 	}
@@ -193,7 +152,6 @@ export function createGameLoop() {
 		// Timer registry access (for Plans 1-3 to register enemy/ability timers)
 		get timers() { return timers; },
 
-		get frenzyStacks() { return frenzyCount; },
 		get bossTimeRemaining() { return bossTimeRemaining; },
 		get paused() { return paused; },
 		get pointerHeld() { return pointerHeld; },

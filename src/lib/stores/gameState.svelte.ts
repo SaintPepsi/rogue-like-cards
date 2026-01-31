@@ -1,6 +1,4 @@
-import { getEffectiveAttackSpeed } from '$lib/engine/attackSpeed';
-import { multiply } from '$lib/engine/statPipeline';
-import { BASE_STATS, statRegistry } from '$lib/engine/stats';
+import { statRegistry } from '$lib/engine/stats';
 import { createPipelineRunner } from '$lib/engine/systemPipeline';
 import { allSystems } from '$lib/systems/registry';
 import {
@@ -16,6 +14,7 @@ import {
 } from '$lib/engine/waves';
 import type { Effect, HitInfo, HitType, PlayerStats, Upgrade } from '$lib/types';
 import { createEnemy } from './enemy.svelte';
+import { createFrenzy } from './frenzy.svelte';
 import { createGameLoop } from './gameLoop.svelte';
 import { createLeveling } from './leveling.svelte';
 import { createPersistence } from './persistence.svelte';
@@ -44,6 +43,10 @@ function createGameState() {
 
 	// Game loop (rAF + timer registry)
 	const gameLoop = createGameLoop();
+
+	// Frenzy module (tap-frenzy stacks + timer-based decay)
+	// Uses gameLoop.timers so frenzy decay timers are ticked by the game loop's rAF
+	const frenzy = createFrenzy(statPipeline, gameLoop.timers);
 
 	// Enemy / wave / stage management
 	const enemy = createEnemy();
@@ -363,24 +366,14 @@ function createGameState() {
 			onAttack: attack,
 			onSystemTick: tickSystems,
 			onBossExpired: handleBossExpired,
-			onFrenzyChanged: (count: number) => {
-				statPipeline.removeTransient('frenzy');
-				if (count > 0) {
-					statPipeline.addTransientStep(
-						'frenzy',
-						'attackSpeed',
-						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
-					);
-				}
-			},
 			getAttackSpeed: () => statPipeline.get('attackSpeed'),
-			getTapFrenzyBonus: () => statPipeline.get('tapFrenzyBonus'),
-			getTapFrenzyDuration: () => statPipeline.get('tapFrenzyDuration')
+			getFrenzyCount: () => frenzy.count
 		};
 	}
 
 	function resetGame() {
 		gameLoop.reset();
+		frenzy.reset();
 		statPipeline.reset();
 		pipeline.reset();
 
@@ -528,18 +521,17 @@ function createGameState() {
 			return shop.goldPerKillLevel;
 		},
 		get frenzyStacks() {
-			return gameLoop.frenzyStacks;
-		},
-		get effectiveAttackSpeed() {
-			return getEffectiveAttackSpeed(
-				statPipeline.get('attackSpeed'),
-				gameLoop.frenzyStacks,
-				statPipeline.get('tapFrenzyBonus')
-			);
+			return frenzy.count;
 		},
 
 		// Actions
-		pointerDown: () => gameLoop.pointerDown(),
+		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
+		// Why: gameLoop.fireAttack() runs for both taps AND auto-attacks. Frenzy
+		// should only stack on player taps. gameState owns the input→mechanic mapping.
+		pointerDown: () => {
+			frenzy.addStack();
+			gameLoop.pointerDown();
+		},
 		pointerUp: () => gameLoop.pointerUp(),
 		selectUpgrade,
 		openNextUpgrade,
