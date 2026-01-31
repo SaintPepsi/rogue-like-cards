@@ -81,6 +81,74 @@ describe('createUIEffects', () => {
 		vi.useRealTimers();
 	});
 
+	test('drops low-priority hits when at capacity', () => {
+		vi.useFakeTimers();
+		const ui = createUIEffects();
+
+		// Fill to capacity with normal hits
+		const batch = Array.from({ length: 100 }, (_, i) => ({
+			id: i + 1, damage: 1, type: 'normal' as const, index: 0
+		}));
+		ui.addHits(batch);
+		expect(ui.hits).toHaveLength(100);
+
+		// Additional normal/crit hits are dropped
+		ui.addHits([{ id: 200, damage: 5, type: 'normal', index: 0 }]);
+		expect(ui.hits).toHaveLength(100);
+
+		ui.addHits([{ id: 201, damage: 5, type: 'crit', index: 0 }]);
+		expect(ui.hits).toHaveLength(100);
+
+		vi.useRealTimers();
+	});
+
+	test('always allows high-priority hits even at capacity', () => {
+		vi.useFakeTimers();
+		const ui = createUIEffects();
+
+		const batch = Array.from({ length: 100 }, (_, i) => ({
+			id: i + 1, damage: 1, type: 'normal' as const, index: 0
+		}));
+		ui.addHits(batch);
+		expect(ui.hits).toHaveLength(100);
+
+		// Execute, poison, poisonCrit always get through
+		ui.addHits([{ id: 201, damage: 99, type: 'execute', index: 0 }]);
+		expect(ui.hits).toHaveLength(101);
+
+		ui.addHits([{ id: 202, damage: 10, type: 'poison', index: 0 }]);
+		expect(ui.hits).toHaveLength(102);
+
+		ui.addHits([{ id: 203, damage: 50, type: 'poisonCrit', index: 0 }]);
+		expect(ui.hits).toHaveLength(103);
+
+		vi.useRealTimers();
+	});
+
+	test('mixed batch keeps high-priority and drops low-priority at capacity', () => {
+		vi.useFakeTimers();
+		const ui = createUIEffects();
+
+		const batch = Array.from({ length: 99 }, (_, i) => ({
+			id: i + 1, damage: 1, type: 'normal' as const, index: 0
+		}));
+		ui.addHits(batch);
+		expect(ui.hits).toHaveLength(99);
+
+		// 1 slot remaining — normal takes it, second normal dropped, execute gets through
+		ui.addHits([
+			{ id: 100, damage: 1, type: 'normal', index: 0 },
+			{ id: 101, damage: 1, type: 'normal', index: 1 },
+			{ id: 102, damage: 99, type: 'execute', index: 2 },
+		]);
+		expect(ui.hits).toHaveLength(101);
+		expect(ui.hits.find(h => h.id === 100)).toBeDefined();
+		expect(ui.hits.find(h => h.id === 101)).toBeUndefined();
+		expect(ui.hits.find(h => h.id === 102)).toBeDefined();
+
+		vi.useRealTimers();
+	});
+
 	test('reset clears all state', () => {
 		vi.useFakeTimers();
 		const ui = createUIEffects();
