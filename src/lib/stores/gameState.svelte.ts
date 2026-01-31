@@ -1,26 +1,26 @@
-import type { PlayerStats, Upgrade, Effect, HitInfo } from '$lib/types';
-import { createUIEffects } from './uiEffects.svelte';
-import { createGameLoop } from './gameLoop.svelte';
-import { createPersistence } from './persistence.svelte';
-import { createEnemy } from './enemy.svelte';
-import { createLeveling } from './leveling.svelte';
-import { createShop } from './shop.svelte';
-import { createStatPipeline } from './statPipeline.svelte';
-import { createDefaultStats, statRegistry, BASE_STATS } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
-import { multiply } from '$lib/engine/statPipeline';
 import { getEffectiveAttackSpeed } from '$lib/engine/gameLoop';
+import { multiply } from '$lib/engine/statPipeline';
+import { BASE_STATS, statRegistry } from '$lib/engine/stats';
 import {
 	BASE_BOSS_TIME,
-	getGreedMultiplier,
-	shouldDropGold,
-	getXpReward,
-	getChestGoldReward,
-	getEnemyGoldReward,
-	getBossGoldReward,
 	BOSS_XP_MULTIPLIER,
 	CHEST_XP_MULTIPLIER,
+	getBossGoldReward,
+	getChestGoldReward,
+	getEnemyGoldReward,
+	getGreedMultiplier,
+	getXpReward,
+	shouldDropGold
 } from '$lib/engine/waves';
+import type { Effect, HitInfo, PlayerStats, Upgrade } from '$lib/types';
+import { createEnemy } from './enemy.svelte';
+import { createGameLoop } from './gameLoop.svelte';
+import { createLeveling } from './leveling.svelte';
+import { createPersistence } from './persistence.svelte';
+import { createShop } from './shop.svelte';
+import { createStatPipeline } from './statPipeline.svelte';
+import { createUIEffects } from './uiEffects.svelte';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -138,7 +138,10 @@ function createGameState() {
 		if (poisonStacks.length === 0) return;
 
 		const playerStats = getEffectiveStats();
-		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
+		const result = calculatePoison(playerStats, {
+			rng: Math.random,
+			activeStacks: poisonStacks.length
+		});
 		if (result.damage <= 0) return;
 
 		enemy.takeDamage(result.damage);
@@ -188,9 +191,19 @@ function createGameState() {
 				ui.addGoldDrop(goldReward);
 			}
 
-			const enemyXpMultiplier = enemy.isBoss ? BOSS_XP_MULTIPLIER : enemy.isChest ? CHEST_XP_MULTIPLIER : 1;
+			const enemyXpMultiplier = enemy.isBoss
+				? BOSS_XP_MULTIPLIER
+				: enemy.isChest
+					? CHEST_XP_MULTIPLIER
+					: 1;
 			const greedMult = getGreedMultiplier(playerStats.greed);
-			const xpGain = getXpReward(enemy.enemyMaxHealth, enemy.stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
+			const xpGain = getXpReward(
+				enemy.enemyMaxHealth,
+				enemy.stage,
+				playerStats.xpMultiplier,
+				enemyXpMultiplier,
+				greedMult
+			);
 			leveling.addXp(xpGain);
 
 			if (enemy.isBoss) {
@@ -363,7 +376,8 @@ function createGameState() {
 				statPipeline.removeTransient('frenzy');
 				if (count > 0) {
 					statPipeline.addTransientStep(
-						'frenzy', 'attackSpeed',
+						'frenzy',
+						'attackSpeed',
 						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
 					);
 				}
@@ -408,7 +422,8 @@ function createGameState() {
 				statPipeline.removeTransient('frenzy');
 				if (count > 0) {
 					statPipeline.addTransientStep(
-						'frenzy', 'attackSpeed',
+						'frenzy',
+						'attackSpeed',
 						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
 					);
 				}

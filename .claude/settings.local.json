@@ -17,7 +17,13 @@
       "mcp__ide__getDiagnostics",
       "Bash(npm run dev:*)",
       "Bash(bun install:*)",
-      "Bash(bun run test:e2e:*)"
+      "Bash(bun run test:e2e:*)",
+      "Skill(sancoca-skills:writing-plans)",
+      "Bash(bun:*)",
+      "WebFetch(domain:github.com)",
+      "Skill(superpowers:brainstorming)",
+      "Skill(superpowers:executing-plans)",
+      "Skill(superpowers:using-git-worktrees)"
     ]
   },
   "enableAllProjectMcpServers": true,
