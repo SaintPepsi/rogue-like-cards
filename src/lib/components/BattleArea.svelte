@@ -17,7 +17,9 @@
 		goldDrops: GoldDrop[];
 		hits: HitInfo[];
 		poisonStacks: number;
-		onAttack: () => void;
+		onPointerDown: () => void;
+		onPointerUp: () => void;
+		frenzyStacks: number;
 	};
 
 	let {
@@ -31,7 +33,9 @@
 		goldDrops,
 		hits,
 		poisonStacks,
-		onAttack
+		onPointerDown,
+		onPointerUp,
+		frenzyStacks
 	}: Props = $props();
 </script>
 
@@ -41,8 +45,10 @@
 			class="enemy"
 			class:boss={isBoss}
 			class:chest={isChest}
-			onclick={onAttack}
-			onkeydown={(e) => e.key === ' ' && onAttack()}
+			onpointerdown={onPointerDown}
+			onpointerup={onPointerUp}
+			onpointerleave={onPointerUp}
+			onkeydown={(e) => { if (e.key === ' ') { onPointerDown(); setTimeout(onPointerUp, 100); } }}
 			tabindex="0"
 			role="button"
 		>
@@ -53,6 +59,12 @@
 					<span class="poison-count">{poisonStacks}</span>
 				</div>
 			{/if}
+			{#if frenzyStacks > 0}
+				<div class="frenzy-counter">
+					<span class="frenzy-icon">🔥</span>
+					<span class="frenzy-count">{frenzyStacks}</span>
+				</div>
+			{/if}
 			{#each hits as hit (hit.id)}
 				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
 			{/each}
@@ -61,7 +73,7 @@
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>
 		<span class="health-text">{formatNumber(enemyHealth)}/{formatNumber(enemyMaxHealth)}</span>
-		<p class="hint">Click the enemy to attack!</p>
+		<p class="hint">Tap to attack, hold to auto-attack!</p>
 	</div>
 
 	<div class="battle-stats">
@@ -229,6 +241,42 @@
 		}
 		50% {
 			box-shadow: 0 0 14px rgba(34, 197, 94, 0.8);
+		}
+	}
+
+	.frenzy-counter {
+		position: absolute;
+		top: -8px;
+		left: -8px;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		background: rgba(251, 146, 60, 0.9);
+		border: 2px solid #ea580c;
+		border-radius: 12px;
+		padding: 2px 8px;
+		font-size: 0.8rem;
+		font-weight: bold;
+		color: white;
+		z-index: 10;
+		box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
+		animation: frenzy-pulse 0.5s ease-in-out infinite;
+	}
+
+	.frenzy-icon {
+		font-size: 0.7rem;
+	}
+
+	.frenzy-count {
+		font-size: 0.85rem;
+	}
+
+	@keyframes frenzy-pulse {
+		0%, 100% {
+			box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
+		}
+		50% {
+			box-shadow: 0 0 14px rgba(251, 146, 60, 0.8);
 		}
 	}
 

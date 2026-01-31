@@ -1,12 +1,15 @@
 import type { PlayerStats, Upgrade, Effect, HitInfo } from '$lib/types';
 import { createUIEffects } from './uiEffects.svelte';
-import { createTimers } from './timers.svelte';
+import { createGameLoop } from './gameLoop.svelte';
 import { createPersistence } from './persistence.svelte';
 import { createEnemy } from './enemy.svelte';
 import { createLeveling } from './leveling.svelte';
 import { createShop } from './shop.svelte';
-import { createDefaultStats, statRegistry } from '$lib/engine/stats';
+import { createStatPipeline } from './statPipeline.svelte';
+import { createDefaultStats, statRegistry, BASE_STATS } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
+import { multiply } from '$lib/engine/statPipeline';
+import { getEffectiveAttackSpeed } from '$lib/engine/gameLoop';
 import {
 	BASE_BOSS_TIME,
 	getGreedMultiplier,
@@ -21,8 +24,9 @@ import {
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
-	// Player stats
-	let playerStats = $state<PlayerStats>(createDefaultStats());
+
+	// Stat pipeline replaces mutable playerStats
+	const statPipeline = createStatPipeline();
 
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
@@ -37,8 +41,8 @@ function createGameState() {
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
-	// Timers (boss countdown + poison tick)
-	const timers = createTimers();
+	// Game loop (rAF + timer registry)
+	const gameLoop = createGameLoop();
 
 	// Enemy / wave / stage management
 	const enemy = createEnemy();
@@ -50,14 +54,25 @@ function createGameState() {
 	const shop = createShop(persistence);
 
 	// Derived values
-	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
+	let bossTimerMax = $derived(BASE_BOSS_TIME + statPipeline.get('bonusBossTime'));
+
+	// Helper: build a PlayerStats object from pipeline for combat functions
+	function getEffectiveStats(): PlayerStats {
+		const stats = {} as PlayerStats;
+		for (const key of Object.keys(BASE_STATS) as (keyof PlayerStats)[]) {
+			(stats as any)[key] = statPipeline.get(key);
+		}
+		// overkill is boolean in PlayerStats but number in pipeline
+		(stats as any).overkill = statPipeline.get('overkill') > 0;
+		return stats;
+	}
 
 	function upgradeContext() {
 		return {
-			luckyChance: playerStats.luckyChance,
-			executeChance: playerStats.executeChance,
+			luckyChance: statPipeline.get('luckyChance'),
+			executeChance: statPipeline.get('executeChance'),
 			executeCap: shop.getExecuteCapValue(),
-			poison: playerStats.poison
+			poison: statPipeline.get('poison')
 		};
 	}
 
@@ -75,6 +90,7 @@ function createGameState() {
 	function attack() {
 		if (isModalOpen() || enemy.isDead()) return;
 
+		const playerStats = getEffectiveStats();
 		const result = calculateAttack(playerStats, {
 			enemyHealth: enemy.enemyHealth,
 			enemyMaxHealth: enemy.enemyMaxHealth,
@@ -99,10 +115,8 @@ function createGameState() {
 			const strikes = result.hits.filter((h) => h.type !== 'execute').length;
 			for (let i = 0; i < strikes; i++) {
 				if (poisonStacks.length < playerStats.poisonMaxStacks) {
-					// Below max: add a new stack
 					poisonStacks = [...poisonStacks, playerStats.poisonDuration];
 				} else {
-					// At max: refresh the oldest (lowest remaining) stack
 					const updated = [...poisonStacks];
 					let minIndex = 0;
 					for (let j = 1; j < updated.length; j++) {
@@ -120,9 +134,10 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (playerStats.poison <= 0 || enemy.isDead() || isModalOpen()) return;
+		if (statPipeline.get('poison') <= 0 || enemy.isDead() || isModalOpen()) return;
 		if (poisonStacks.length === 0) return;
 
+		const playerStats = getEffectiveStats();
 		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
 		if (result.damage <= 0) return;
 
@@ -139,9 +154,6 @@ function createGameState() {
 		}
 	}
 
-	// Re-entry guard: JS is single-threaded so attack() (click handler) and
-	// applyPoison() (setInterval) can't truly interleave. Kept as a cheap
-	// safety net documenting the invariant.
 	let killingEnemy = false;
 
 	function killEnemy() {
@@ -149,6 +161,7 @@ function createGameState() {
 		killingEnemy = true;
 
 		try {
+			const playerStats = getEffectiveStats();
 			enemy.recordKill();
 			poisonStacks = [];
 
@@ -181,7 +194,7 @@ function createGameState() {
 			leveling.addXp(xpGain);
 
 			if (enemy.isBoss) {
-				timers.stopBossTimer();
+				gameLoop.stopBossTimer();
 				enemy.advanceStage();
 			}
 
@@ -192,7 +205,7 @@ function createGameState() {
 					enemy.spawnBossChest(playerStats.greed);
 				} else {
 					enemy.spawnBoss(playerStats.greed);
-					timers.startBossTimer(bossTimerMax, handleBossExpired);
+					gameLoop.startBossTimer(bossTimerMax);
 				}
 			} else {
 				enemy.spawnNextTarget(playerStats);
@@ -205,14 +218,7 @@ function createGameState() {
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
-		// Apply modifiers directly to playerStats (temporary until pipeline wired in Task 0.6)
-		for (const mod of upgrade.modifiers) {
-			if (mod.stat === 'overkill') {
-				(playerStats as any)[mod.stat] = true;
-			} else {
-				(playerStats as any)[mod.stat] += mod.value;
-			}
-		}
+		statPipeline.acquireUpgrade(upgrade.id);
 		if (upgrade.onAcquire) upgrade.onAcquire();
 
 		// Track unlocked upgrades for collection
@@ -236,11 +242,8 @@ function createGameState() {
 
 		const allConsumed = leveling.closeActiveEvent();
 		if (allConsumed) {
-			// All upgrades consumed — resume game
-			timers.startPoisonTick(applyPoison);
-			timers.resumeBossTimer(handleBossExpired);
+			gameLoop.resume();
 		} else {
-			// More queued — auto-open the next one
 			leveling.openNextUpgrade();
 		}
 		saveGame();
@@ -249,8 +252,7 @@ function createGameState() {
 	function openNextUpgrade() {
 		const event = leveling.openNextUpgrade();
 		if (event) {
-			timers.stopPoisonTick();
-			timers.pauseBossTimer();
+			gameLoop.pause();
 		}
 	}
 
@@ -264,7 +266,7 @@ function createGameState() {
 
 	function saveGame() {
 		persistence.saveSession({
-			playerStats: { ...playerStats },
+			playerStats: getEffectiveStats(),
 			effects: [...effects],
 			unlockedUpgradeIds: [...unlockedUpgrades],
 			xp: leveling.xp,
@@ -280,7 +282,10 @@ function createGameState() {
 			isBossChest: enemy.isBossChest,
 			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
-			timestamp: Date.now()
+			timestamp: Date.now(),
+			bossTimeRemaining: gameLoop.timers.has('boss_countdown')
+				? Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000)
+				: undefined
 		});
 	}
 
@@ -288,17 +293,22 @@ function createGameState() {
 		const data = persistence.loadSession();
 		if (!data) return false;
 
-		// Restore player stats, merging with defaults for forward-compat
-		const savedStats = data.playerStats as Record<string, unknown>;
-		playerStats = { ...createDefaultStats(), ...data.playerStats };
-		// Migrate old executeThreshold → executeChance
-		if ('executeThreshold' in savedStats && !('executeChance' in savedStats)) {
-			const threshold = savedStats.executeThreshold as number;
-			playerStats.executeChance = threshold > 0 ? 0.005 : 0;
+		// Restore stats via pipeline from saved upgrade IDs
+		statPipeline.setAcquiredUpgrades(data.unlockedUpgradeIds);
+		// Also apply shop purchased upgrades
+		const shopIds = [...shop.purchasedUpgrades];
+		if (shopIds.length > 0) {
+			// Combine session upgrades + shop upgrades
+			statPipeline.setAcquiredUpgrades([...data.unlockedUpgradeIds, ...shopIds]);
 		}
-		delete (playerStats as Record<string, unknown>).executeThreshold;
+
 		effects = [...data.effects];
 		unlockedUpgrades = new Set(data.unlockedUpgradeIds);
+		// Also mark shop upgrades as unlocked
+		for (const id of shopIds) {
+			unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+		}
+
 		leveling.restore({
 			xp: data.xp,
 			level: data.level,
@@ -320,14 +330,10 @@ function createGameState() {
 		return true;
 	}
 
-	function applyPurchasedUpgrades() {
-		unlockedUpgrades = shop.applyPurchasedUpgrades(playerStats, unlockedUpgrades);
-	}
-
 	function resetGame() {
-		timers.stopAll();
+		gameLoop.reset();
+		statPipeline.reset();
 
-		playerStats = createDefaultStats();
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
@@ -338,11 +344,34 @@ function createGameState() {
 		shop.resetShopUI();
 		persistence.clearSession();
 
-		// Apply purchased upgrades from shop
-		applyPurchasedUpgrades();
+		// Apply purchased upgrades from shop via pipeline
+		const shopIds = [...shop.purchasedUpgrades];
+		if (shopIds.length > 0) {
+			statPipeline.setAcquiredUpgrades(shopIds);
+			for (const id of shopIds) {
+				unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+			}
+		}
 
-		enemy.reset(playerStats.greed);
-		timers.startPoisonTick(applyPoison);
+		enemy.reset(statPipeline.get('greed'));
+
+		gameLoop.start({
+			onAttack: attack,
+			onPoisonTick: applyPoison,
+			onBossExpired: handleBossExpired,
+			onFrenzyChanged: (count) => {
+				statPipeline.removeTransient('frenzy');
+				if (count > 0) {
+					statPipeline.addTransientStep(
+						'frenzy', 'attackSpeed',
+						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
+					);
+				}
+			},
+			getAttackSpeed: () => statPipeline.get('attackSpeed'),
+			getTapFrenzyBonus: () => statPipeline.get('tapFrenzyBonus'),
+			getTapFrenzyDuration: () => statPipeline.get('tapFrenzyDuration')
+		});
 	}
 
 	function fullReset() {
@@ -351,25 +380,49 @@ function createGameState() {
 	}
 
 	function init() {
-		// Always load persistent data first
 		shop.load();
-
 		const loaded = loadGame();
 		if (!loaded) {
 			// Apply purchased upgrades for new game
-			applyPurchasedUpgrades();
-			enemy.spawnEnemy(playerStats.greed);
-		} else if (enemy.isBoss) {
-			// Resume boss timer if we were fighting a boss
-			timers.startBossTimer(bossTimerMax, handleBossExpired);
+			const shopIds = [...shop.purchasedUpgrades];
+			if (shopIds.length > 0) {
+				statPipeline.setAcquiredUpgrades(shopIds);
+				for (const id of shopIds) {
+					unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+				}
+			}
+			enemy.spawnEnemy(statPipeline.get('greed'));
+		} else {
+			if (enemy.isBoss) {
+				const data = persistence.loadSession();
+				const savedBossTime = data?.bossTimeRemaining;
+				gameLoop.startBossTimer(savedBossTime ?? bossTimerMax);
+			}
 		}
-		timers.startPoisonTick(applyPoison);
+
+		gameLoop.start({
+			onAttack: attack,
+			onPoisonTick: applyPoison,
+			onBossExpired: handleBossExpired,
+			onFrenzyChanged: (count) => {
+				statPipeline.removeTransient('frenzy');
+				if (count > 0) {
+					statPipeline.addTransientStep(
+						'frenzy', 'attackSpeed',
+						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
+					);
+				}
+			},
+			getAttackSpeed: () => statPipeline.get('attackSpeed'),
+			getTapFrenzyBonus: () => statPipeline.get('tapFrenzyBonus'),
+			getTapFrenzyDuration: () => statPipeline.get('tapFrenzyDuration')
+		});
 	}
 
 	return {
 		// Getters for state
 		get playerStats() {
-			return playerStats;
+			return getEffectiveStats();
 		},
 		get effects() {
 			return effects;
@@ -396,7 +449,7 @@ function createGameState() {
 			return enemy.isBoss;
 		},
 		get bossTimer() {
-			return timers.bossTimer;
+			return Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000);
 		},
 		get enemyHealth() {
 			return enemy.enemyHealth;
@@ -462,17 +515,28 @@ function createGameState() {
 		get goldPerKillLevel() {
 			return shop.goldPerKillLevel;
 		},
+		get frenzyStacks() {
+			return gameLoop.frenzyStacks;
+		},
+		get effectiveAttackSpeed() {
+			return getEffectiveAttackSpeed(
+				statPipeline.get('attackSpeed'),
+				gameLoop.frenzyStacks,
+				statPipeline.get('tapFrenzyBonus')
+			);
+		},
 
 		// Actions
-		attack,
+		pointerDown: () => gameLoop.pointerDown(),
+		pointerUp: () => gameLoop.pointerUp(),
 		selectUpgrade,
 		openNextUpgrade,
 		resetGame,
 		fullReset,
 		init,
-		openShop: (stats?: PlayerStats) => shop.open(stats ?? playerStats),
+		openShop: () => shop.open(getEffectiveStats()),
 		closeShop: () => shop.close(),
-		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, playerStats),
+		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
 		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade)
 	};
 }

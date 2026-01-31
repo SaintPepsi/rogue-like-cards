@@ -24,6 +24,7 @@ export interface SessionSaveData {
 	upgradeQueue?: SavedUpgradeEvent[];
 	activeEvent?: SavedUpgradeEvent | null;
 	timestamp: number;
+	bossTimeRemaining?: number;
 }
 
 export interface PersistentSaveData {

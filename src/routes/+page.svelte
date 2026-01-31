@@ -165,7 +165,9 @@
 				goldDrops={gameState.goldDrops}
 				hits={gameState.hits}
 				poisonStacks={gameState.poisonStacks.length}
-				onAttack={gameState.attack}
+				onPointerDown={gameState.pointerDown}
+				onPointerUp={gameState.pointerUp}
+				frenzyStacks={gameState.frenzyStacks}
 			/>
 		</div>
 	</div>
