@@ -14,31 +14,31 @@ import coinsImg from '$lib/assets/images/cards/coins.png';
 import hammerImg from '$lib/assets/images/cards/hammer.png';
 import pickaxeImg from '$lib/assets/images/cards/pickaxe.png';
 
-export const allUpgrades: Upgrade[] = [
+const _allUpgrades = [
 	// === DAMAGE UPGRADES ===
 	{
-		id: 'damage1',
+		id: 'damage_1',
 		title: 'Sharpen Blade',
 		rarity: 'common',
 		image: swordImg,
 		modifiers: [{ stat: 'damage', value: 1 }]
 	},
 	{
-		id: 'damage2',
+		id: 'damage_2',
 		title: 'Heavy Strike',
 		rarity: 'uncommon',
 		image: swordImg,
 		modifiers: [{ stat: 'damage', value: 3 }]
 	},
 	{
-		id: 'damage3',
+		id: 'damage_3',
 		title: 'Devastating Blow',
 		rarity: 'rare',
 		image: axeImg,
 		modifiers: [{ stat: 'damage', value: 5 }]
 	},
 	{
-		id: 'damage4',
+		id: 'damage_4',
 		title: 'Titan Strength',
 		rarity: 'epic',
 		image: hammerImg,
@@ -47,21 +47,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === CRIT CHANCE UPGRADES ===
 	{
-		id: 'crit1',
+		id: 'crit_chance_1',
 		title: 'Keen Eye',
 		rarity: 'common',
 		image: attackImg,
 		modifiers: [{ stat: 'critChance', value: 0.05 }]
 	},
 	{
-		id: 'crit2',
+		id: 'crit_chance_2',
 		title: "Assassin's Focus",
 		rarity: 'uncommon',
 		image: attackImg,
 		modifiers: [{ stat: 'critChance', value: 0.1 }]
 	},
 	{
-		id: 'crit3',
+		id: 'crit_chance_3',
 		title: 'Death Mark',
 		rarity: 'rare',
 		image: attackImg,
@@ -70,14 +70,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === CRIT DAMAGE UPGRADES ===
 	{
-		id: 'critdmg1',
+		id: 'crit_damage_1',
 		title: 'Brutal Force',
 		rarity: 'uncommon',
 		image: fireImg,
 		modifiers: [{ stat: 'critMultiplier', value: 0.5 }]
 	},
 	{
-		id: 'critdmg2',
+		id: 'crit_damage_2',
 		title: 'Executioner',
 		rarity: 'epic',
 		image: fireImg,
@@ -86,14 +86,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === XP UPGRADES ===
 	{
-		id: 'xp1',
+		id: 'xp_1',
 		title: 'Quick Learner',
 		rarity: 'common',
 		image: bookImg,
 		modifiers: [{ stat: 'xpMultiplier', value: 0.25 }]
 	},
 	{
-		id: 'xp2',
+		id: 'xp_2',
 		title: 'Wisdom',
 		rarity: 'uncommon',
 		image: bookImg,
@@ -102,21 +102,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === POISON UPGRADES ===
 	{
-		id: 'poison1',
+		id: 'poison_1',
 		title: 'Toxic Coating',
 		rarity: 'common',
 		image: poisonImg,
 		modifiers: [{ stat: 'poison', value: 1 }]
 	},
 	{
-		id: 'poison2',
+		id: 'poison_2',
 		title: 'Venomous Strike',
 		rarity: 'uncommon',
 		image: poisonImg,
 		modifiers: [{ stat: 'poison', value: 3 }]
 	},
 	{
-		id: 'poison3',
+		id: 'poison_3',
 		title: 'Plague Bearer',
 		rarity: 'rare',
 		image: poisonImg,
@@ -125,21 +125,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === POISON DURATION UPGRADES ===
 	{
-		id: 'poisondur1',
+		id: 'poison_duration_1',
 		title: 'Lingering Toxin',
 		rarity: 'common',
 		image: poisonImg,
 		modifiers: [{ stat: 'poisonDuration', value: 2 }]
 	},
 	{
-		id: 'poisondur2',
+		id: 'poison_duration_2',
 		title: 'Slow Rot',
 		rarity: 'uncommon',
 		image: poisonImg,
 		modifiers: [{ stat: 'poisonDuration', value: 4 }]
 	},
 	{
-		id: 'poisondur3',
+		id: 'poison_duration_3',
 		title: 'Eternal Blight',
 		rarity: 'rare',
 		image: poisonImg,
@@ -148,21 +148,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === POISON MAX STACKS UPGRADES ===
 	{
-		id: 'poisonstack1',
+		id: 'poison_stacks_1',
 		title: 'Compound Toxin',
 		rarity: 'uncommon',
 		image: poisonImg,
 		modifiers: [{ stat: 'poisonMaxStacks', value: 3 }]
 	},
 	{
-		id: 'poisonstack2',
+		id: 'poison_stacks_2',
 		title: 'Venom Cascade',
 		rarity: 'rare',
 		image: poisonImg,
 		modifiers: [{ stat: 'poisonMaxStacks', value: 5 }]
 	},
 	{
-		id: 'poisonstack3',
+		id: 'poison_stacks_3',
 		title: 'Pandemic',
 		rarity: 'epic',
 		image: poisonImg,
@@ -171,21 +171,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === POISON CRIT UPGRADES ===
 	{
-		id: 'poisoncrit1',
+		id: 'poison_crit_1',
 		title: 'Virulent Toxin',
 		rarity: 'uncommon',
 		image: poisonImg,
 		modifiers: [{ stat: 'poisonCritChance', value: 0.1 }]
 	},
 	{
-		id: 'poisoncrit2',
+		id: 'poison_crit_2',
 		title: 'Deadly Venom',
 		rarity: 'rare',
 		image: poisonImg,
 		modifiers: [{ stat: 'poisonCritChance', value: 0.2 }]
 	},
 	{
-		id: 'poisoncrit3',
+		id: 'poison_crit_3',
 		title: 'Necrotic Touch',
 		rarity: 'epic',
 		image: poisonImg,
@@ -194,21 +194,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === MULTI-STRIKE UPGRADES ===
 	{
-		id: 'multi1',
+		id: 'multi_strike_1',
 		title: 'Double Tap',
 		rarity: 'uncommon',
 		image: swordImg,
 		modifiers: [{ stat: 'multiStrike', value: 1 }]
 	},
 	{
-		id: 'multi2',
+		id: 'multi_strike_2',
 		title: 'Flurry',
 		rarity: 'rare',
 		image: swordImg,
 		modifiers: [{ stat: 'multiStrike', value: 2 }]
 	},
 	{
-		id: 'multi3',
+		id: 'multi_strike_3',
 		title: 'Blade Storm',
 		rarity: 'epic',
 		image: axeImg,
@@ -217,7 +217,7 @@ export const allUpgrades: Upgrade[] = [
 
 	// === OVERKILL ===
 	{
-		id: 'overkill1',
+		id: 'overkill_1',
 		title: 'Overkill',
 		rarity: 'rare',
 		image: hammerImg,
@@ -226,21 +226,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === EXECUTE ===
 	{
-		id: 'execute1',
+		id: 'execute_1',
 		title: 'Mercy Kill',
 		rarity: 'uncommon',
 		image: pickaxeImg,
 		modifiers: [{ stat: 'executeChance', value: 0.005 }]
 	},
 	{
-		id: 'execute2',
+		id: 'execute_2',
 		title: 'Culling Blade',
 		rarity: 'rare',
 		image: axeImg,
 		modifiers: [{ stat: 'executeChance', value: 0.01 }]
 	},
 	{
-		id: 'execute3',
+		id: 'execute_3',
 		title: 'Death Sentence',
 		rarity: 'epic',
 		image: axeImg,
@@ -249,14 +249,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === BOSS TIMER ===
 	{
-		id: 'timer1',
+		id: 'boss_time_1',
 		title: 'Borrowed Time',
 		rarity: 'common',
 		image: timerImg,
 		modifiers: [{ stat: 'bonusBossTime', value: 5 }]
 	},
 	{
-		id: 'timer2',
+		id: 'boss_time_2',
 		title: 'Time Warp',
 		rarity: 'uncommon',
 		image: timerImg,
@@ -265,14 +265,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === GREED (Risk/Reward) ===
 	{
-		id: 'greed1',
+		id: 'greed_1',
 		title: 'Greed',
 		rarity: 'uncommon',
 		image: coinsImg,
 		modifiers: [{ stat: 'greed', value: 0.5 }, { stat: 'xpMultiplier', value: 1 }]
 	},
 	{
-		id: 'greed2',
+		id: 'greed_2',
 		title: 'Avarice',
 		rarity: 'rare',
 		image: coinsImg,
@@ -281,21 +281,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === CHEST SPAWN ===
 	{
-		id: 'chest1',
+		id: 'chest_chance_1',
 		title: 'Keen Nose',
 		rarity: 'uncommon',
 		image: chestImg,
 		modifiers: [{ stat: 'chestChance', value: 0.001 }]
 	},
 	{
-		id: 'chest2',
+		id: 'chest_chance_2',
 		title: 'Treasure Sense',
 		rarity: 'rare',
 		image: chestImg,
 		modifiers: [{ stat: 'chestChance', value: 0.001 }]
 	},
 	{
-		id: 'chest3',
+		id: 'chest_chance_3',
 		title: 'Hoarder',
 		rarity: 'epic',
 		image: chestImg,
@@ -304,14 +304,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === BOSS CHEST SPAWN (Legendary only) ===
 	{
-		id: 'bosschest1',
+		id: 'boss_chest_1',
 		title: "Mimic's Blessing",
 		rarity: 'legendary',
 		image: chestImg,
 		modifiers: [{ stat: 'bossChestChance', value: 0.001 }, { stat: 'chestChance', value: 0.001 }]
 	},
 	{
-		id: 'bosschest2',
+		id: 'boss_chest_2',
 		title: "Dragon's Hoard",
 		rarity: 'legendary',
 		image: chestImg,
@@ -320,14 +320,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === LUCKY ===
 	{
-		id: 'lucky1',
+		id: 'lucky_1',
 		title: 'Lucky Charm',
 		rarity: 'uncommon',
 		image: chestImg,
 		modifiers: [{ stat: 'luckyChance', value: 0.1 }]
 	},
 	{
-		id: 'lucky2',
+		id: 'lucky_2',
 		title: "Fortune's Favor",
 		rarity: 'rare',
 		image: chestImg,
@@ -336,21 +336,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === GOLD DROP CHANCE ===
 	{
-		id: 'golddrop1',
+		id: 'gold_drop_1',
 		title: 'Keen Scavenger',
 		rarity: 'common',
 		image: coinsImg,
 		modifiers: [{ stat: 'goldDropChance', value: 0.05 }]
 	},
 	{
-		id: 'golddrop2',
+		id: 'gold_drop_2',
 		title: 'Treasure Hunter',
 		rarity: 'uncommon',
 		image: coinsImg,
 		modifiers: [{ stat: 'goldDropChance', value: 0.1 }]
 	},
 	{
-		id: 'golddrop3',
+		id: 'gold_drop_3',
 		title: 'Golden Touch',
 		rarity: 'rare',
 		image: coinsImg,
@@ -359,14 +359,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === DAMAGE MULTIPLIER ===
 	{
-		id: 'dmgmult1',
+		id: 'damage_multiplier_1',
 		title: 'Power Surge',
 		rarity: 'epic',
 		image: fireImg,
 		modifiers: [{ stat: 'damageMultiplier', value: 0.25 }]
 	},
 	{
-		id: 'dmgmult2',
+		id: 'damage_multiplier_2',
 		title: 'Overwhelming Force',
 		rarity: 'legendary',
 		image: fireImg,
@@ -375,49 +375,49 @@ export const allUpgrades: Upgrade[] = [
 
 	// === COMBO/LEGENDARY ===
 	{
-		id: 'combo1',
+		id: 'combo_1',
 		title: 'Berserker',
 		rarity: 'epic',
 		image: axeImg,
 		modifiers: [{ stat: 'damage', value: 8 }, { stat: 'critChance', value: 0.1 }]
 	},
 	{
-		id: 'combo2',
+		id: 'combo_2',
 		title: 'Poison Master',
 		rarity: 'epic',
 		image: poisonImg,
 		modifiers: [{ stat: 'poison', value: 8 }, { stat: 'damage', value: 5 }]
 	},
 	{
-		id: 'combo3',
+		id: 'combo_3',
 		title: 'Plague Doctor',
 		rarity: 'epic',
 		image: poisonImg,
 		modifiers: [{ stat: 'poison', value: 5 }, { stat: 'poisonMaxStacks', value: 5 }, { stat: 'poisonDuration', value: 3 }]
 	},
 	{
-		id: 'legendary4',
+		id: 'legendary_4',
 		title: 'Toxic Apocalypse',
 		rarity: 'legendary',
 		image: poisonImg,
 		modifiers: [{ stat: 'poison', value: 12 }, { stat: 'poisonMaxStacks', value: 10 }, { stat: 'poisonDuration', value: 5 }, { stat: 'poisonCritChance', value: 0.15 }]
 	},
 	{
-		id: 'legendary1',
+		id: 'legendary_1',
 		title: "Dragon's Fury",
 		rarity: 'legendary',
 		image: chestImg,
 		modifiers: [{ stat: 'damage', value: 15 }, { stat: 'critChance', value: 0.2 }, { stat: 'critMultiplier', value: 1 }]
 	},
 	{
-		id: 'legendary2',
+		id: 'legendary_2',
 		title: 'Death Incarnate',
 		rarity: 'legendary',
 		image: fireImg,
 		modifiers: [{ stat: 'poison', value: 10 }, { stat: 'executeChance', value: 0.02 }, { stat: 'multiStrike', value: 2 }]
 	},
 	{
-		id: 'legendary3',
+		id: 'legendary_3',
 		title: 'Time Lord',
 		rarity: 'legendary',
 		image: timerImg,
@@ -426,21 +426,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === ATTACK SPEED ===
 	{
-		id: 'atkspd1',
+		id: 'attack_speed_1',
 		title: 'Quick Hands',
 		rarity: 'common',
 		image: swordImg,
 		modifiers: [{ stat: 'attackSpeed', value: 0.1 }]
 	},
 	{
-		id: 'atkspd2',
+		id: 'attack_speed_2',
 		title: 'Swift Strikes',
 		rarity: 'uncommon',
 		image: swordImg,
 		modifiers: [{ stat: 'attackSpeed', value: 0.2 }]
 	},
 	{
-		id: 'atkspd3',
+		id: 'attack_speed_3',
 		title: 'Blade Storm',
 		rarity: 'rare',
 		image: swordImg,
@@ -449,14 +449,14 @@ export const allUpgrades: Upgrade[] = [
 
 	// === FRENZY ===
 	{
-		id: 'frenzy1',
+		id: 'frenzy_bonus_1',
 		title: 'Battle Rage',
 		rarity: 'uncommon',
 		image: fireImg,
 		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.05 }]
 	},
 	{
-		id: 'frenzy2',
+		id: 'frenzy_bonus_2',
 		title: 'Berserker Fury',
 		rarity: 'rare',
 		image: fireImg,
@@ -465,21 +465,21 @@ export const allUpgrades: Upgrade[] = [
 
 	// === FRENZY DURATION ===
 	{
-		id: 'frenzydur1',
+		id: 'frenzy_duration_1',
 		title: 'Adrenaline Rush',
 		rarity: 'uncommon',
 		image: fireImg,
 		modifiers: [{ stat: 'tapFrenzyDuration', value: 1 }]
 	},
 	{
-		id: 'frenzydur2',
+		id: 'frenzy_duration_2',
 		title: 'Sustained Fury',
 		rarity: 'rare',
 		image: fireImg,
 		modifiers: [{ stat: 'tapFrenzyDuration', value: 2 }]
 	},
 	{
-		id: 'frenzydur3',
+		id: 'frenzy_duration_3',
 		title: 'Relentless Rage',
 		rarity: 'epic',
 		image: fireImg,
@@ -488,7 +488,7 @@ export const allUpgrades: Upgrade[] = [
 
 	// === FRENZY BONUS (Epic capstone) ===
 	{
-		id: 'frenzy3',
+		id: 'frenzy_bonus_3',
 		title: 'Bloodlust',
 		rarity: 'epic',
 		image: fireImg,
@@ -497,13 +497,16 @@ export const allUpgrades: Upgrade[] = [
 
 	// === FRENZY LEGENDARY ===
 	{
-		id: 'frenzylegendary1',
+		id: 'frenzy_legendary_1',
 		title: 'GOTTA GO FAST',
 		rarity: 'legendary',
 		image: fireImg,
 		modifiers: [{ stat: 'tapFrenzyStackMultiplier', value: 2 }]
 	}
-];
+] as const satisfies readonly Upgrade[];
+
+export type UpgradeId = (typeof _allUpgrades)[number]['id'];
+export const allUpgrades: readonly Upgrade[] = _allUpgrades;
 
 // === EXECUTE CAP (shop-only stackable card) ===
 export const executeCapUpgrade: Upgrade = {
@@ -533,20 +536,20 @@ export function getModifierDisplay(mod: StatModifier): { icon: string; label: st
 }
 
 // PERFORMANCE: Map for O(1) lookup by ID — called on every save/load and upgrade acquisition
-const upgradeMap = new Map<string, Upgrade>(allUpgrades.map((u) => [u.id, u]));
+const upgradeMap = new Map<UpgradeId, Upgrade>(allUpgrades.map((u) => [u.id as UpgradeId, u]));
 
 export function getUpgradeById(id: string): Upgrade | undefined {
-	return upgradeMap.get(id);
+	return upgradeMap.get(id as UpgradeId);
 }
 
-const executeUpgradeIds = new Set(['execute1', 'execute2', 'execute3']);
+const executeUpgradeIds: Set<UpgradeId> = new Set(['execute_1', 'execute_2', 'execute_3']);
 
 // Upgrades that require the player to already have base poison
-const poisonDependentIds = new Set([
-	'poisondur1', 'poisondur2', 'poisondur3',
-	'poisonstack1', 'poisonstack2', 'poisonstack3',
-	'poisoncrit1', 'poisoncrit2', 'poisoncrit3',
-	'combo3', 'legendary4'
+const poisonDependentIds: Set<UpgradeId> = new Set([
+	'poison_duration_1', 'poison_duration_2', 'poison_duration_3',
+	'poison_stacks_1', 'poison_stacks_2', 'poison_stacks_3',
+	'poison_crit_1', 'poison_crit_2', 'poison_crit_3',
+	'combo_3', 'legendary_4'
 ]);
 
 export function getExecuteCap(executeCapBonus: number): number {
@@ -602,12 +605,12 @@ export function getRandomUpgrades(
 
 	// Filter out execute upgrades if player has hit their current cap
 	if (currentExecuteChance >= executeCap) {
-		pool = pool.filter((u) => !executeUpgradeIds.has(u.id));
+		pool = pool.filter((u) => !executeUpgradeIds.has(u.id as UpgradeId));
 	}
 
 	// Filter out poison-dependent upgrades if player has no base poison
 	if (currentPoison <= 0) {
-		pool = pool.filter((u) => !poisonDependentIds.has(u.id));
+		pool = pool.filter((u) => !poisonDependentIds.has(u.id as UpgradeId));
 	}
 
 	// Group pool by rarity

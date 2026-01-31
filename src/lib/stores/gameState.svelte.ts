@@ -90,6 +90,7 @@ function createGameState() {
 			attackSpeed: statPipeline.get('attackSpeed'),
 			tapFrenzyBonus: statPipeline.get('tapFrenzyBonus'),
 			tapFrenzyDuration: statPipeline.get('tapFrenzyDuration'),
+			tapFrenzyStackMultiplier: statPipeline.get('tapFrenzyStackMultiplier'),
 			executeCap: shop.getExecuteCapValue(),
 		};
 	}

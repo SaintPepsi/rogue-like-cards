@@ -29,7 +29,7 @@ describe('stat pipeline integration', () => {
 	test('acquiring an upgrade adds to the stat', () => {
 		const pipeline = buildPipeline();
 		// Simulate acquiring damage1 (damage +1)
-		const damage1 = allUpgrades.find((u) => u.id === 'damage1')!;
+		const damage1 = allUpgrades.find((u) => u.id === 'damage_1')!;
 		const steps = damage1.modifiers
 			.filter((m) => m.stat === 'damage')
 			.map((m) => add(m.value));
@@ -67,8 +67,8 @@ describe('stat pipeline integration', () => {
 	});
 
 	test('multi-stat upgrade modifies multiple stats', () => {
-		// frenzy2 has both tapFrenzyBonus and attackSpeed
-		const frenzy2 = allUpgrades.find((u) => u.id === 'frenzy2')!;
+		// frenzy_bonus_2 has both tapFrenzyBonus and attackSpeed
+		const frenzy2 = allUpgrades.find((u) => u.id === 'frenzy_bonus_2')!;
 		expect(frenzy2.modifiers.length).toBe(2);
 
 		const atkPipeline = buildPipeline();
@@ -120,7 +120,7 @@ describe('stat pipeline integration', () => {
 	});
 
 	test('all attack speed cards have valid attackSpeed modifier', () => {
-		const atkCards = allUpgrades.filter((u) => u.id.startsWith('atkspd'));
+		const atkCards = allUpgrades.filter((u) => u.id.startsWith('attack_speed_'));
 		expect(atkCards.length).toBeGreaterThanOrEqual(3);
 
 		for (const card of atkCards) {
@@ -131,7 +131,7 @@ describe('stat pipeline integration', () => {
 	});
 
 	test('frenzy bonus cards have valid tapFrenzyBonus modifier', () => {
-		const frenzyBonusIds = ['frenzy1', 'frenzy2', 'frenzy3'];
+		const frenzyBonusIds = ['frenzy_bonus_1', 'frenzy_bonus_2', 'frenzy_bonus_3'];
 		const frenzyCards = allUpgrades.filter((u) => frenzyBonusIds.includes(u.id));
 		expect(frenzyCards.length).toBe(3);
 

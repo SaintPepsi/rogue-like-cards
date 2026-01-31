@@ -18,9 +18,9 @@ const { createDefaultStats } = await import('$lib/engine/stats');
 
 describe('getUpgradeById', () => {
 	test('returns the correct upgrade for a valid ID', () => {
-		const upgrade = getUpgradeById('damage1');
+		const upgrade = getUpgradeById('damage_1');
 		expect(upgrade).toBeDefined();
-		expect(upgrade!.id).toBe('damage1');
+		expect(upgrade!.id).toBe('damage_1');
 		expect(upgrade!.title).toBe('Sharpen Blade');
 	});
 
@@ -47,10 +47,10 @@ describe('getRandomUpgrades', () => {
 
 	test('filters out poison-dependent upgrades when player has no poison', () => {
 		const poisonDependentIds = new Set([
-			'poisondur1', 'poisondur2', 'poisondur3',
-			'poisonstack1', 'poisonstack2', 'poisonstack3',
-			'poisoncrit1', 'poisoncrit2', 'poisoncrit3',
-			'combo3', 'legendary4'
+			'poison_duration_1', 'poison_duration_2', 'poison_duration_3',
+			'poison_stacks_1', 'poison_stacks_2', 'poison_stacks_3',
+			'poison_crit_1', 'poison_crit_2', 'poison_crit_3',
+			'combo_3', 'legendary_4'
 		]);
 
 		for (let i = 0; i < 20; i++) {
@@ -63,10 +63,10 @@ describe('getRandomUpgrades', () => {
 
 	test('allows poison-dependent upgrades when player has poison', () => {
 		const poisonDependentIds = new Set([
-			'poisondur1', 'poisondur2', 'poisondur3',
-			'poisonstack1', 'poisonstack2', 'poisonstack3',
-			'poisoncrit1', 'poisoncrit2', 'poisoncrit3',
-			'combo3', 'legendary4'
+			'poison_duration_1', 'poison_duration_2', 'poison_duration_3',
+			'poison_stacks_1', 'poison_stacks_2', 'poison_stacks_3',
+			'poison_crit_1', 'poison_crit_2', 'poison_crit_3',
+			'combo_3', 'legendary_4'
 		]);
 
 		let foundPoisonDependent = false;
@@ -81,7 +81,7 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('filters out execute upgrades when at cap', () => {
-		const executeIds = new Set(['execute1', 'execute2', 'execute3']);
+		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3']);
 
 		for (let i = 0; i < 20; i++) {
 			const result = getRandomUpgrades(3, 0, EXECUTE_CHANCE_BASE_CAP, EXECUTE_CHANCE_BASE_CAP, 0);
@@ -92,7 +92,7 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('allows execute upgrades when below cap', () => {
-		const executeIds = new Set(['execute1', 'execute2', 'execute3']);
+		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3']);
 
 		let foundExecute = false;
 		for (let i = 0; i < 500; i++) {
@@ -183,7 +183,7 @@ describe('upgrade card modifiers', () => {
 });
 
 describe('frenzy upgrade cards', () => {
-	const frenzyIds = ['frenzy1', 'frenzy2', 'frenzy3', 'frenzydur1', 'frenzydur2', 'frenzydur3', 'frenzylegendary1'];
+	const frenzyIds = ['frenzy_bonus_1', 'frenzy_bonus_2', 'frenzy_bonus_3', 'frenzy_duration_1', 'frenzy_duration_2', 'frenzy_duration_3', 'frenzy_legendary_1'];
 
 	test('all frenzy cards exist', () => {
 		for (const id of frenzyIds) {
@@ -192,15 +192,15 @@ describe('frenzy upgrade cards', () => {
 	});
 
 	test('frenzy cards have correct rarities', () => {
-		expect(getUpgradeById('frenzydur1')!.rarity).toBe('uncommon');
-		expect(getUpgradeById('frenzydur2')!.rarity).toBe('rare');
-		expect(getUpgradeById('frenzydur3')!.rarity).toBe('epic');
-		expect(getUpgradeById('frenzy3')!.rarity).toBe('epic');
-		expect(getUpgradeById('frenzylegendary1')!.rarity).toBe('legendary');
+		expect(getUpgradeById('frenzy_duration_1')!.rarity).toBe('uncommon');
+		expect(getUpgradeById('frenzy_duration_2')!.rarity).toBe('rare');
+		expect(getUpgradeById('frenzy_duration_3')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy_bonus_3')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy_legendary_1')!.rarity).toBe('legendary');
 	});
 
 	test('GOTTA GO FAST modifies tapFrenzyStackMultiplier', () => {
-		const card = getUpgradeById('frenzylegendary1')!;
+		const card = getUpgradeById('frenzy_legendary_1')!;
 		const stackMod = card.modifiers.find(m => m.stat === 'tapFrenzyStackMultiplier');
 		expect(stackMod).toBeDefined();
 		expect(stackMod!.value).toBe(2);
