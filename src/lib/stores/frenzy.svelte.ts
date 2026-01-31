@@ -25,19 +25,23 @@ export function createFrenzy(pipeline: StatPipeline, timers: TimerRegistry) {
 	}
 
 	function addStack() {
-		nextId++;
-		count++;
-		const id = nextId;
+		const stacksToAdd = Math.floor(pipeline.get('tapFrenzyStackMultiplier') as number);
 		const duration = pipeline.get('tapFrenzyDuration') * 1000;
 
-		timers.register(`frenzy_${id}`, {
-			remaining: duration,
-			onExpire: () => {
-				// Math.max guard: reset() zeroes count while pending timers may still fire
-				count = Math.max(0, count - 1);
-				syncPipeline();
-			}
-		});
+		for (let i = 0; i < stacksToAdd; i++) {
+			nextId++;
+			count++;
+			const id = nextId;
+
+			timers.register(`frenzy_${id}`, {
+				remaining: duration,
+				onExpire: () => {
+					// Math.max guard: reset() zeroes count while pending timers may still fire
+					count = Math.max(0, count - 1);
+					syncPipeline();
+				}
+			});
+		}
 
 		syncPipeline();
 	}
