@@ -1,109 +1,3 @@
-Default to using Bun instead of Node.js.
-
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
-
-## APIs
-
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
-
-## Testing
-
-Use `bun test` to run tests.
-
-```ts#index.test.ts
-import { test, expect } from "bun:test";
-
-test("hello world", () => {
-  expect(1).toBe(1);
-});
-```
-
-## Frontend
-
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
-
-Server:
-
-```ts#index.ts
-import index from "./index.html"
-
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
-
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-
-// import .css files directly and it works
-import './index.css';
-
-import { createRoot } from "react-dom/client";
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.md`.
-
 ## Temporary UI Effects
 
 Use the **store-driven, array-based, self-cleaning** pattern for any on-screen element that appears temporarily (hit numbers, gold drop popups, toast messages, etc.).
@@ -153,6 +47,58 @@ function addItem(data: Omit<Item, 'id'>) {
 ## Code Style
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
+
+## Code Proximity Principles
+
+Keep related code close together. Fight the natural drift of logic scattering across the codebase.
+
+### Decision archaeology
+
+Document non-obvious decisions at the point of implementation, not in separate docs. Include **why**, alternatives considered, and measurements where applicable.
+
+```ts
+// DECISION: 1-hour cache TTL for user data
+// Why: Balance between data freshness and API load
+// Measured: Reduces API calls by 85% with acceptable staleness
+const USER_CACHE_TTL_SECONDS = 3600;
+```
+
+### Three-strikes abstraction
+
+Resist abstraction until the third occurrence. Copy-paste is acceptable for the first two uses. Premature abstraction is worse than duplication.
+
+### Test colocation
+
+Place test files next to the code they test (`foo.ts` and `foo.test.ts` in the same directory), not in a separate `test/` tree.
+
+### Error context at the source
+
+Handle and document errors closest to where they are understood. Generic catch-all error messages at call sites are an anti-pattern.
+
+### Configuration near usage
+
+Keep constants and config values near the code that uses them, with a comment explaining the choice. Avoid centralizing unrelated config into a single file.
+
+### Organize by behavior, not by layer
+
+Group files by feature/domain (e.g. `user-authentication/`, `payment-processing/`) rather than by technical layer (e.g. `controllers/`, `models/`, `validators/`).
+
+### Temporal proximity
+
+Code that changes together should live together. If two files always appear in the same commits, they likely belong closer.
+
+### Security and performance annotations
+
+Document security mitigations and performance tradeoffs at their enforcement/implementation point:
+
+```ts
+// SECURITY: DOMPurify with strict whitelist to prevent XSS from user HTML
+// PERFORMANCE: Using Map for O(1) lookup — benchmarked 50x faster than array.find for n > 500
+```
+
+### Deprecation at the source
+
+Deprecation notices, migration paths, and removal timelines belong on the deprecated code itself, not in external docs.
 
 ## Changelog Guidelines
 
