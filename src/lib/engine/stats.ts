@@ -22,7 +22,10 @@ export function createDefaultStats(): PlayerStats {
 		bossChestChance: 0.001,
 		goldMultiplier: 1,
 		goldDropChance: 0.10,
-		goldPerKill: 0
+		goldPerKill: 0,
+		attackSpeed: 0.8,
+		tapFrenzyBonus: 0.05,
+		tapFrenzyDuration: 3
 	};
 }
 
@@ -63,4 +66,6 @@ export const statRegistry: StatEntry[] = [
 	{ key: 'goldPerKill', icon: '💵', label: 'Gold/Kill', format: plusNum, colorClass: 'gold' },
 	{ key: 'goldMultiplier', icon: '🏆', label: 'Gold Bonus', format: bonusPct, colorClass: 'gold' },
 	{ key: 'greed', icon: '💰', label: 'Greed', format: plusPct, colorClass: 'greed' },
+	{ key: 'attackSpeed', icon: '🗡️', label: 'Attack Speed', format: (v) => `${(v as number).toFixed(1)}/s`, alwaysShow: true },
+	{ key: 'tapFrenzyBonus', icon: '🔥', label: 'Frenzy Bonus', format: plusPct },
 ];

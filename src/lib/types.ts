@@ -28,6 +28,9 @@ export type PlayerStats = {
 	goldMultiplier: number; // Bonus gold from chests
 	goldDropChance: number; // Chance for mobs to drop gold on kill
 	goldPerKill: number; // Bonus flat gold per kill drop
+	attackSpeed: number;
+	tapFrenzyBonus: number;
+	tapFrenzyDuration: number;
 };
 
 export type Upgrade = {
