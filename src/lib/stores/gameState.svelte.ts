@@ -536,6 +536,9 @@ function createGameState() {
 		get goldPerKillLevel() {
 			return shop.goldPerKillLevel;
 		},
+		get rerollCost() {
+			return shop.rerollCost;
+		},
 		get frenzyStacks() {
 			return frenzy.count;
 		},
@@ -558,7 +561,8 @@ function createGameState() {
 		openShop: () => shop.open(getEffectiveStats()),
 		closeShop: () => shop.close(),
 		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
-		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade)
+		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade),
+		rerollShop: () => shop.reroll(getEffectiveStats())
 	};
 }
 

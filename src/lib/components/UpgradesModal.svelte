@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
 	import { allUpgrades } from '$lib/data/upgrades';
+	import { Button } from 'bits-ui';
 	import UpgradeCard from './UpgradeCard.svelte';
 
 	type Props = {
@@ -16,12 +16,27 @@
 </script>
 
 {#if show}
-	<div class="modal-overlay" onclick={onClose} onkeydown={(e) => e.key === 'Escape' && onClose()} role="button" tabindex="0">
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}} role="dialog">
+	<div
+		class="modal-overlay"
+		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
+		role="button"
+		tabindex="0"
+	>
+		<div
+			class="modal"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="dialog"
+			tabindex="0"
+		>
 			<div class="modal-header">
 				<h2>Upgrades Collection</h2>
 				<span class="progress">{unlockedCount}/{totalCount} Discovered</span>
-				<Button.Root class="ml-auto bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white" onclick={onClose}>&times;</Button.Root>
+				<Button.Root
+					class="ml-auto bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white"
+					onclick={onClose}>&times;</Button.Root
+				>
 			</div>
 			<div class="modal-content">
 				<div class="upgrades-grid">

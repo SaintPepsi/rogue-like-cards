@@ -215,8 +215,10 @@
 		choices={gameState.shopChoices}
 		executeCapLevel={gameState.executeCapLevel}
 		goldPerKillLevel={gameState.goldPerKillLevel}
+		rerollCost={gameState.rerollCost}
 		getPrice={gameState.getCardPrice}
 		onBuy={gameState.buyUpgrade}
+		onReroll={gameState.rerollShop}
 		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
 	/>

@@ -13,6 +13,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.30.0',
+		date: '2026-02-01',
+		changes: [
+			{ category: 'new', description: 'Added "Give Up" button to end a run early and visit the card shop' },
+			{ category: 'new', description: 'Shop cards can now be purchased multiple times with scaling prices per card' },
+			{ category: 'changed', description: 'Improved shop card animations with smooth fade-out and fade-in transitions' },
+			{ category: 'fixed', description: 'Fixed shop cards for execute cap and gold per kill not showing their stat bonuses' },
+			{ category: 'fixed', description: 'Fixed chest chance cards displaying "+0%" instead of the actual value' },
+			{ category: 'fixed', description: 'Fixed critical hits dealing the same damage as normal hits at low damage values' },
+			{ category: 'changed', description: 'Capped on-screen hit numbers to prevent lag during high attack-speed builds' }
+		]
+	},
+	{
 		version: '0.29.0',
 		date: '2026-01-31',
 		changes: [

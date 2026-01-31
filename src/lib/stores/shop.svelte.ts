@@ -1,5 +1,5 @@
 import type { PlayerStats, Upgrade } from '$lib/types';
-import { getRandomUpgrades, getExecuteCap, executeCapUpgrade, goldPerKillUpgrade } from '$lib/data/upgrades';
+import { allUpgrades, pickByRarity, getExecuteCap, getUpgradeById, executeCapUpgrade, goldPerKillUpgrade } from '$lib/data/upgrades';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 import type { createPersistence } from './persistence.svelte';
 
@@ -13,6 +13,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let goldPerKillBonus = $state(0);
 	let showShop = $state(false);
 	let shopChoices = $state<Upgrade[]>([]);
+	let rerollCost = $state(1);
 
 	function getPrice(upgrade: Upgrade): number {
 		if (upgrade.id === 'execute_cap') {
@@ -26,14 +27,27 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		return calculateCardPrice(upgrade.rarity, purchasedUpgradeCounts.get(upgrade.id) ?? 0);
 	}
 
+	const SHOP_CARD_SLOTS = 3;
+
 	function generateChoices(stats: PlayerStats): Upgrade[] {
-		const randomCards = getRandomUpgrades(1, 0.2, stats.executeChance, getExecuteCap(executeCapBonus), stats.poison);
-		return [...randomCards, goldPerKillUpgrade, executeCapUpgrade];
+		const allCards = [...allUpgrades, executeCapUpgrade, goldPerKillUpgrade];
+		return pickByRarity(allCards, SHOP_CARD_SLOTS, stats.luckyChance);
 	}
 
 	function open(stats: PlayerStats) {
-		shopChoices = generateChoices(stats);
+		if (shopChoices.length === 0) {
+			shopChoices = generateChoices(stats);
+		}
 		showShop = true;
+	}
+
+	function reroll(stats: PlayerStats): boolean {
+		if (persistentGold < rerollCost) return false;
+		persistentGold -= rerollCost;
+		rerollCost++;
+		shopChoices = generateChoices(stats);
+		save();
+		return true;
 	}
 
 	function close() {
@@ -82,7 +96,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 			gold: persistentGold,
 			purchasedUpgradeCounts: Object.fromEntries(purchasedUpgradeCounts),
 			executeCapBonus,
-			goldPerKillBonus
+			goldPerKillBonus,
+			shopChoiceIds: shopChoices.map((u) => u.id),
+			rerollCost
 		});
 	}
 
@@ -93,6 +109,17 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		purchasedUpgradeCounts = new Map(Object.entries(data.purchasedUpgradeCounts || {}));
 		executeCapBonus = data.executeCapBonus || 0;
 		goldPerKillBonus = data.goldPerKillBonus || 0;
+		rerollCost = data.rerollCost ?? 1;
+
+		if (data.shopChoiceIds) {
+			const specialCards: Record<string, Upgrade> = {
+				execute_cap: executeCapUpgrade,
+				gold_per_kill: goldPerKillUpgrade
+			};
+			shopChoices = data.shopChoiceIds
+				.map((id) => specialCards[id] ?? getUpgradeById(id))
+				.filter((u): u is Upgrade => u !== undefined);
+		}
 	}
 
 	function expandPurchasedIds(): string[] {
@@ -110,6 +137,8 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		purchasedUpgradeCounts = new Map();
 		executeCapBonus = 0;
 		goldPerKillBonus = 0;
+		shopChoices = [];
+		rerollCost = 1;
 		persistence.clearPersistent();
 	}
 
@@ -139,6 +168,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		get goldPerKillLevel() {
 			return Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
 		},
+		get rerollCost() {
+			return rerollCost;
+		},
 		get showShop() {
 			return showShop;
 		},
@@ -151,6 +183,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		open,
 		close,
 		buy,
+		reroll,
 		depositGold,
 		save,
 		load,

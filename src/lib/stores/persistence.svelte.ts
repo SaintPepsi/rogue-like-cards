@@ -32,6 +32,8 @@ export interface PersistentSaveData {
 	purchasedUpgradeCounts: Record<string, number>;
 	executeCapBonus: number;
 	goldPerKillBonus: number;
+	shopChoiceIds?: string[];
+	rerollCost?: number;
 }
 
 export function createPersistence(sessionKey: string, persistentKey: string) {

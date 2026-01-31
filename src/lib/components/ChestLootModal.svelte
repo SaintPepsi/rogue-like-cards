@@ -172,7 +172,9 @@
 
 	.upgrade-choices {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(3, 180px);
+		justify-content: center;
+		align-items: center;
 		gap: 16px;
 	}
 

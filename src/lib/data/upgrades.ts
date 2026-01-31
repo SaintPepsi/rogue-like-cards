@@ -587,33 +587,9 @@ const LUCKY_TIER_BONUS: Record<string, number> = {
 
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 
-export function getRandomUpgrades(
-	count: number,
-	luckyChance: number = 0,
-	currentExecuteChance: number = 0,
-	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
-	currentPoison: number = 0,
-	minRarity: string = 'common'
-): Upgrade[] {
-	let pool = [...allUpgrades];
-
-	// Filter by minimum rarity
-	const minIndex = RARITY_ORDER.indexOf(minRarity as typeof RARITY_ORDER[number]);
-	if (minIndex > 0) {
-		const allowed = new Set(RARITY_ORDER.slice(minIndex));
-		pool = pool.filter((u) => allowed.has(u.rarity as typeof RARITY_ORDER[number]));
-	}
-
-	// Filter out execute upgrades if player has hit their current cap
-	if (currentExecuteChance >= executeCap) {
-		pool = pool.filter((u) => !executeUpgradeIds.has(u.id as UpgradeId));
-	}
-
-	// Filter out poison-dependent upgrades if player has no base poison
-	if (currentPoison <= 0) {
-		pool = pool.filter((u) => !poisonDependentIds.has(u.id as UpgradeId));
-	}
-
+// Pick N cards from a pool using rarity-weighted random selection (no duplicates).
+// The pool can be any pre-filtered set of upgrades.
+export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number = 0): Upgrade[] {
 	// Group pool by rarity
 	const tiers: Record<string, Upgrade[]> = {};
 	for (const upgrade of pool) {
@@ -674,4 +650,34 @@ export function getRandomUpgrades(
 	}
 
 	return selected;
+}
+
+export function getRandomUpgrades(
+	count: number,
+	luckyChance: number = 0,
+	currentExecuteChance: number = 0,
+	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
+	currentPoison: number = 0,
+	minRarity: string = 'common'
+): Upgrade[] {
+	let pool = [...allUpgrades];
+
+	// Filter by minimum rarity
+	const minIndex = RARITY_ORDER.indexOf(minRarity as typeof RARITY_ORDER[number]);
+	if (minIndex > 0) {
+		const allowed = new Set(RARITY_ORDER.slice(minIndex));
+		pool = pool.filter((u) => allowed.has(u.rarity as typeof RARITY_ORDER[number]));
+	}
+
+	// Filter out execute upgrades if player has hit their current cap
+	if (currentExecuteChance >= executeCap) {
+		pool = pool.filter((u) => !executeUpgradeIds.has(u.id as UpgradeId));
+	}
+
+	// Filter out poison-dependent upgrades if player has no base poison
+	if (currentPoison <= 0) {
+		pool = pool.filter((u) => !poisonDependentIds.has(u.id as UpgradeId));
+	}
+
+	return pickByRarity(pool, count, luckyChance);
 }
