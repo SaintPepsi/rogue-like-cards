@@ -28,7 +28,8 @@
       "Bash(echo:*)",
       "Bash(git worktree:*)",
       "Skill(superpowers:finishing-a-development-branch)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Skill(superpowers:writing-skills)"
     ]
   },
   "enableAllProjectMcpServers": true,
