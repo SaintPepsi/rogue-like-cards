@@ -422,6 +422,45 @@ export const allUpgrades: Upgrade[] = [
 		rarity: 'legendary',
 		image: timerImg,
 		modifiers: [{ stat: 'bonusBossTime', value: 20 }, { stat: 'multiStrike', value: 3 }, { stat: 'xpMultiplier', value: 1 }]
+	},
+
+	// === ATTACK SPEED ===
+	{
+		id: 'atkspd1',
+		title: 'Quick Hands',
+		rarity: 'common',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeed', value: 0.1 }]
+	},
+	{
+		id: 'atkspd2',
+		title: 'Swift Strikes',
+		rarity: 'uncommon',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeed', value: 0.2 }]
+	},
+	{
+		id: 'atkspd3',
+		title: 'Blade Storm',
+		rarity: 'rare',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeed', value: 0.4 }]
+	},
+
+	// === FRENZY ===
+	{
+		id: 'frenzy1',
+		title: 'Battle Rage',
+		rarity: 'uncommon',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.05 }]
+	},
+	{
+		id: 'frenzy2',
+		title: 'Berserker Fury',
+		rarity: 'rare',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]
 	}
 ];
 
