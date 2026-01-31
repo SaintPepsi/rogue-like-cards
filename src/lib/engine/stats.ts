@@ -29,6 +29,8 @@ export function createDefaultStats(): PlayerStats {
 	};
 }
 
+export const BASE_STATS: Readonly<PlayerStats> = Object.freeze(createDefaultStats());
+
 export type StatEntry = {
 	key: keyof PlayerStats;
 	icon: string;
