@@ -45,13 +45,9 @@ describe('computeLayered', () => {
 		];
 
 		// First computation
-		computeLayered(1, layers);
+		expect(computeLayered(1, layers)).toBe(12);
 
-		// All layers should now be clean
-		expect(layers[0].dirty).toBe(false);
-		expect(layers[1].dirty).toBe(false);
-
-		// Second computation — hits cache
+		// Second computation — hits cache, same result
 		expect(computeLayered(1, layers)).toBe(12);
 	});
 
@@ -69,9 +65,6 @@ describe('computeLayered', () => {
 
 		// Recompute: Layer 0 cached (6), Layer 1 dirty: 6 + 3 = 9
 		expect(computeLayered(1, layers)).toBe(9);
-
-		// Layer 0 still has its cache intact
-		expect(layers[0].dirty).toBe(false);
 	});
 
 	test('dirtying an earlier layer forces recomputation of later layers', () => {

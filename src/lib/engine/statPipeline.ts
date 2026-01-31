@@ -12,18 +12,29 @@ export const conditionalAdd = (n: number, condition: boolean): StatStep =>
 
 export type PipelineLayer = {
 	steps: StatStep[];
-	cachedResult: number;
-	cachedInput: number;
-	dirty: boolean;
 };
 
+// Memoisation cache lives outside reactive proxies so writes during
+// $derived / template reads don't trigger state_unsafe_mutation.
+type LayerCache = { cachedResult: number; cachedInput: number; dirty: boolean };
+const layerCaches = new WeakMap<PipelineLayer, LayerCache>();
+
+function getCache(layer: PipelineLayer): LayerCache {
+	let cache = layerCaches.get(layer);
+	if (!cache) {
+		cache = { cachedResult: 0, cachedInput: NaN, dirty: true };
+		layerCaches.set(layer, cache);
+	}
+	return cache;
+}
+
 export function createLayer(steps: StatStep[]): PipelineLayer {
-	return { steps, cachedResult: 0, cachedInput: NaN, dirty: true };
+	return { steps };
 }
 
 export function dirtyLayer(layers: PipelineLayer[], fromIndex: number): void {
 	for (let i = fromIndex; i < layers.length; i++) {
-		layers[i].dirty = true;
+		getCache(layers[i]).dirty = true;
 	}
 }
 
@@ -34,17 +45,18 @@ export function computeLayered(base: number, layers: PipelineLayer[]): number {
 
 	for (let i = 0; i < layers.length; i++) {
 		const layer = layers[i];
-		if (!layer.dirty && layer.cachedInput === value) {
-			value = layer.cachedResult;
+		const cache = getCache(layer);
+		if (!cache.dirty && cache.cachedInput === value) {
+			value = cache.cachedResult;
 			continue;
 		}
 
-		layer.cachedInput = value;
+		cache.cachedInput = value;
 		for (let j = 0; j < layer.steps.length; j++) {
 			value = layer.steps[j](value);
 		}
-		layer.cachedResult = value;
-		layer.dirty = false;
+		cache.cachedResult = value;
+		cache.dirty = false;
 	}
 
 	return value;
