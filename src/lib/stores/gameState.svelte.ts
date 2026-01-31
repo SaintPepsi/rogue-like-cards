@@ -1,7 +1,8 @@
-import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import { getEffectiveAttackSpeed } from '$lib/engine/gameLoop';
 import { multiply } from '$lib/engine/statPipeline';
 import { BASE_STATS, statRegistry } from '$lib/engine/stats';
+import { createPipelineRunner } from '$lib/engine/systemPipeline';
+import { allSystems } from '$lib/systems/registry';
 import {
 	BASE_BOSS_TIME,
 	BOSS_XP_MULTIPLIER,
@@ -13,7 +14,7 @@ import {
 	getXpReward,
 	shouldDropGold
 } from '$lib/engine/waves';
-import type { Effect, HitInfo, PlayerStats, Upgrade } from '$lib/types';
+import type { Effect, HitInfo, HitType, PlayerStats, Upgrade } from '$lib/types';
 import { createEnemy } from './enemy.svelte';
 import { createGameLoop } from './gameLoop.svelte';
 import { createLeveling } from './leveling.svelte';
@@ -28,12 +29,12 @@ function createGameState() {
 	// Stat pipeline replaces mutable playerStats
 	const statPipeline = createStatPipeline();
 
+	// Combat system pipeline (execute, crit, damageMultiplier, poison)
+	const pipeline = createPipelineRunner(allSystems);
+
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
-
-	// Poison stacks - each entry is remaining ticks for that stack
-	let poisonStacks = $state<number[]>([]);
 
 	// UI state
 	let showGameOver = $state(false);
@@ -67,6 +68,16 @@ function createGameState() {
 		return stats;
 	}
 
+	function getPipelineStats(): Record<string, number> {
+		const stats: Record<string, number> = {};
+		for (const key of Object.keys(BASE_STATS) as (keyof PlayerStats)[]) {
+			const val = statPipeline.get(key);
+			stats[key] = typeof val === 'boolean' ? (val ? 1 : 0) : val;
+		}
+		stats.executeCap = shop.getExecuteCapValue();
+		return stats;
+	}
+
 	function upgradeContext() {
 		return {
 			luckyChance: statPipeline.get('luckyChance'),
@@ -90,43 +101,38 @@ function createGameState() {
 	function attack() {
 		if (isModalOpen() || enemy.isDead()) return;
 
-		const playerStats = getEffectiveStats();
-		const result = calculateAttack(playerStats, {
+		const stats = getPipelineStats();
+		pipeline.refreshSystems(stats);
+
+		const result = pipeline.runAttack(stats, {
 			enemyHealth: enemy.enemyHealth,
 			enemyMaxHealth: enemy.enemyMaxHealth,
 			overkillDamage: enemy.overkillDamage,
+			isBoss: enemy.isBoss,
 			rng: Math.random,
-			executeCap: shop.getExecuteCapValue(),
-			isBoss: enemy.isBoss
 		});
 
-		// Assign hit IDs (UI concern)
+		// Map pipeline hits to UI HitInfo
 		const newHits: HitInfo[] = result.hits.map((h) => {
-			return { ...h, id: ui.nextHitId() };
+			const pipeHit = h as any;
+			let uiType: HitType;
+			switch (h.type) {
+				case 'criticalHit': uiType = 'crit'; break;
+				case 'executeHit': uiType = 'execute'; break;
+				case 'hit': uiType = 'normal'; break;
+				default: uiType = h.type as HitType;
+			}
+			return {
+				damage: pipeHit.damage ?? 0,
+				type: uiType,
+				id: ui.nextHitId(),
+				index: pipeHit.index ?? 0,
+			};
 		});
 
-		// Apply results to state
 		enemy.setOverkillDamage(result.overkillDamageOut);
 		enemy.takeDamage(result.totalDamage);
 		ui.addHits(newHits);
-
-		// Add or refresh poison stacks — one per strike
-		if (playerStats.poison > 0) {
-			const strikes = result.hits.filter((h) => h.type !== 'execute').length;
-			for (let i = 0; i < strikes; i++) {
-				if (poisonStacks.length < playerStats.poisonMaxStacks) {
-					poisonStacks = [...poisonStacks, playerStats.poisonDuration];
-				} else {
-					const updated = [...poisonStacks];
-					let minIndex = 0;
-					for (let j = 1; j < updated.length; j++) {
-						if (updated[j] < updated[minIndex]) minIndex = j;
-					}
-					updated[minIndex] = playerStats.poisonDuration;
-					poisonStacks = updated;
-				}
-			}
-		}
 
 		if (enemy.isDead()) {
 			killEnemy();
@@ -134,23 +140,22 @@ function createGameState() {
 	}
 
 	function applyPoison() {
-		if (statPipeline.get('poison') <= 0 || enemy.isDead() || isModalOpen()) return;
-		if (poisonStacks.length === 0) return;
+		if (enemy.isDead() || isModalOpen()) return;
 
-		const playerStats = getEffectiveStats();
-		const result = calculatePoison(playerStats, {
-			rng: Math.random,
-			activeStacks: poisonStacks.length
-		});
-		if (result.damage <= 0) return;
+		const stats = getPipelineStats();
+		const tickResults = pipeline.runTick(stats, { deltaMs: 1000 });
 
-		enemy.takeDamage(result.damage);
-		ui.addHits([{ damage: result.damage, type: result.type, id: ui.nextHitId(), index: 0 }]);
+		for (const tick of tickResults) {
+			if (tick.damage <= 0) continue;
 
-		// Tick down all stacks and remove expired ones
-		poisonStacks = poisonStacks
-			.map((remaining) => remaining - 1)
-			.filter((remaining) => remaining > 0);
+			enemy.takeDamage(tick.damage);
+			ui.addHits([{
+				damage: tick.damage,
+				type: (tick.hitType ?? 'poison') as HitType,
+				id: ui.nextHitId(),
+				index: 0,
+			}]);
+		}
 
 		if (enemy.isDead()) {
 			killEnemy();
@@ -166,7 +171,13 @@ function createGameState() {
 		try {
 			const playerStats = getEffectiveStats();
 			enemy.recordKill();
-			poisonStacks = [];
+			pipeline.runKill({
+				enemyMaxHealth: enemy.enemyMaxHealth,
+				isBoss: enemy.isBoss,
+				isChest: enemy.isChest,
+				isBossChest: enemy.isBossChest,
+				stage: enemy.stage,
+			});
 
 			if (enemy.isChest) {
 				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
@@ -346,11 +357,11 @@ function createGameState() {
 	function resetGame() {
 		gameLoop.reset();
 		statPipeline.reset();
+		pipeline.reset();
 
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
-		poisonStacks = [];
 		ui.reset();
 		leveling.reset();
 		showGameOver = false;
@@ -407,6 +418,7 @@ function createGameState() {
 			}
 			enemy.spawnEnemy(statPipeline.get('greed'));
 		} else {
+			pipeline.refreshSystems(getPipelineStats());
 			if (enemy.isBoss) {
 				const data = persistence.loadSession();
 				const savedBossTime = data?.bossTimeRemaining;
@@ -485,7 +497,8 @@ function createGameState() {
 			return ui.hits;
 		},
 		get poisonStacks() {
-			return poisonStacks;
+			const poisonState = pipeline.getSystemState<{ stacks: number[] }>('poison');
+			return poisonState?.stacks ?? [];
 		},
 		get gold() {
 			return gold;
