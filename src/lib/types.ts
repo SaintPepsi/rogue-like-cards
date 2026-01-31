@@ -1,9 +1,8 @@
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type StatModifier = {
-	icon: string;
-	label: string;
-	value: string;
+	stat: keyof PlayerStats;
+	value: number;
 };
 
 export type PlayerStats = {
@@ -38,8 +37,8 @@ export type Upgrade = {
 	title: string;
 	rarity: Rarity;
 	image: string;
-	stats: StatModifier[];
-	apply: (stats: PlayerStats) => void;
+	modifiers: StatModifier[];
+	onAcquire?: () => void;
 };
 
 export type Effect = {
