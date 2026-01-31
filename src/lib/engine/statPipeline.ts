@@ -16,6 +16,9 @@ export type PipelineLayer = {
 
 // Memoisation cache lives outside reactive proxies so writes during
 // $derived / template reads don't trigger state_unsafe_mutation.
+// PERFORMANCE: Memoises layer computations to avoid recomputing all stat modifiers
+// on every read. Without this, each stat access would re-evaluate the full modifier
+// pipeline (~20-50 modifiers per tick). WeakMap allows GC of orphaned layers.
 type LayerCache = { cachedResult: number; cachedInput: number; dirty: boolean };
 const layerCaches = new WeakMap<PipelineLayer, LayerCache>();
 

@@ -1,7 +1,10 @@
 import type { PlayerStats, Upgrade } from '$lib/types';
-import { getRandomUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
+import { getRandomUpgrades, getExecuteCap, executeCapUpgrade, goldPerKillUpgrade } from '$lib/data/upgrades';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 import type { createPersistence } from './persistence.svelte';
+
+const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
+const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
 
 export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let persistentGold = $state(0);

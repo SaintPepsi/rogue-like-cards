@@ -1,6 +1,16 @@
 import type { PlayerStats } from '$lib/types';
 import { formatNumber } from '$lib/format';
 
+// DECISION: Base stats establish the starting power level and feel of the game.
+// Key design rationale for non-obvious defaults:
+//   attackSpeed: 0.8 attacks/sec — fast enough to feel responsive, slow enough that speed upgrades matter
+//   critMultiplier: 1.5x — standard ARPG crit bonus; higher base would devalue crit-damage cards
+//   chestChance: 5% — roughly 1 chest per wave (5 kills), keeps gold income predictable
+//   bossChestChance: 0.1% — ultra-rare windfall event (~1 per 1000 boss kills), legendary-gated
+//   executeCap: 10% — hard floor prevents execute from trivializing bosses
+//   poisonMaxStacks/Duration: 5/5 — conservative base so poison-build cards feel impactful when stacked
+//   tapFrenzyBonus: 5% per tap — requires rapid tapping to meaningfully boost DPS (~20 taps = double speed)
+//   tapFrenzyDuration: 3s — short window forces active engagement, decays fast if player stops
 export function createDefaultStats(): PlayerStats {
 	return {
 		damage: 1,
@@ -48,6 +58,7 @@ const plusNum = (v: number | boolean) => `+${formatNumber(v as number)}`;
 const num = (v: number | boolean) => formatNumber(v as number);
 const plusSec = (v: number | boolean) => `+${v}s`;
 
+// UI display concern colocated with stat defaults for convenience — both change together when stats are added/removed.
 export const statRegistry: StatEntry[] = [
 	{ key: 'damage', icon: '⚔️', label: 'Damage', format: num, alwaysShow: true },
 	{ key: 'damageMultiplier', icon: '⚔️', label: 'Damage Bonus', format: bonusPct },

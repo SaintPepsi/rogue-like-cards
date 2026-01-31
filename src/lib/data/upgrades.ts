@@ -482,10 +482,7 @@ export const goldPerKillUpgrade: Upgrade = {
 	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
 };
 
-export const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
-
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
-export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 
 export function getModifierDisplay(mod: StatModifier): { icon: string; label: string; value: string } {
 	const entry = statRegistry.find((s) => s.key === mod.stat);
@@ -493,6 +490,7 @@ export function getModifierDisplay(mod: StatModifier): { icon: string; label: st
 	return { icon: entry.icon, label: entry.label, value: entry.format(mod.value) };
 }
 
+// PERFORMANCE: Map for O(1) lookup by ID — called on every save/load and upgrade acquisition
 const upgradeMap = new Map<string, Upgrade>(allUpgrades.map((u) => [u.id, u]));
 
 export function getUpgradeById(id: string): Upgrade | undefined {
@@ -519,9 +517,9 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
-// Percent chance per pick that the ENTIRE rarity tier is chosen.
-// Within the chosen tier, each card has equal probability.
-// Each tier is roughly 1/3 the previous. These must sum to 100.
+// DECISION: Each tier is roughly 1/3 the previous (67→22→7→3→1), summing to 100.
+// This gives ~1 legendary per 100 draws and ~1 epic per 33 draws.
+// The 1/3 ratio keeps higher tiers exciting without making them unobtainable.
 const RARITY_TIER_CHANCES: Record<string, number> = {
 	common: 67,    // 67% chance per pick
 	uncommon: 22,  // 22% chance per pick  (~1/3 of common)
@@ -530,8 +528,9 @@ const RARITY_TIER_CHANCES: Record<string, number> = {
 	legendary: 1   //  1% chance per pick  (~1/3 of epic)
 };
 
-// Lucky chance shifts % points from common into higher tiers.
-// At luckyChance=1.0, the full bonus is applied.
+// DECISION: Lucky redistributes 20% points from common into higher tiers.
+// The split (5/7/5/3) favors rare slightly, keeping legendaries special even with full luck.
+// At max lucky (1.0): common drops from 67% to 47%, legendary rises from 1% to 4%.
 const LUCKY_TIER_BONUS: Record<string, number> = {
 	common: -20,    // loses 20% points
 	uncommon: 5,    // gains 5% points

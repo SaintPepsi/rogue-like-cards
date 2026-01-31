@@ -84,24 +84,23 @@ export function createStatPipeline() {
 
 	// --- Public API ---
 
-	function acquireUpgrade(upgradeId: string): void {
-		acquiredUpgradeIds = [...acquiredUpgradeIds, upgradeId];
+	function collectPermanentModifiers(): StatModifier[] {
 		const allMods: StatModifier[] = [];
 		for (const id of acquiredUpgradeIds) {
 			const card = allUpgrades.find((u) => u.id === id);
 			if (card) allMods.push(...card.modifiers);
 		}
-		rebuildLayer(LAYER_PERMANENT, allMods);
+		return allMods;
+	}
+
+	function acquireUpgrade(upgradeId: string): void {
+		acquiredUpgradeIds = [...acquiredUpgradeIds, upgradeId];
+		rebuildLayer(LAYER_PERMANENT, collectPermanentModifiers());
 	}
 
 	function setAcquiredUpgrades(ids: string[]): void {
 		acquiredUpgradeIds = [...ids];
-		const allMods: StatModifier[] = [];
-		for (const id of acquiredUpgradeIds) {
-			const card = allUpgrades.find((u) => u.id === id);
-			if (card) allMods.push(...card.modifiers);
-		}
-		rebuildLayer(LAYER_PERMANENT, allMods);
+		rebuildLayer(LAYER_PERMANENT, collectPermanentModifiers());
 	}
 
 	function setClassBase(overrides: StatModifier[]): void {

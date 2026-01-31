@@ -37,16 +37,6 @@ const CURRENT: EconomyConfig = {
 
 const MAX_STAGE = 30;
 
-// Custom getXpToNextLevel using configurable base
-function xpToNextLevel(level: number, base: number): number {
-	const SOFT_CAP_LEVEL = 100;
-	if (level <= SOFT_CAP_LEVEL) {
-		return Math.floor(base * Math.pow(1.5, level - 1));
-	}
-	const baseMult = Math.pow(1.5, SOFT_CAP_LEVEL - 1);
-	const beyond = level - SOFT_CAP_LEVEL;
-	return Math.floor(base * baseMult * Math.pow(1 + beyond * 0.1, 3));
-}
 
 type StageResult = {
 	stage: number;
@@ -80,8 +70,8 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 			stageGold += goldReward * config.goldDropChance;
 
 			// Check level-ups
-			for (let i = 0; i < 100 && xp >= xpToNextLevel(level, config.xpBase); i++) {
-				xp -= xpToNextLevel(level, config.xpBase);
+			for (let i = 0; i < 100 && xp >= getXpToNextLevel(level, config.xpBase); i++) {
+				xp -= getXpToNextLevel(level, config.xpBase);
 				level++;
 				stageLevelUps++;
 			}
@@ -96,8 +86,8 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 		stageGold += bossGold * config.goldDropChance;
 
 		// Check level-ups after boss
-		for (let i = 0; i < 100 && xp >= xpToNextLevel(level, config.xpBase); i++) {
-			xp -= xpToNextLevel(level, config.xpBase);
+		for (let i = 0; i < 100 && xp >= getXpToNextLevel(level, config.xpBase); i++) {
+			xp -= getXpToNextLevel(level, config.xpBase);
 			level++;
 			stageLevelUps++;
 		}
@@ -111,7 +101,7 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 			cumulativeLevelUps,
 			goldEarned: Math.round(stageGold),
 			cumulativeGold: Math.round(cumulativeGold),
-			xpToNext: xpToNextLevel(level, config.xpBase),
+			xpToNext: getXpToNextLevel(level, config.xpBase),
 			level,
 		});
 	}

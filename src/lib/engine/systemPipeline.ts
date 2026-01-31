@@ -14,7 +14,7 @@ export type PipelineHit<T extends HitType = HitType> = { type: T; damage: number
 export type PipelineEffect = {
 	target: string;
 	action: string;
-	payload: any;
+	payload: any; // Intentionally untyped for extensibility — each effect handler validates its own payload shape
 };
 
 // --- Contexts ---

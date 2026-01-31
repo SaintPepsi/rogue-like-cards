@@ -1,3 +1,7 @@
+// NOTE: PlayerStats could live in engine/stats.ts alongside BASE_STATS (they always change together).
+// HitType, HitInfo, GoldDrop are UI-only types that could move to stores/uiEffects.svelte.ts.
+// Kept here for now as a shared type module — revisit if types.ts grows further.
+
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type StatModifier = {

@@ -46,34 +46,32 @@ export function createEnemy() {
 		isBoss = false;
 	}
 
-	function spawnEnemy(greed: number) {
-		isBoss = false;
-		isChest = false;
-		isBossChest = false;
-		enemyMaxHealth = getEnemyHealth(stage, greed);
+	function spawn(
+		flags: { boss: boolean; chest: boolean; bossChest: boolean },
+		healthFn: (stage: number, greed: number) => number,
+		greed: number
+	) {
+		isBoss = flags.boss;
+		isChest = flags.chest;
+		isBossChest = flags.bossChest;
+		enemyMaxHealth = healthFn(stage, greed);
 		enemyHealth = enemyMaxHealth;
+	}
+
+	function spawnEnemy(greed: number) {
+		spawn({ boss: false, chest: false, bossChest: false }, getEnemyHealth, greed);
 	}
 
 	function spawnBoss(greed: number) {
-		isBoss = true;
-		isChest = false;
-		isBossChest = false;
-		enemyMaxHealth = getBossHealth(stage, greed);
-		enemyHealth = enemyMaxHealth;
+		spawn({ boss: true, chest: false, bossChest: false }, getBossHealth, greed);
 	}
 
 	function spawnChest(greed: number) {
-		isChest = true;
-		isBossChest = false;
-		enemyMaxHealth = getChestHealth(stage, greed);
-		enemyHealth = enemyMaxHealth;
+		spawn({ boss: false, chest: true, bossChest: false }, getChestHealth, greed);
 	}
 
 	function spawnBossChest(greed: number) {
-		isChest = true;
-		isBossChest = true;
-		enemyMaxHealth = getBossChestHealth(stage, greed);
-		enemyHealth = enemyMaxHealth;
+		spawn({ boss: false, chest: true, bossChest: true }, getBossChestHealth, greed);
 	}
 
 	function spawnNextTarget(stats: PlayerStats) {

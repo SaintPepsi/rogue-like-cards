@@ -2,6 +2,7 @@ import {
 	getEffectiveAttackSpeed,
 	getAttackIntervalMs
 } from '$lib/engine/attackSpeed';
+import { BASE_STATS } from '$lib/engine/stats';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
 
 export function createGameLoop() {
@@ -29,9 +30,9 @@ export function createGameLoop() {
 	};
 
 	// Stat readers (set by gameState, read from pipeline)
-	let getAttackSpeed = () => 0.8;
-	let getTapFrenzyBonus = () => 0.05;
-	let getTapFrenzyDuration = () => 3;
+	let getAttackSpeed = () => BASE_STATS.attackSpeed;
+	let getTapFrenzyBonus = () => BASE_STATS.tapFrenzyBonus;
+	let getTapFrenzyDuration = () => BASE_STATS.tapFrenzyDuration;
 
 	function addFrenzyStack() {
 		frenzyId++;

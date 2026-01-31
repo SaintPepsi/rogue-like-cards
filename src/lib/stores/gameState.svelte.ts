@@ -358,6 +358,27 @@ function createGameState() {
 		return true;
 	}
 
+	function buildGameLoopCallbacks() {
+		return {
+			onAttack: attack,
+			onSystemTick: tickSystems,
+			onBossExpired: handleBossExpired,
+			onFrenzyChanged: (count: number) => {
+				statPipeline.removeTransient('frenzy');
+				if (count > 0) {
+					statPipeline.addTransientStep(
+						'frenzy',
+						'attackSpeed',
+						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
+					);
+				}
+			},
+			getAttackSpeed: () => statPipeline.get('attackSpeed'),
+			getTapFrenzyBonus: () => statPipeline.get('tapFrenzyBonus'),
+			getTapFrenzyDuration: () => statPipeline.get('tapFrenzyDuration')
+		};
+	}
+
 	function resetGame() {
 		gameLoop.reset();
 		statPipeline.reset();
@@ -375,24 +396,7 @@ function createGameState() {
 		applyShopUpgrades();
 		enemy.reset(statPipeline.get('greed'));
 
-		gameLoop.start({
-			onAttack: attack,
-			onSystemTick: tickSystems,
-			onBossExpired: handleBossExpired,
-			onFrenzyChanged: (count) => {
-				statPipeline.removeTransient('frenzy');
-				if (count > 0) {
-					statPipeline.addTransientStep(
-						'frenzy',
-						'attackSpeed',
-						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
-					);
-				}
-			},
-			getAttackSpeed: () => statPipeline.get('attackSpeed'),
-			getTapFrenzyBonus: () => statPipeline.get('tapFrenzyBonus'),
-			getTapFrenzyDuration: () => statPipeline.get('tapFrenzyDuration')
-		});
+		gameLoop.start(buildGameLoopCallbacks());
 	}
 
 	function fullReset() {
@@ -423,24 +427,7 @@ function createGameState() {
 			}
 		}
 
-		gameLoop.start({
-			onAttack: attack,
-			onSystemTick: tickSystems,
-			onBossExpired: handleBossExpired,
-			onFrenzyChanged: (count) => {
-				statPipeline.removeTransient('frenzy');
-				if (count > 0) {
-					statPipeline.addTransientStep(
-						'frenzy',
-						'attackSpeed',
-						multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
-					);
-				}
-			},
-			getAttackSpeed: () => statPipeline.get('attackSpeed'),
-			getTapFrenzyBonus: () => statPipeline.get('tapFrenzyBonus'),
-			getTapFrenzyDuration: () => statPipeline.get('tapFrenzyDuration')
-		});
+		gameLoop.start(buildGameLoopCallbacks());
 	}
 
 	return {

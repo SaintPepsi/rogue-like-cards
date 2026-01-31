@@ -35,58 +35,69 @@ export interface PersistentSaveData {
 }
 
 export function createPersistence(sessionKey: string, persistentKey: string) {
-	function saveSession(data: SessionSaveData): void {
+	function safeStorage<T>(fn: () => T, fallback: T, errorMsg: string): T {
 		try {
-			localStorage.setItem(sessionKey, JSON.stringify(data));
+			return fn();
 		} catch (e) {
-			console.warn('Failed to save game:', e);
+			console.warn(errorMsg, e);
+			return fallback;
 		}
+	}
+
+	function saveSession(data: SessionSaveData): void {
+		safeStorage(
+			() => localStorage.setItem(sessionKey, JSON.stringify(data)),
+			undefined,
+			'Failed to save game (localStorage may be full or unavailable in private browsing):'
+		);
 	}
 
 	function loadSession(): SessionSaveData | null {
-		try {
-			const saved = localStorage.getItem(sessionKey);
-			if (!saved) return null;
-			return JSON.parse(saved) as SessionSaveData;
-		} catch (e) {
-			console.warn('Failed to load game:', e);
-			return null;
-		}
+		return safeStorage(
+			() => {
+				const saved = localStorage.getItem(sessionKey);
+				if (!saved) return null;
+				return JSON.parse(saved) as SessionSaveData;
+			},
+			null,
+			'Failed to load game (corrupted save data or localStorage unavailable):'
+		);
 	}
 
 	function clearSession(): void {
-		try {
-			localStorage.removeItem(sessionKey);
-		} catch (e) {
-			console.warn('Failed to clear save:', e);
-		}
+		safeStorage(
+			() => localStorage.removeItem(sessionKey),
+			undefined,
+			'Failed to clear save data (localStorage unavailable):'
+		);
 	}
 
 	function savePersistent(data: PersistentSaveData): void {
-		try {
-			localStorage.setItem(persistentKey, JSON.stringify(data));
-		} catch (e) {
-			console.warn('Failed to save persistent data:', e);
-		}
+		safeStorage(
+			() => localStorage.setItem(persistentKey, JSON.stringify(data)),
+			undefined,
+			'Failed to save persistent data (localStorage may be full or unavailable in private browsing):'
+		);
 	}
 
 	function loadPersistent(): PersistentSaveData | null {
-		try {
-			const saved = localStorage.getItem(persistentKey);
-			if (!saved) return null;
-			return JSON.parse(saved) as PersistentSaveData;
-		} catch (e) {
-			console.warn('Failed to load persistent data:', e);
-			return null;
-		}
+		return safeStorage(
+			() => {
+				const saved = localStorage.getItem(persistentKey);
+				if (!saved) return null;
+				return JSON.parse(saved) as PersistentSaveData;
+			},
+			null,
+			'Failed to load persistent data (corrupted data or localStorage unavailable):'
+		);
 	}
 
 	function clearPersistent(): void {
-		try {
-			localStorage.removeItem(persistentKey);
-		} catch (e) {
-			console.warn('Failed to clear persistent data:', e);
-		}
+		safeStorage(
+			() => localStorage.removeItem(persistentKey),
+			undefined,
+			'Failed to clear persistent data (localStorage unavailable):'
+		);
 	}
 
 	return {
