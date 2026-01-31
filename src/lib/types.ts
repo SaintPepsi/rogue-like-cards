@@ -34,6 +34,7 @@ export type PlayerStats = {
 	attackSpeed: number;
 	tapFrenzyBonus: number;
 	tapFrenzyDuration: number;
+	tapFrenzyStackMultiplier: number; // Multiplier on frenzy stacks per tap (legendary-only)
 	executeCap: number; // Max execute chance (from shop upgrades)
 };
 

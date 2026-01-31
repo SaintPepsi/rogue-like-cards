@@ -36,6 +36,7 @@ export function createDefaultStats(): PlayerStats {
 		attackSpeed: 0.8,
 		tapFrenzyBonus: 0.05,
 		tapFrenzyDuration: 3,
+		tapFrenzyStackMultiplier: 1,
 		executeCap: 0.1
 	};
 }
@@ -87,4 +88,6 @@ export const statRegistry: StatEntry[] = [
 	{ key: 'greed', icon: '💰', label: 'Greed', format: plusPct, colorClass: 'greed' },
 	{ key: 'attackSpeed', icon: '🗡️', label: 'Attack Speed', format: (v) => `${(v as number).toFixed(2)}/s`, alwaysShow: true },
 	{ key: 'tapFrenzyBonus', icon: '✨', label: 'Frenzy Bonus', format: plusPct },
+	{ key: 'tapFrenzyDuration', icon: '⏳', label: 'Frenzy Duration', format: plusSec },
+	{ key: 'tapFrenzyStackMultiplier', icon: '🔥', label: 'Frenzy Stacks', format: (v) => `${v}x`, formatMod: (v) => `+${v}x` },
 ];
