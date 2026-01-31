@@ -197,7 +197,8 @@
 		stage={gameState.stage}
 		level={gameState.level}
 		enemiesKilled={gameState.enemiesKilled}
-		gold={gameState.persistentGold}
+		goldEarned={gameState.gold}
+		totalGold={gameState.persistentGold}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
 	/>

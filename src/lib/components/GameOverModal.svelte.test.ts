@@ -5,10 +5,11 @@ import { noop } from '$lib/test-utils/mock-factories';
 
 const baseProps = {
 	show: false,
-	stage: 5,
-	level: 10,
+	stage: 7,
+	level: 13,
 	enemiesKilled: 42,
-	gold: 1000,
+	goldEarned: 89,
+	totalGold: 320,
 	onReset: noop,
 	onOpenShop: noop
 };
@@ -24,9 +25,11 @@ describe('GameOverModal', () => {
 			props: { ...baseProps, show: true }
 		});
 		await expect.element(screen.getByText('Game Over')).toBeInTheDocument();
-		await expect.element(screen.getByText('5')).toBeInTheDocument();
-		await expect.element(screen.getByText('10')).toBeInTheDocument();
+		await expect.element(screen.getByText('7')).toBeInTheDocument();
+		await expect.element(screen.getByText('13')).toBeInTheDocument();
 		await expect.element(screen.getByText('42')).toBeInTheDocument();
+		await expect.element(screen.getByText('89')).toBeInTheDocument();
+		await expect.element(screen.getByText('320')).toBeInTheDocument();
 	});
 
 	test('calls onReset and onOpenShop on button clicks', async () => {
