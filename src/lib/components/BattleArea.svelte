@@ -3,11 +3,13 @@
 	import { formatNumber } from '$lib/format';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest-closed.png';
+	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
 
 	type Props = {
 		isBoss: boolean;
 		isChest: boolean;
+		isBossChest: boolean;
 		enemyHealth: number;
 		enemyMaxHealth: number;
 		enemiesKilled: number;
@@ -21,6 +23,7 @@
 	let {
 		isBoss,
 		isChest,
+		isBossChest,
 		enemyHealth,
 		enemyMaxHealth,
 		enemiesKilled,
@@ -43,7 +46,7 @@
 			tabindex="0"
 			role="button"
 		>
-			<img class="enemy-sprite" src={isChest ? chestSprite : enemySprite} alt={isChest ? 'Chest' : 'Enemy'} draggable="false" />
+			<img class="enemy-sprite" src={isBossChest ? mimicSprite : isChest ? chestSprite : enemySprite} alt={isBossChest ? 'Mimic' : isChest ? 'Chest' : 'Enemy'} draggable="false" />
 			{#if poisonStacks > 0}
 				<div class="poison-counter">
 					<span class="poison-icon">☠️</span>

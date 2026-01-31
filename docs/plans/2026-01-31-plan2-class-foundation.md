@@ -6,11 +6,13 @@
 
 **Design doc:** `docs/plans/2026-01-30-enemy-types-and-class-system-design.md` (Classes, Card Classification, First Job Selection Screen sections)
 
-**Architecture:** Bottom-up — (1) class data model, (2) card reclassification + filtering, (3) class state in game store + persistence, (4) Level 30 selection UI. Pure logic first, then stores, then UI.
+**Architecture:** Bottom-up — (1) class data model with base stat overrides, (2) card reclassification + filtering, (3) class state in game store + pipeline integration + persistence, (4) Level 30 selection UI. Pure logic first, then stores, then UI.
 
 **Tech Stack:** SvelteKit, Svelte 5 runes, TypeScript, Vitest, Tailwind CSS.
 
-**Dependencies:** None. Can be implemented independently of Plan 1 (Enemy System). Plan 3 depends on this plan.
+**Dependencies:** Requires Plan 0 (stat pipeline, game loop). Uses `statPipeline.setClassBase()` for per-class base stats and `statPipeline.setClassModifiers()` for class bonuses. Uses `gameLoop.resume()` instead of deleted timer calls. Plan 3 depends on this plan.
+
+**Alignment doc:** `docs/plans/2026-01-31-plan-alignment-and-gaps.md`
 
 ---
 
@@ -32,7 +34,7 @@ export type ClassId = 'adventurer' | 'warrior' | 'mage' | 'rogue';
 **Step 2: Create `src/lib/data/classes.ts`**
 
 ```typescript
-import type { ClassId } from '$lib/types';
+import type { ClassId, StatModifier } from '$lib/types';
 
 export const CLASS_SELECTION_LEVEL = 30;
 
@@ -44,6 +46,8 @@ export type ClassDefinition = {
 	playstyle: string;
 	economyPerk: string;
 	startingBonuses: string[];
+	baseStatOverrides: StatModifier[];   // Layer 0: replaces Adventurer base values
+	classModifiers: StatModifier[];       // Layer 2: additive bonuses on top of base
 };
 
 export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
@@ -54,7 +58,9 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		description: 'A classless wanderer learning the basics.',
 		playstyle: 'Tap enemies to deal damage. No special abilities.',
 		economyPerk: 'None',
-		startingBonuses: []
+		startingBonuses: [],
+		baseStatOverrides: [],  // Uses default base stats
+		classModifiers: []
 	},
 	warrior: {
 		id: 'warrior',
@@ -63,7 +69,14 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		description: 'Slow, heavy strikes. Each tap draws a random weapon.',
 		playstyle: 'Build combos for devastating payoffs. Fewer taps, bigger hits.',
 		economyPerk: 'Longer boss timer',
-		startingBonuses: ['Highest base damage', '+10s Boss Timer']
+		startingBonuses: ['Highest base damage', '+10s Boss Timer'],
+		baseStatOverrides: [
+			{ stat: 'attackSpeed', value: -0.4 }  // 0.8 base - 0.4 = 0.4/s (slow heavy hitter)
+		],
+		classModifiers: [
+			{ stat: 'damage', value: 5 },
+			{ stat: 'bonusBossTime', value: 10 }
+		]
 	},
 	mage: {
 		id: 'mage',
@@ -72,7 +85,14 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		description: 'Cast elemental spells for powerful combos.',
 		playstyle: 'Tap to regenerate mana, cast spells to deal magic damage.',
 		economyPerk: 'Bonus XP multiplier',
-		startingBonuses: ['+1 Magic damage', '+50% XP multiplier']
+		startingBonuses: ['+1 Magic damage', '+50% XP multiplier'],
+		baseStatOverrides: [
+			{ stat: 'attackSpeed', value: -0.16 }  // 0.8 base - 0.16 = 0.64/s (moderate)
+		],
+		classModifiers: [
+			{ stat: 'magic', value: 1 },
+			{ stat: 'xpMultiplier', value: 0.5 }
+		]
 	},
 	rogue: {
 		id: 'rogue',
@@ -81,25 +101,36 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		description: 'Stack poison and land devastating crits.',
 		playstyle: 'Fast attacks that pile poison. Crits scale with active stacks.',
 		economyPerk: 'Higher base gold drop chance',
-		startingBonuses: ['+5% Crit Chance', '+10% Gold Drop Chance']
+		startingBonuses: ['+5% Crit Chance', '+10% Gold Drop Chance'],
+		baseStatOverrides: [
+			{ stat: 'attackSpeed', value: 0.4 }  // 0.8 base + 0.4 = 1.2/s (fast)
+		],
+		classModifiers: [
+			{ stat: 'critChance', value: 0.05 },
+			{ stat: 'goldDropChance', value: 0.10 }
+		]
 	}
 };
 
 export const SELECTABLE_CLASSES: ClassId[] = ['warrior', 'mage', 'rogue'];
 ```
 
+Note: `baseStatOverrides` uses additive modifiers applied to Layer 0 of the stat pipeline. Warrior's `attackSpeed: -0.4` means the pipeline computes `0.8 (base) + (-0.4) = 0.4/s`. `classModifiers` are Layer 2 bonuses applied on top of permanent upgrades.
+
 **Step 3: Write tests**
 
 Test:
 - 4 class definitions exist (adventurer + 3 selectable)
-- Adventurer has empty `startingBonuses`
+- Adventurer has empty `startingBonuses`, `baseStatOverrides`, `classModifiers`
 - All selectable classes have non-empty `borderColor`, `description`, `startingBonuses`
+- Warrior `baseStatOverrides` results in effective attack speed of 0.4 when applied
+- Rogue `baseStatOverrides` results in effective attack speed of 1.2 when applied
 - `SELECTABLE_CLASSES` has exactly warrior, mage, rogue (no adventurer)
 - `CLASS_SELECTION_LEVEL` is 30
 
 **Run:** `bun test src/lib/data/classes.test.ts`
 
-**Commit:** `feat: add class definitions (Adventurer, Warrior, Mage, Rogue)`
+**Commit:** `feat: add class definitions with base stat overrides and class modifiers`
 
 ---
 
@@ -118,8 +149,8 @@ export type Upgrade = {
 	title: string;
 	rarity: Rarity;
 	image: string;
-	stats: StatModifier[];
-	apply: (stats: PlayerStats) => void;
+	modifiers: StatModifier[];
+	onAcquire?: () => void;
 	classRestriction?: ClassId; // undefined = generic (available to all classes)
 };
 ```
@@ -262,7 +293,6 @@ test('adventurer only gets generic cards', () => {
 });
 
 test('rogue gets generic + rogue cards only', () => {
-	// Run multiple times with large count to exercise pool
 	const upgrades = getRandomUpgrades(50, 0, 0, 0.1, 1, 'common', 'rogue');
 	for (const u of upgrades) {
 		expect(u.classRestriction === undefined || u.classRestriction === 'rogue').toBe(true);
@@ -296,64 +326,52 @@ test('warrior does not see rogue or mage cards', () => {
 
 ```typescript
 import type { ClassId } from '$lib/types';
-import { CLASS_SELECTION_LEVEL } from '$lib/data/classes';
+import { CLASS_SELECTION_LEVEL, CLASS_DEFINITIONS } from '$lib/data/classes';
 
 let currentClass = $state<ClassId>('adventurer');
 let classSelected = $state(false);
 ```
 
-**Step 2:** Add class bonus application:
-
-```typescript
-function applyClassBonuses(classId: ClassId) {
-	switch (classId) {
-		case 'warrior':
-			playerStats.damage += 5;
-			playerStats.bonusBossTime += 10;
-			break;
-		case 'mage':
-			playerStats.xpMultiplier += 0.5;
-			// Magic stat added in Plan 3
-			break;
-		case 'rogue':
-			playerStats.critChance += 0.05;
-			playerStats.goldDropChance += 0.10;
-			break;
-	}
-}
-```
-
-**Step 3:** Add `selectClass` action:
+**Step 2:** Add class selection via stat pipeline (replaces old `applyClassBonuses` mutation):
 
 ```typescript
 function selectClass(classId: ClassId) {
 	currentClass = classId;
 	classSelected = true;
-	applyClassBonuses(classId);
+
+	const def = CLASS_DEFINITIONS[classId];
+
+	// Layer 0: base stat overrides (e.g., attack speed per class)
+	statPipeline.setClassBase(def.baseStatOverrides);
+
+	// Layer 2: class bonuses (e.g., +5 damage for warrior)
+	statPipeline.setClassModifiers(def.classModifiers);
+
 	leveling.closeActiveEvent();
-	timers.startPoisonTick(applyPoison);
-	timers.resumeBossTimer(handleBossExpired);
+	gameLoop.resume();
 	saveGame();
 }
 ```
 
-**Step 4:** Trigger class selection at Level 30. In `leveling.svelte.ts`, add `'class_selection'` to `UpgradeEventType`. In `gameState`, after level-up processing: if `level >= CLASS_SELECTION_LEVEL && !classSelected && currentClass === 'adventurer'`, queue a `class_selection` event.
+No direct stat mutation. The pipeline recomputes all affected stats automatically.
 
-**Step 5:** Pass `classId` to upgrade context for `getRandomUpgrades`:
+**Step 3:** Trigger class selection at Level 30. In `leveling.svelte.ts`, add `'class_selection'` to `UpgradeEventType`. In `gameState`, after level-up processing: if `level >= CLASS_SELECTION_LEVEL && !classSelected && currentClass === 'adventurer'`, queue a `class_selection` event.
+
+**Step 4:** Pass `classId` to upgrade context for `getRandomUpgrades`:
 
 ```typescript
 function upgradeContext() {
 	return {
-		luckyChance: playerStats.luckyChance,
-		executeChance: playerStats.executeChance,
+		luckyChance: statPipeline.get('luckyChance'),
+		executeChance: statPipeline.get('executeChance'),
 		executeCap: shop.getExecuteCapValue(),
-		poison: playerStats.poison,
+		poison: statPipeline.get('poison'),
 		classId: currentClass
 	};
 }
 ```
 
-**Step 6:** Expose getters:
+**Step 5:** Expose getters:
 
 ```typescript
 get currentClass() { return currentClass; },
@@ -361,16 +379,18 @@ get classSelected() { return classSelected; },
 selectClass,
 ```
 
-**Step 7:** Update `resetGame()` to reset class state:
+**Step 6:** Update `resetGame()` to reset class state:
 
 ```typescript
 currentClass = 'adventurer';
 classSelected = false;
+statPipeline.setClassBase([]);
+statPipeline.setClassModifiers([]);
 ```
 
 **Run:** `bun test`
 
-**Commit:** `feat: add class state tracking with Level 30 selection trigger and starting bonuses`
+**Commit:** `feat: add class state with Level 30 selection trigger and pipeline-based bonuses`
 
 ---
 
@@ -402,6 +422,13 @@ persistence.saveSession({
 ```typescript
 currentClass = (data.currentClass as ClassId) ?? 'adventurer';
 classSelected = data.classSelected ?? false;
+
+// Restore pipeline layers from class choice
+if (currentClass !== 'adventurer') {
+	const def = CLASS_DEFINITIONS[currentClass];
+	statPipeline.setClassBase(def.baseStatOverrides);
+	statPipeline.setClassModifiers(def.classModifiers);
+}
 ```
 
 Backward compat: old saves without these fields default to adventurer/false.
@@ -453,7 +480,7 @@ let landed = $state<boolean[]>([false, false, false]);
 ```
 
 **Key behaviors:**
-- Staggered landing: `setTimeout` for each card at 500ms, 1000ms, 1500ms after `show` becomes true
+- Staggered landing: `setTimeout` for each card at 500ms, 1000ms, 1500ms after `show` becomes true (cosmetic animation, not gameplay timing — `setTimeout` acceptable here per Plan 0 design decisions)
 - Card flip toggle: `handleCardClick(index)` toggles `flippedIndex`
 - Selection: `handleSelect(classId)` sets `selectedClass`, waits 800ms for animation, then calls `onSelect`
 - Use CSS transitions for flip (transform rotateY), fade, grow animations
@@ -487,7 +514,7 @@ let landed = $state<boolean[]>([false, false, false]);
 - "Pick" button works
 - Selection animation plays
 - Game resumes after selection
-- Class bonuses applied to stats
+- Class bonuses visible in stats panel (via pipeline)
 
 **Commit:** `feat: wire class selection modal into game page`
 
@@ -541,7 +568,7 @@ type Props = {
 
 ```typescript
 {
-	version: '0.29.0', // Check actual current version
+	version: '0.30.0',
 	date: '2026-01-31',
 	changes: [
 		{ category: 'new', description: 'Added class system with Warrior, Mage, and Rogue paths' },
@@ -561,7 +588,7 @@ type Props = {
 
 ```
 Phase 1: Class Data Model
-└─ Task 1.1  Class types + definitions + tests
+└─ Task 1.1  Class types + definitions with base stat overrides + tests
 
 Phase 2: Card Reclassification + Filtering
 ├─ Task 2.1  Add classRestriction to Upgrade type
@@ -569,7 +596,7 @@ Phase 2: Card Reclassification + Filtering
 └─ Task 2.3  Class-filtered getRandomUpgrades
 
 Phase 3: Class State + Persistence
-├─ Task 3.1  Class state in gameState + Level 30 trigger
+├─ Task 3.1  Class state in gameState + pipeline integration + Level 30 trigger
 └─ Task 3.2  Persist class choice
 
 Phase 4: Class Selection UI
@@ -580,4 +607,3 @@ Phase 4: Class Selection UI
 ```
 
 **Total tasks: 10**
-**Total commits: ~10**

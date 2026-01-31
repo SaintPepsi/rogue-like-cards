@@ -157,6 +157,7 @@
 			<BattleArea
 				isBoss={gameState.isBoss}
 				isChest={gameState.isChest}
+				isBossChest={gameState.isBossChest}
 				enemyHealth={gameState.enemyHealth}
 				enemyMaxHealth={gameState.enemyMaxHealth}
 				enemiesKilled={gameState.enemiesKilled}

@@ -8,9 +8,11 @@
 
 **Architecture:** Bottom-up in two phases — (1) enemy data layer + spawn integration + UI, (2) enemy mechanics engine + combat integration. Each phase starts with pure logic (testable), then wires into stores, then adds UI.
 
-**Tech Stack:** SvelteKit, Svelte 5 runes, TypeScript, Vitest, Tailwind CSS, existing Sunnyside World pixel art sprites.
+**Tech Stack:** SvelteKit, Svelte 5 runes, TypeScript, Vitest, Tailwind CSS.
 
-**Dependencies:** None. Can be implemented independently of Plans 2 and 3.
+**Dependencies:** Requires Plan 0 (stat pipeline, timer registry, game loop). Uses `gameLoop.timers` for all enemy mechanic timing. Uses `statPipeline.addTransient()`/`removeTransient()` for enemy debuffs.
+
+**Alignment doc:** `docs/plans/2026-01-31-plan-alignment-and-gaps.md`
 
 ---
 
@@ -59,7 +61,7 @@ Define all 5 enemy types per the design doc:
 | Blue Mushroom | 3 | Frost immune | Bleed (2x) | Frost Aura |
 | Blinking Eyes | 4 | Execute immune | Arcane | Creeping Darkness |
 
-Sprite imports: Use `enemy.png` as placeholder for all types initially. The design doc references specific sprite files (`skeleton_idle_strip6.png`, `spr_idle_strip9.png`, etc.) — use those if they exist in assets, otherwise placeholder.
+Sprite imports: Use `enemy.png` as placeholder for all types initially. Use specific sprite files if they exist in assets.
 
 Export functions:
 - `getAvailableEnemyTypes(stage: number): EnemyTypeId[]`
@@ -188,7 +190,7 @@ const effectiveExecuteChance = (ctx.isBoss || ctx.executeImmune) ? 0
 		: stats.executeChance;
 ```
 
-**Step 3:** In `gameState.attack()`, pass `executeImmune: enemy.enemyType === 'blinking_eyes'`.
+**Step 3:** In `gameState.attack()` (internal), pass `executeImmune: enemy.enemyType === 'blinking_eyes'`.
 
 **Step 4:** Write tests: execute never triggers when `executeImmune: true` even with 100% execute chance.
 
@@ -237,8 +239,8 @@ Overkill detection: `enemyHealth` is negative after lethal damage. If `playerSta
 **Files:**
 - Modify: `src/lib/engine/enemyMechanics.ts` (dodge constants)
 - Modify: `src/lib/types.ts` (add `'dodge'` to `HitType`)
-- Modify: `src/lib/stores/enemy.svelte.ts` (dodge timer state)
-- Modify: `src/lib/stores/gameState.svelte.ts` (dodge check in attack)
+- Modify: `src/lib/stores/enemy.svelte.ts` (dodge state)
+- Modify: `src/lib/stores/gameState.svelte.ts` (dodge check in attack, timer registration)
 - Modify: `src/lib/components/BattleArea.svelte` (dodge visual)
 
 **Mechanic:** Every 4 seconds, the Goblin charges a dodge that nullifies the next tap. Visual tell (hop animation) warns the player.
@@ -253,11 +255,32 @@ export const NIMBLE_MIN_INTERVAL_MS = 2000;
 
 **Step 2:** Add `'dodge'` to `HitType` union in `types.ts`.
 
-**Step 3:** Add dodge state to enemy store: `dodgeReady`, `dodgeTimerId`, `startDodgeTimer()`, `consumeDodge(): boolean`, `clearDodge()`. Start timer when spawning a goblin. Clear on non-goblin spawn and reset.
+**Step 3:** Add dodge state to enemy store: `dodgeReady: boolean`, `consumeDodge(): boolean`. No standalone timers — all timing is handled via the timer registry.
 
-**Step 4:** In `gameState.attack()`, at the top: if goblin and `enemy.consumeDodge()` returns true, show "DODGE!" hit text and return (attack nullified).
+**Step 4:** Register dodge timer via game loop timer registry when spawning a Goblin:
 
-**Step 5:** In `BattleArea.svelte`, style dodge hits differently (e.g., white "DODGE!" text, hop animation on enemy sprite).
+```typescript
+// In gameState, after spawning a goblin:
+gameLoop.timers.register('goblin_dodge', {
+	remaining: NIMBLE_BASE_INTERVAL_MS,
+	repeat: NIMBLE_BASE_INTERVAL_MS,
+	onExpire: () => {
+		enemy.setDodgeReady(true);
+	}
+});
+```
+
+Remove timer on enemy death or non-goblin spawn:
+
+```typescript
+gameLoop.timers.remove('goblin_dodge');
+```
+
+This automatically pauses during upgrade modals since the game loop pauses.
+
+**Step 5:** In `gameState.attack()` (internal), at the top: if goblin and `enemy.consumeDodge()` returns true, show "DODGE!" hit text and return (attack nullified).
+
+**Step 6:** In `BattleArea.svelte`, style dodge hits differently (white "DODGE!" text, hop animation on enemy sprite).
 
 **Run:** `bun test`
 
@@ -269,7 +292,7 @@ export const NIMBLE_MIN_INTERVAL_MS = 2000;
 
 **Files:**
 - Modify: `src/lib/engine/enemyMechanics.ts` (spore constants)
-- Modify: `src/lib/stores/gameState.svelte.ts` (spore debuff timer + stat drain)
+- Modify: `src/lib/stores/gameState.svelte.ts` (spore timer registration + transient modifiers)
 - Modify: `src/lib/components/BattleArea.svelte` (spore visual)
 
 **Mechanic:** Every 5 seconds, releases spores that reduce player damage by 1 for 3 seconds. Max 3 stacks. Debuffs clear on enemy death.
@@ -283,9 +306,56 @@ export const SPORE_CLOUD_DEBUFF_DURATION_MS = 3000;
 export const SPORE_CLOUD_MAX_STACKS = 3;
 ```
 
-**Step 2:** In `gameState`, add `sporeDebuffStacks` state. When fighting a red_mushroom, start a spore interval. Each tick: if stacks < max, apply -1 damage debuff and schedule auto-remove after duration. On enemy death: clear all debuffs, restore damage.
+**Step 2:** Register spore timer via game loop timer registry when spawning a Red Mushroom:
 
-**Step 3:** Show spore indicator on enemy (mushroom icon + stack count).
+```typescript
+let sporeDebuffCount = 0;
+let sporeDebuffId = 0;
+
+gameLoop.timers.register('spore_cloud', {
+	remaining: SPORE_CLOUD_INTERVAL_MS,
+	repeat: SPORE_CLOUD_INTERVAL_MS,
+	onExpire: () => {
+		if (sporeDebuffCount >= SPORE_CLOUD_MAX_STACKS) return;
+
+		sporeDebuffId++;
+		sporeDebuffCount++;
+		const debuffName = `spore_debuff_${sporeDebuffId}`;
+
+		// Add transient modifier to stat pipeline — no manual stat mutation
+		statPipeline.addTransient(debuffName, [
+			{ stat: 'damage', value: -SPORE_CLOUD_DEBUFF_AMOUNT }
+		]);
+
+		// Register expiry timer
+		gameLoop.timers.register(debuffName, {
+			remaining: SPORE_CLOUD_DEBUFF_DURATION_MS,
+			onExpire: () => {
+				statPipeline.removeTransient(debuffName);
+				sporeDebuffCount = Math.max(0, sporeDebuffCount - 1);
+			}
+		});
+	}
+});
+```
+
+**Step 3:** On Red Mushroom death, clean up:
+
+```typescript
+gameLoop.timers.remove('spore_cloud');
+// Remove all active spore debuff timers and transients
+for (let i = 1; i <= sporeDebuffId; i++) {
+	const name = `spore_debuff_${i}`;
+	gameLoop.timers.remove(name);
+	statPipeline.removeTransient(name);
+}
+sporeDebuffCount = 0;
+sporeDebuffId = 0;
+```
+
+No manual stat restoration needed — removing the transient modifier from the pipeline automatically recomputes the correct stat value.
+
+**Step 4:** Show spore indicator on enemy (mushroom icon + stack count).
 
 **Run:** `bun test`
 
@@ -297,31 +367,61 @@ export const SPORE_CLOUD_MAX_STACKS = 3;
 
 **Files:**
 - Modify: `src/lib/engine/enemyMechanics.ts` (frost aura constant)
-- Modify: `src/lib/stores/timers.svelte.ts` (configurable poison tick interval)
-- Modify: `src/lib/stores/gameState.svelte.ts` (apply/remove frost aura)
+- Modify: `src/lib/stores/gameState.svelte.ts` (apply/remove frost aura transient)
 - Modify: `src/lib/components/BattleArea.svelte` (frost visual)
 
-**Mechanic:** While alive, slows all DoT tick rates to half speed (2x interval).
+**Mechanic:** While alive, slows all DoT tick rates to half speed AND slows attack speed.
 
 **Step 1:** Constant:
 
 ```typescript
 export const FROST_AURA_TICK_MULTIPLIER = 2;
+export const FROST_AURA_ATTACK_SPEED_MULTIPLIER = 0.5;
 ```
 
-**Step 2:** Make poison tick interval configurable in `timers.svelte.ts`:
+**Step 2:** On Blue Mushroom spawn, add transient modifiers via stat pipeline:
 
 ```typescript
-function startPoisonTick(onTick: () => void, intervalMs: number = 1000)
+import { multiply } from '$lib/engine/statPipeline';
+
+// Slow attack speed by 50%
+statPipeline.addTransientStep('frost_aura', 'attackSpeed', multiply(FROST_AURA_ATTACK_SPEED_MULTIPLIER));
 ```
 
-**Step 3:** When spawning blue_mushroom, restart poison tick at `1000 * FROST_AURA_TICK_MULTIPLIER`. On death, restart at normal 1000ms.
+**Step 3:** Make poison tick interval dynamic. The `poison_tick` timer in the game loop currently uses a hardcoded 1000ms repeat. Change the game loop to read the interval from a getter:
 
-**Step 4:** Show frost aura icon on the enemy.
+```typescript
+// In gameLoop.start(), instead of hardcoded 1000:
+timers.register('poison_tick', {
+	remaining: getPoisonTickInterval(),
+	onExpire: () => {
+		callbacks.onPoisonTick();
+		// Re-register with current interval (may have changed due to frost aura)
+		timers.register('poison_tick', {
+			remaining: getPoisonTickInterval(),
+			onExpire: /* same callback */,
+		});
+	}
+});
+```
+
+Where `getPoisonTickInterval` is a callback provided by gameState that reads from the pipeline. When frost aura is active, this returns `2000` instead of `1000`.
+
+Alternatively, add `poisonTickInterval` as a computed stat in the pipeline with base 1000, and frost aura adds a transient multiplier.
+
+**Step 4:** On Blue Mushroom death, remove transient:
+
+```typescript
+statPipeline.removeTransient('frost_aura');
+```
+
+Pipeline recomputes — attack speed and poison tick interval return to normal automatically.
+
+**Step 5:** Show frost aura icon on the enemy (blue tint overlay / frost icon).
 
 **Run:** `bun test`
 
-**Commit:** `feat: add Blue Mushroom Frost Aura mechanic (slows DoT tick rates)`
+**Commit:** `feat: add Blue Mushroom Frost Aura mechanic (slows DoT and attack speed)`
 
 ---
 
@@ -330,14 +430,14 @@ function startPoisonTick(onTick: () => void, intervalMs: number = 1000)
 **Files:**
 - Modify: `src/lib/engine/enemyMechanics.ts` (darkness logic)
 - Modify: `src/lib/engine/enemyMechanics.test.ts`
-- Modify: `src/lib/stores/gameState.svelte.ts` (idle detection + stat drain)
+- Modify: `src/lib/stores/gameState.svelte.ts` (idle detection via timer registry + transient modifiers)
 
-**Mechanic:** If player stops tapping for >2 seconds, a random stat is temporarily reduced by 1. Stacks up to 3. Stats recover on enemy death.
+**Mechanic:** If player stops engaging for >2 seconds, a random stat is temporarily reduced by 1. Stacks up to 3. Stats recover on enemy death.
 
 **Step 1:** Constants and logic:
 
 ```typescript
-export const DARKNESS_IDLE_THRESHOLD_MS = 2000;
+export const DARKNESS_IDLE_THRESHOLD_S = 2;
 export const DARKNESS_MAX_STACKS = 3;
 export const DARKNESS_DRAIN_AMOUNT = 1;
 
@@ -346,22 +446,58 @@ export type DrainableStat = 'damage' | 'poison' | 'multiStrike';
 export function pickStatToDrain(rng: () => number): DrainableStat;
 ```
 
-**Step 2:** In `gameState`, track `lastTapTime`, `darknessStacks: DrainableStat[]`, and a check interval. On each tick: if `Date.now() - lastTapTime > 2000` and stacks < 3, drain a random stat. Update `lastTapTime` on every attack.
-
-**Step 3:** On blinking_eyes death, restore all drained stats:
+**Step 2:** Register idle detection timer via game loop timer registry when spawning Blinking Eyes:
 
 ```typescript
-function restoreDarknessDebuffs() {
-	for (const stat of darknessStacks) {
-		playerStats[stat] += DARKNESS_DRAIN_AMOUNT;
+let darknessIdleCounter = 0;
+let darknessStackCount = 0;
+let darknessStackId = 0;
+
+gameLoop.timers.register('darkness_check', {
+	remaining: 1000,
+	repeat: 1000,
+	onExpire: () => {
+		// "Idle" = pointer not held AND no frenzy stacks
+		const isIdle = !gameLoop.pointerHeld && gameLoop.frenzyStacks === 0;
+
+		if (isIdle) {
+			darknessIdleCounter++;
+			if (darknessIdleCounter >= DARKNESS_IDLE_THRESHOLD_S
+					&& darknessStackCount < DARKNESS_MAX_STACKS) {
+				darknessStackId++;
+				darknessStackCount++;
+				const stat = pickStatToDrain(Math.random);
+				const name = `darkness_${darknessStackId}`;
+
+				// Add transient modifier — no manual stat mutation
+				statPipeline.addTransient(name, [
+					{ stat, value: -DARKNESS_DRAIN_AMOUNT }
+				]);
+
+				darknessIdleCounter = 0; // reset counter for next stack
+			}
+		} else {
+			darknessIdleCounter = 0; // reset when actively engaging
+		}
 	}
-	darknessStacks = [];
-}
+});
 ```
 
-**Step 4:** Start/stop idle check interval when spawning/killing blinking_eyes.
+**Step 3:** On Blinking Eyes death, clean up all darkness transients:
 
-**Step 5:** Write tests for `pickStatToDrain`.
+```typescript
+gameLoop.timers.remove('darkness_check');
+for (let i = 1; i <= darknessStackId; i++) {
+	statPipeline.removeTransient(`darkness_${i}`);
+}
+darknessIdleCounter = 0;
+darknessStackCount = 0;
+darknessStackId = 0;
+```
+
+No manual stat restoration needed — removing transients from the pipeline recomputes stats automatically.
+
+**Step 4:** Write tests for `pickStatToDrain`.
 
 **Run:** `bun test`
 
@@ -428,11 +564,9 @@ Each indicator uses the store-driven temporary effect pattern from CLAUDE.md.
 **Files:**
 - Modify: `src/lib/changelog.ts`
 
-Add entry for the current minor version:
-
 ```typescript
 {
-	version: '0.28.0',
+	version: '0.29.0',
 	date: '2026-01-31',
 	changes: [
 		{ category: 'new', description: 'Added 5 enemy types with unique mechanics, resistances, and weaknesses' },
@@ -442,8 +576,6 @@ Add entry for the current minor version:
 	]
 }
 ```
-
-Note: Check current version before writing. Follow CLAUDE.md rules (no specific card names).
 
 **Commit:** `docs: add changelog entry for enemy system`
 
@@ -461,14 +593,13 @@ Phase 1: Data + Spawning + UI
 Phase 2: Mechanics + Combat
 ├─ Task 2.1  Enemy mechanics engine + execute immunity
 ├─ Task 2.2  Skeleton Reassemble
-├─ Task 2.3  Goblin Nimble (dodge)
-├─ Task 2.4  Red Mushroom Spore Cloud
-├─ Task 2.5  Blue Mushroom Frost Aura
-├─ Task 2.6  Blinking Eyes Creeping Darkness
+├─ Task 2.3  Goblin Nimble (dodge) — uses timer registry
+├─ Task 2.4  Red Mushroom Spore Cloud — uses timer registry + stat pipeline transients
+├─ Task 2.5  Blue Mushroom Frost Aura — uses stat pipeline transients
+├─ Task 2.6  Blinking Eyes Creeping Darkness — uses timer registry + stat pipeline transients
 ├─ Task 2.7  Resistance-aware damage
 ├─ Task 2.8  Mechanic visual indicators
 └─ Task 2.9  Changelog
 ```
 
 **Total tasks: 13**
-**Total commits: ~13**

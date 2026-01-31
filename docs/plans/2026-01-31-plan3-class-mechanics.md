@@ -10,7 +10,15 @@
 
 **Tech Stack:** SvelteKit, Svelte 5 runes, TypeScript, Vitest, Tailwind CSS.
 
-**Dependencies:** Requires Plan 2 (Class Foundation) — specifically the class data model, `currentClass` state, class-filtered card pools, and the `ClassId` type. Benefits from Plan 1 (Enemy System) for resistance interactions but not strictly required.
+**Dependencies:** Requires Plan 0 (stat pipeline, timer registry, game loop) and Plan 2 (class data model, `currentClass` state, class-filtered card pools, `ClassId` type). Benefits from Plan 1 (Enemy System) for resistance interactions but not strictly required.
+
+**Alignment doc:** `docs/plans/2026-01-31-plan-alignment-and-gaps.md`
+
+**Key design decisions from alignment:**
+- Warrior has NO separate cooldown system. Slow attack identity comes from `attackSpeed: 0.4` set in Plan 2's class base stat overrides. Weapon draw + combo hooks into the `onAttack` callback.
+- All timed effects (element expiry, burn DoT, poison cloud, cooldowns) use the timer registry via `gameLoop.timers`. No `setTimeout`/`setInterval` for gameplay.
+- Element effects (frost debuff, arcane vulnerability) are transient modifiers in the stat pipeline. Auto-removed when timer expires — no manual reversal.
+- Weapon/ability unlock cards use `onAcquire` callback on the Upgrade type.
 
 ---
 
@@ -40,9 +48,9 @@ export const WEAPON_DEFINITIONS: Record<WeaponId, WeaponDefinition> = {
 	axe: { id: 'axe', name: 'Axe', comboEffect: 'megaCrit', comboDescription: 'Mega Crit (guaranteed crit scaled by combo count)' },
 	hammer: { id: 'hammer', name: 'Hammer', comboEffect: 'stun', comboDescription: 'Shockwave Stun (long stun scaled by combo count)' }
 };
-
-export const WARRIOR_SWING_COOLDOWN_MS = 1000;
 ```
+
+Note: No `WARRIOR_SWING_COOLDOWN_MS` — Warrior attack rate is governed by `attackSpeed: 0.4` from Plan 2's class base stat overrides, enforced by the game loop's attack cooldown timer.
 
 **Functions:**
 
@@ -84,21 +92,22 @@ let warriorWeapons = $state<WeaponId[]>(['knife']); // Starting pool
 let currentWeapon = $state<WeaponId | null>(null);
 let comboWeapon = $state<WeaponId | null>(null);
 let comboCount = $state(0);
-let warriorCooldown = $state(false);
 ```
 
-**Step 2:** Create warrior attack override. When `currentClass === 'warrior'`, the `attack()` function:
+No `warriorCooldown` state — attack rate is controlled by the game loop's attack cooldown timer using `attackSpeed: 0.4`.
 
-1. Check cooldown — if `warriorCooldown` is true, return early (1s between taps)
-2. Set cooldown, schedule `warriorCooldown = false` after `WARRIOR_SWING_COOLDOWN_MS`
-3. Draw a random weapon from `warriorWeapons` via `drawWeapon()`
-4. If same as `comboWeapon` → increment `comboCount`
-5. If different and `comboWeapon !== null` → fire `calculateComboPayoff()` for the old weapon, apply that damage to enemy, reset combo
-6. Set `comboWeapon` to drawn weapon, `currentWeapon` to drawn weapon
-7. Deal normal tap damage (base damage + crit check, using existing `calculateAttack`)
-8. Play swing animation (weapon-specific)
+**Step 2:** Create warrior attack override. When `currentClass === 'warrior'`, the internal `attack()` function:
 
-**Step 3:** Add method to unlock new weapons (called by weapon unlock upgrade cards):
+1. Draw a random weapon from `warriorWeapons` via `drawWeapon()`
+2. If same as `comboWeapon` → increment `comboCount`
+3. If different and `comboWeapon !== null` → fire `calculateComboPayoff()` for the old weapon, apply that damage to enemy, reset combo
+4. Set `comboWeapon` to drawn weapon, `currentWeapon` to drawn weapon
+5. Deal normal tap damage (base damage + crit check, using existing `calculateAttack`)
+6. Play swing animation (weapon-specific)
+
+The game loop fires `onAttack` at the Warrior's attack rate (~0.4/s = every 2.5s). No separate cooldown system needed.
+
+**Step 3:** Add method to unlock new weapons (called by weapon unlock upgrade cards via `onAcquire`):
 
 ```typescript
 function unlockWeapon(weaponId: WeaponId) {
@@ -115,7 +124,6 @@ get currentWeapon() { return currentWeapon; },
 get comboCount() { return comboCount; },
 get comboWeapon() { return comboWeapon; },
 get warriorWeapons() { return warriorWeapons; },
-get warriorCooldown() { return warriorCooldown; },
 unlockWeapon,
 ```
 
@@ -135,7 +143,7 @@ unlockWeapon,
 
 **WarriorUI component:**
 
-Passive display near the enemy (no action buttons — Warrior's roulette is automatic on tap):
+Passive display near the enemy (no action buttons — Warrior's roulette is automatic on attack):
 
 ```svelte
 <div class="warrior-ui">
@@ -151,9 +159,6 @@ Passive display near the enemy (no action buttons — Warrior's roulette is auto
 			<span class="combo-number">x{comboCount}</span>
 		</div>
 	{/if}
-	{#if warriorCooldown}
-		<div class="cooldown-indicator">...</div>
-	{/if}
 </div>
 ```
 
@@ -165,7 +170,6 @@ Weapon sprite mapping: use existing card art (`sword.png`, `axe.png`, `hammer.pn
 type Props = {
 	currentWeapon: WeaponId | null;
 	comboCount: number;
-	warriorCooldown: boolean;
 };
 ```
 
@@ -173,11 +177,11 @@ type Props = {
 
 ```svelte
 {#if currentClass === 'warrior'}
-	<WarriorUI {currentWeapon} {comboCount} {warriorCooldown} />
+	<WarriorUI {currentWeapon} {comboCount} />
 {/if}
 ```
 
-**Swing animation:** On each warrior tap, briefly show the drawn weapon sprite swinging across the enemy (CSS animation, ~0.3s). Use the temporary UI effect pattern — add swing events to an array in the store, auto-remove after animation duration.
+**Swing animation:** On each warrior attack, briefly show the drawn weapon sprite swinging across the enemy (CSS animation, ~0.3s). Use the temporary UI effect pattern — add swing events to an array in the store, auto-remove after animation duration.
 
 **Commit:** `feat: add Warrior battle UI with weapon display, combo counter, and swing animation`
 
@@ -191,23 +195,41 @@ type Props = {
 
 **New warrior-specific cards (all with `classRestriction: 'warrior'`):**
 
-**Weapon Unlock Cards (one-time, adds weapon to roulette pool):**
-- `warrior_sword`: "Forge: Sword" (uncommon) — Unlocks Sword in weapon roulette
-- `warrior_axe`: "Forge: Axe" (rare) — Unlocks Axe
-- `warrior_hammer`: "Forge: Hammer" (epic) — Unlocks Hammer
+**Weapon Unlock Cards (one-time, uses `onAcquire`):**
 
-These use a special `apply` that calls `gameState.unlockWeapon()`. Implementation note: the `apply` function currently only receives `PlayerStats`. Options:
-1. Add an `onAcquire` callback to the Upgrade type for side effects (preferred)
-2. Or have the weapon unlock set a flag in PlayerStats that gameState reads
+```typescript
+{ id: 'warrior_sword', title: 'Forge: Sword', rarity: 'uncommon', image: swordImg,
+  classRestriction: 'warrior',
+  modifiers: [],  // No stat changes
+  onAcquire: () => gameState.unlockWeapon('sword') },
+{ id: 'warrior_axe', title: 'Forge: Axe', rarity: 'rare', image: axeImg,
+  classRestriction: 'warrior',
+  modifiers: [],
+  onAcquire: () => gameState.unlockWeapon('axe') },
+{ id: 'warrior_hammer', title: 'Forge: Hammer', rarity: 'epic', image: hammerImg,
+  classRestriction: 'warrior',
+  modifiers: [],
+  onAcquire: () => gameState.unlockWeapon('hammer') },
+```
 
-**Boost Cards:**
-- `warrior_oil1`: "Weapon Oil" (common) — +2 all weapon damage
-- `warrior_oil2`: "Master Oil" (uncommon) — +5 all weapon damage
-- `warrior_rhythm1`: "Battle Rhythm" (uncommon) — +25% combo payoff damage
-- `warrior_rhythm2`: "War Dance" (rare) — +50% combo payoff damage
-- `warrior_heavy1`: "Heavy Swing" (common) — +3 base tap damage
-- `warrior_heavy2`: "Mighty Blow" (rare) — +8 base tap damage
-- `warrior_legendary`: "Berserker Lord" (legendary) — +15 damage, +50% combo payoff, unlock random weapon
+Note: `onAcquire` is called once when the upgrade is selected. These cards have empty `modifiers[]` since their effect is a one-time side effect, not a stat modification.
+
+**Boost Cards (use `modifiers`):**
+
+| ID | Title | Rarity | Modifiers |
+|----|-------|--------|-----------|
+| `warrior_oil1` | Weapon Oil | common | `[{ stat: 'damage', value: 2 }]` |
+| `warrior_oil2` | Master Oil | uncommon | `[{ stat: 'damage', value: 5 }]` |
+| `warrior_heavy1` | Heavy Swing | common | `[{ stat: 'damage', value: 3 }]` |
+| `warrior_heavy2` | Mighty Blow | rare | `[{ stat: 'damage', value: 8 }]` |
+
+Note: Combo payoff boost cards (`warrior_rhythm1`, `warrior_rhythm2`) need a `comboPayoffMultiplier` stat added to PlayerStats. Add:
+- `comboPayoffMultiplier: number` to PlayerStats (default 1.0)
+- `warrior_rhythm1`: `[{ stat: 'comboPayoffMultiplier', value: 0.25 }]`
+- `warrior_rhythm2`: `[{ stat: 'comboPayoffMultiplier', value: 0.5 }]`
+
+**Legendary:**
+- `warrior_legendary`: `modifiers: [{ stat: 'damage', value: 15 }, { stat: 'comboPayoffMultiplier', value: 0.5 }]`, `onAcquire: () => gameState.unlockRandomWeapon()`
 
 **Total new warrior cards: ~10**
 
@@ -293,10 +315,10 @@ export function getManaCost(element: ElementId, costReduction: number): number;
 **Step 1:** Add to `PlayerStats`:
 
 ```typescript
-magic: number;       // Base magic damage for Mage
-maxMana: number;     // Maximum mana pool
-manaPerTap: number;  // Mana regenerated per enemy tap
-manaCostReduction: number; // Flat reduction to element cast costs
+magic: number;
+maxMana: number;
+manaPerTap: number;
+manaCostReduction: number;
 ```
 
 **Step 2:** Update `createDefaultStats()`:
@@ -316,7 +338,7 @@ manaCostReduction: 0,
 { key: 'manaPerTap', icon: '💧', label: 'Mana/Tap', format: num, colorClass: 'magic' },
 ```
 
-**Step 4:** Handle save migration — new fields merge safely via `{ ...createDefaultStats(), ...data.playerStats }`.
+**Step 4:** Handle save migration — new fields merge safely via pipeline (base stats include defaults, acquired upgrades add on top).
 
 **Run:** `bun test`
 
@@ -333,65 +355,116 @@ manaCostReduction: 0,
 
 ```typescript
 let mana = $state(0);
-let activeElements = $state<Map<ElementId, ReturnType<typeof setTimeout>>>(new Map());
+let activeElements = $state<Set<ElementId>>(new Set());
 ```
 
 **Step 2:** Mage tap behavior (when `currentClass === 'mage'`):
-- Regenerate mana: `mana = Math.min(playerStats.maxMana, mana + getManaPerTap(playerStats.manaPerTap, 0))`
-- Deal base magic damage to enemy (use `playerStats.magic` instead of `playerStats.damage`, or additive)
+- Regenerate mana: `mana = Math.min(statPipeline.get('maxMana'), mana + getManaPerTap(statPipeline.get('manaPerTap'), 0))`
+- Deal base magic damage to enemy (use `statPipeline.get('magic')`)
 
-**Step 3:** Add `castElement(element: ElementId)`:
+**Step 3:** Add `castElement(element: ElementId)` using timer registry:
 
 ```typescript
 function castElement(element: ElementId) {
 	if (currentClass !== 'mage') return;
-	const cost = getManaCost(element, playerStats.manaCostReduction);
+	const cost = getManaCost(element, statPipeline.get('manaCostReduction'));
 	if (mana < cost) return;
 
 	mana -= cost;
 
-	// Clear existing timer for this element if active
-	const existingTimer = activeElements.get(element);
-	if (existingTimer) clearTimeout(existingTimer);
-
-	// Apply element effect to enemy
-	applyElementEffect(element);
-
-	// Set expiration timer
-	const timer = setTimeout(() => {
-		activeElements.delete(element);
-		activeElements = new Map(activeElements);
+	// Remove existing timer for this element if active (refresh)
+	const timerName = `element_${element}`;
+	if (gameLoop.timers.has(timerName)) {
+		gameLoop.timers.remove(timerName);
 		removeElementEffect(element);
-	}, ELEMENT_DURATION_MS);
+	}
 
-	activeElements.set(element, timer);
-	activeElements = new Map(activeElements);
+	// Apply element effect via transient modifiers
+	applyElementEffect(element);
+	activeElements = new Set([...activeElements, element]);
+
+	// Register expiration timer
+	gameLoop.timers.register(timerName, {
+		remaining: ELEMENT_DURATION_MS,
+		onExpire: () => {
+			removeElementEffect(element);
+			activeElements = new Set([...activeElements].filter(e => e !== element));
+
+			// If fire, also remove burn DoT timer
+			if (element === 'fire') {
+				gameLoop.timers.remove('burn_dot');
+			}
+		}
+	});
 
 	// Check for combo
-	const combo = checkElementCombo(new Set(activeElements.keys()));
+	const combo = checkElementCombo(activeElements);
 	if (combo) {
 		triggerElementCombo(combo);
 	}
 }
 ```
 
-**Step 4:** Implement element effects:
-- `applyElementEffect('frost')`: set a flag that increases damage taken by enemy (+50%)
-- `applyElementEffect('fire')`: start a burn DoT interval
-- `applyElementEffect('arcane')`: set a vulnerability flag (+25% damage taken)
+**Step 4:** Implement element effects as transient pipeline modifiers:
+
+```typescript
+function applyElementEffect(element: ElementId) {
+	switch (element) {
+		case 'frost':
+			// Enemy takes +50% damage — transient multiplier on damage
+			statPipeline.addTransientStep('element_frost', 'damage', multiply(1.5));
+			break;
+		case 'fire':
+			// Start burn DoT — repeating timer
+			gameLoop.timers.register('burn_dot', {
+				remaining: 1000,
+				repeat: 1000,
+				onExpire: () => {
+					const burnDamage = statPipeline.get('magic');
+					enemy.takeDamage(burnDamage);
+					// Add hit number for burn
+					ui.addHits([{ damage: burnDamage, type: 'fire' as HitType, id: 0, index: 0 }]);
+					if (enemy.isDead()) killEnemy();
+				}
+			});
+			break;
+		case 'arcane':
+			// Enemy takes +25% damage — transient multiplier
+			statPipeline.addTransientStep('element_arcane', 'damage', multiply(1.25));
+			break;
+	}
+}
+
+function removeElementEffect(element: ElementId) {
+	statPipeline.removeTransient(`element_${element}`);
+}
+```
+
+No manual stat reversal needed — removing the transient from the pipeline recomputes automatically.
 
 **Step 5:** Implement combo triggers:
-- `frost_arcane`: instant burst damage (e.g., `magic * 10`)
+- `frost_arcane`: instant burst damage (e.g., `statPipeline.get('magic') * 10`)
 - `fire_arcane`: enhanced burn (e.g., burn damage * 3 for remaining duration)
 - `frost_fire`: defense shatter (e.g., enemy takes +100% damage for 5s)
 
-**Step 6:** Clear all element state on enemy death. Apply Mage starting bonus in `applyClassBonuses`: `playerStats.magic += 1`.
+**Step 6:** Clear all element state on enemy death:
+
+```typescript
+activeElements = new Set();
+gameLoop.timers.remove('element_frost');
+gameLoop.timers.remove('element_fire');
+gameLoop.timers.remove('element_arcane');
+gameLoop.timers.remove('burn_dot');
+statPipeline.removeTransient('element_frost');
+statPipeline.removeTransient('element_fire');
+statPipeline.removeTransient('element_arcane');
+```
 
 **Step 7:** Expose getters:
 
 ```typescript
 get mana() { return mana; },
-get activeElements() { return new Set(activeElements.keys()); },
+get activeElements() { return activeElements; },
 castElement,
 ```
 
@@ -399,7 +472,7 @@ castElement,
 
 **Run:** `bun test`
 
-**Commit:** `feat: integrate Mage mana system with element casting and combo detection`
+**Commit:** `feat: integrate Mage mana system with element casting via timer registry and stat pipeline`
 
 ---
 
@@ -480,11 +553,11 @@ type Props = {
 {#if currentClass === 'mage'}
 	<MageUI
 		{mana}
-		maxMana={playerStats.maxMana}
+		maxMana={statPipeline.get('maxMana')}
 		{activeElements}
-		frostCost={getManaCost('frost', playerStats.manaCostReduction)}
-		fireCost={getManaCost('fire', playerStats.manaCostReduction)}
-		arcaneCost={getManaCost('arcane', playerStats.manaCostReduction)}
+		frostCost={getManaCost('frost', statPipeline.get('manaCostReduction'))}
+		fireCost={getManaCost('fire', statPipeline.get('manaCostReduction'))}
+		arcaneCost={getManaCost('arcane', statPipeline.get('manaCostReduction'))}
 		onCast={(element) => gameState.castElement(element)}
 	/>
 {/if}
@@ -500,39 +573,35 @@ type Props = {
 - Modify: `src/lib/data/upgrades.ts`
 - Modify: `src/lib/data/upgrades.test.ts`
 
-**New mage-specific cards (all with `classRestriction: 'mage'`):**
+**New mage-specific cards (all with `classRestriction: 'mage'`, using `modifiers` format):**
 
-**Mana Cost Reduction (3 tiers):**
-- `mage_cost1`: "Efficient Casting" (common) — -2 mana cost
-- `mage_cost2`: "Arcane Flow" (uncommon) — -4 mana cost
-- `mage_cost3`: "Mana Mastery" (rare) — -6 mana cost
+| ID | Title | Rarity | Modifiers |
+|----|-------|--------|-----------|
+| `mage_cost1` | Efficient Casting | common | `[{ stat: 'manaCostReduction', value: 2 }]` |
+| `mage_cost2` | Arcane Flow | uncommon | `[{ stat: 'manaCostReduction', value: 4 }]` |
+| `mage_cost3` | Mana Mastery | rare | `[{ stat: 'manaCostReduction', value: 6 }]` |
+| `mage_regen1` | Mana Siphon | common | `[{ stat: 'manaPerTap', value: 1 }]` |
+| `mage_regen2` | Arcane Absorption | uncommon | `[{ stat: 'manaPerTap', value: 2 }]` |
+| `mage_regen3` | Soul Drain | rare | `[{ stat: 'manaPerTap', value: 3 }]` |
+| `mage_pool1` | Mana Well | common | `[{ stat: 'maxMana', value: 20 }]` |
+| `mage_pool2` | Arcane Reservoir | uncommon | `[{ stat: 'maxMana', value: 40 }]` |
+| `mage_magic1` | Arcane Studies | common | `[{ stat: 'magic', value: 1 }]` |
+| `mage_magic2` | Mystic Power | uncommon | `[{ stat: 'magic', value: 3 }]` |
+| `mage_magic3` | Eldritch Might | rare | `[{ stat: 'magic', value: 5 }]` |
+| `mage_legendary` | Archmage | legendary | `[{ stat: 'magic', value: 5 }, { stat: 'maxMana', value: 30 }, { stat: 'manaPerTap', value: 3 }, { stat: 'manaCostReduction', value: 5 }]` |
 
-**Mana Per Tap (3 tiers):**
-- `mage_regen1`: "Mana Siphon" (common) — +1 mana per tap
-- `mage_regen2`: "Arcane Absorption" (uncommon) — +2 mana per tap
-- `mage_regen3`: "Soul Drain" (rare) — +3 mana per tap
+Note: Element duration and combo enhancement cards need additional stats added to PlayerStats:
+- `elementDurationBonus: number` (default 0, added to `ELEMENT_DURATION_MS`)
+- `comboDamageMultiplier: number` (default 1.0)
 
-**Max Mana (2 tiers):**
-- `mage_pool1`: "Mana Well" (common) — +20 max mana
-- `mage_pool2`: "Arcane Reservoir" (uncommon) — +40 max mana
+| ID | Title | Rarity | Modifiers |
+|----|-------|--------|-----------|
+| `mage_duration1` | Lingering Magic | uncommon | `[{ stat: 'elementDurationBonus', value: 2000 }]` |
+| `mage_duration2` | Eternal Enchant | rare | `[{ stat: 'elementDurationBonus', value: 4000 }]` |
+| `mage_combo1` | Elemental Synergy | rare | `[{ stat: 'comboDamageMultiplier', value: 0.5 }]` |
+| `mage_combo2` | Harmonic Resonance | epic | `[{ stat: 'comboDamageMultiplier', value: 1.0 }]` |
 
-**Magic Damage (3 tiers):**
-- `mage_magic1`: "Arcane Studies" (common) — +1 magic damage
-- `mage_magic2`: "Mystic Power" (uncommon) — +3 magic damage
-- `mage_magic3`: "Eldritch Might" (rare) — +5 magic damage
-
-**Element Duration (2 tiers):**
-- `mage_duration1`: "Lingering Magic" (uncommon) — +2s element duration
-- `mage_duration2`: "Eternal Enchant" (rare) — +4s element duration
-
-**Combo Enhancement (2 tiers):**
-- `mage_combo1`: "Elemental Synergy" (rare) — +50% combo damage
-- `mage_combo2`: "Harmonic Resonance" (epic) — +100% combo damage
-
-**Legendary:**
-- `mage_legendary`: "Archmage" (legendary) — +5 magic, +30 max mana, +3 mana/tap, -5 mana cost
-
-**Total new mage cards: ~17**
+**Total new mage cards: ~16**
 
 **Tests:** Verify all new cards have `classRestriction: 'mage'` and count >= 15.
 
@@ -585,11 +654,10 @@ export function getEffectiveCooldown(baseCooldown: number, cooldownReduction: nu
 let poisonCloudUnlocked = $state(false);
 let poisonCloudOnCooldown = $state(false);
 let poisonCloudActive = $state(false);
-let poisonCloudCooldownReduction = $state(0);
 let carryOverPoisonStacks = $state(0);
 ```
 
-**Step 2:** Add `deployPoisonCloud()`:
+**Step 2:** Add `deployPoisonCloud()` using timer registry:
 
 ```typescript
 function deployPoisonCloud() {
@@ -598,31 +666,39 @@ function deployPoisonCloud() {
 	poisonCloudActive = true;
 	poisonCloudOnCooldown = true;
 
-	// Apply carried-over stacks from previous enemy
-	// Then tick additional stacks every second for duration
-
-	let ticksRemaining = POISON_CLOUD_DURATION_MS / POISON_CLOUD_TICK_INTERVAL_MS;
-	const cloudInterval = setInterval(() => {
-		if (ticksRemaining <= 0) {
-			clearInterval(cloudInterval);
-			poisonCloudActive = false;
-			return;
+	// Register cloud tick timer (applies poison stacks)
+	gameLoop.timers.register('poison_cloud_tick', {
+		remaining: POISON_CLOUD_TICK_INTERVAL_MS,
+		repeat: POISON_CLOUD_TICK_INTERVAL_MS,
+		onExpire: () => {
+			applyPoisonStack();
 		}
-		// Add poison stack to enemy
-		applyPoisonStack();
-		ticksRemaining--;
-	}, POISON_CLOUD_TICK_INTERVAL_MS);
+	});
 
-	// Cooldown timer
+	// Register cloud expiry timer
+	gameLoop.timers.register('poison_cloud_expire', {
+		remaining: POISON_CLOUD_DURATION_MS,
+		onExpire: () => {
+			poisonCloudActive = false;
+			gameLoop.timers.remove('poison_cloud_tick');
+		}
+	});
+
+	// Register cooldown timer
 	const effectiveCooldown = getEffectiveCooldown(
 		POISON_CLOUD_BASE_COOLDOWN_MS,
-		poisonCloudCooldownReduction
+		statPipeline.get('poisonCloudCooldownReduction') ?? 0
 	);
-	setTimeout(() => {
-		poisonCloudOnCooldown = false;
-	}, effectiveCooldown);
+	gameLoop.timers.register('poison_cloud_cooldown', {
+		remaining: effectiveCooldown,
+		onExpire: () => {
+			poisonCloudOnCooldown = false;
+		}
+	});
 }
 ```
+
+All three timers automatically pause during upgrade modals since the game loop pauses.
 
 **Step 3:** Poison carry-over. When killing an enemy as Rogue:
 
@@ -634,7 +710,7 @@ if (currentClass === 'rogue') {
 
 When spawning the next enemy, if rogue and `carryOverPoisonStacks > 0`, pre-apply that many stacks.
 
-**Step 4:** Method to unlock poison cloud (called by upgrade card):
+**Step 4:** Method to unlock poison cloud (called by upgrade card via `onAcquire`):
 
 ```typescript
 function unlockPoisonCloud() {
@@ -652,11 +728,20 @@ deployPoisonCloud,
 unlockPoisonCloud,
 ```
 
-**Step 6:** Reset rogue state in `resetGame()`. Persist `poisonCloudUnlocked` in save data.
+**Step 6:** Reset rogue state in `resetGame()`. Clean up cloud timers on enemy death:
+
+```typescript
+gameLoop.timers.remove('poison_cloud_tick');
+gameLoop.timers.remove('poison_cloud_expire');
+poisonCloudActive = false;
+// Note: cooldown timer keeps running across enemies
+```
+
+Persist `poisonCloudUnlocked` in save data.
 
 **Run:** `bun test`
 
-**Commit:** `feat: integrate Rogue Poison Cloud into game state with carry-over stacks`
+**Commit:** `feat: integrate Rogue Poison Cloud into game state with timer registry and carry-over stacks`
 
 ---
 
@@ -727,26 +812,31 @@ type Props = {
 - Modify: `src/lib/data/upgrades.ts`
 - Modify: `src/lib/data/upgrades.test.ts`
 
-**New rogue-specific cards (all with `classRestriction: 'rogue'`):**
+**New rogue-specific cards (all with `classRestriction: 'rogue'`, using `modifiers` format):**
 
-Note: Many rogue cards already exist from the reclassification in Plan 2 (poison, crit, execute). These are additional cards for the Poison Cloud ability and Rogue-specific enhancements.
+Note: Many rogue cards already exist from Plan 2's reclassification. These are additional cards for the Poison Cloud ability.
 
 **Poison Cloud Cards:**
-- `rogue_cloud_unlock`: "Poison Cloud" (rare) — Unlocks the Poison Cloud ability. One-time.
-- `rogue_cloud_cd1`: "Quick Deploy" (uncommon) — -2s Poison Cloud cooldown
-- `rogue_cloud_cd2`: "Rapid Deployment" (rare) — -3s Poison Cloud cooldown
-- `rogue_cloud_stacks1`: "Dense Cloud" (uncommon) — +1 stack per cloud tick
-- `rogue_cloud_stacks2`: "Toxic Fog" (rare) — +2 stacks per cloud tick
-- `rogue_cloud_dur1`: "Lingering Cloud" (uncommon) — +3s cloud duration
+
+| ID | Title | Rarity | Modifiers / OnAcquire |
+|----|-------|--------|-----------|
+| `rogue_cloud_unlock` | Poison Cloud | rare | `modifiers: [], onAcquire: () => gameState.unlockPoisonCloud()` |
+| `rogue_cloud_cd1` | Quick Deploy | uncommon | `[{ stat: 'poisonCloudCooldownReduction', value: 2000 }]` |
+| `rogue_cloud_cd2` | Rapid Deployment | rare | `[{ stat: 'poisonCloudCooldownReduction', value: 3000 }]` |
+
+Note: `poisonCloudCooldownReduction` needs to be added to PlayerStats (default 0).
 
 **Additional Finisher Cards:**
-- `rogue_finisher1`: "Backstab" (rare) — +3% execute chance when enemy has 5+ poison stacks
-- `rogue_finisher2`: "Assassinate" (epic) — +5% execute chance when enemy has 10+ poison stacks
+
+| ID | Title | Rarity | Modifiers |
+|----|-------|--------|-----------|
+| `rogue_finisher1` | Backstab | rare | `[{ stat: 'executeChance', value: 0.03 }]` |
+| `rogue_finisher2` | Assassinate | epic | `[{ stat: 'executeChance', value: 0.05 }]` |
 
 **Legendary:**
-- `rogue_legendary`: "Shadow Master" (legendary) — Unlock Poison Cloud + -5s cooldown + +3 stacks per tick
+- `rogue_legendary`: `modifiers: [{ stat: 'poisonCloudCooldownReduction', value: 5000 }], onAcquire: () => gameState.unlockPoisonCloud()`
 
-**Total new rogue cards: ~9**
+**Total new rogue cards: ~6**
 
 **Tests:** Verify all new cards have `classRestriction: 'rogue'` and expected count.
 
@@ -765,17 +855,12 @@ Note: Many rogue cards already exist from the reclassification in Plan 2 (poison
 
 **Step 1:** Add `<svelte:window onkeydown={handleKeydown} />` handler:
 
+Note: Spacebar attack is already handled by Plan 0's `onkeydown`/`onkeyup` on the BattleArea enemy div. This task only adds Mage and Rogue ability bindings.
+
 ```typescript
 function handleKeydown(e: KeyboardEvent) {
 	// Don't handle keys when modals are open
 	if (gameState.activeEvent) return;
-
-	// Space = attack (all classes)
-	if (e.key === ' ') {
-		e.preventDefault();
-		gameState.attack();
-		return;
-	}
 
 	// Mage element casting
 	if (gameState.currentClass === 'mage') {
@@ -802,7 +887,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 Detect desktop vs mobile: use `matchMedia('(hover: hover)')` or similar.
 
-**Commit:** `feat: add keyboard shortcuts (Q/W/E/Space) for class abilities`
+**Commit:** `feat: add keyboard shortcuts (Q/W/E) for class abilities`
 
 ---
 
@@ -814,7 +899,7 @@ Detect desktop vs mobile: use `matchMedia('(hover: hover)')` or similar.
 - Modify: `src/lib/components/RogueUI.svelte`
 
 Per the design doc:
-- **Desktop:** Class ability buttons in a fixed action bar at the bottom of the screen (MOBA-style). Keyboard shortcuts Q, W, E, R.
+- **Desktop:** Class ability buttons in a fixed action bar at the bottom of the screen (MOBA-style). Keyboard shortcuts Q, W, E.
 - **Mobile:** Class ability buttons directly below the enemy sprite for easy thumb access.
 - **Warrior:** No ability buttons — weapon roulette display and combo counter are passive UI elements near the enemy.
 
@@ -833,9 +918,9 @@ Ensure `loadGame()` handles saves that don't have:
 - `warriorWeapons` (default `['knife']`)
 - `mana` (default `0`)
 - `poisonCloudUnlocked` (default `false`)
-- New PlayerStats fields: `magic`, `maxMana`, `manaPerTap`, `manaCostReduction` (merged via `{ ...createDefaultStats(), ...data.playerStats }`)
+- New PlayerStats fields: `magic`, `maxMana`, `manaPerTap`, `manaCostReduction`, `comboPayoffMultiplier`, `elementDurationBonus`, `comboDamageMultiplier`, `poisonCloudCooldownReduction` (all handled by stat pipeline — base defaults apply when no upgrades modify them)
 
-All backward-compatible — old saves work without errors.
+All backward-compatible — old saves work without errors because the stat pipeline derives values from base stats + acquired upgrade IDs.
 
 **Run:** `bun test`
 
@@ -850,7 +935,7 @@ All backward-compatible — old saves work without errors.
 
 ```typescript
 {
-	version: '0.30.0', // Check actual current version
+	version: '0.31.0',
 	date: '2026-01-31',
 	changes: [
 		{ category: 'new', description: 'Added Warrior weapon roulette with combo payoffs for each weapon type' },
@@ -871,31 +956,30 @@ All backward-compatible — old saves work without errors.
 ```
 Phase 1: Warrior
 ├─ Task 1.1  Warrior engine (pure logic + tests)
-├─ Task 1.2  Warrior state integration
+├─ Task 1.2  Warrior state integration (no separate cooldown — uses attack speed)
 ├─ Task 1.3  Warrior battle UI
-└─ Task 1.4  Warrior upgrade cards
+└─ Task 1.4  Warrior upgrade cards (with onAcquire for weapon unlocks)
 
 Phase 2: Mage
 ├─ Task 2.1  Mage engine (pure logic + tests)
 ├─ Task 2.2  Mage stats (magic, mana)
-├─ Task 2.3  Mage state integration
+├─ Task 2.3  Mage state integration (timer registry + stat pipeline transients)
 ├─ Task 2.4  Mage battle UI
 └─ Task 2.5  Mage upgrade cards
 
 Phase 3: Rogue
 ├─ Task 3.1  Rogue engine (pure logic + tests)
-├─ Task 3.2  Rogue state integration
+├─ Task 3.2  Rogue state integration (timer registry for cloud)
 ├─ Task 3.3  Rogue battle UI
-└─ Task 3.4  Rogue upgrade cards
+└─ Task 3.4  Rogue upgrade cards (with onAcquire for cloud unlock)
 
 Phase 4: Cross-Class Polish
-├─ Task 4.1  Keyboard shortcuts
+├─ Task 4.1  Keyboard shortcuts (Mage Q/W/E, Rogue Q — space already handled by Plan 0)
 ├─ Task 4.2  Responsive ability UI layout
 ├─ Task 4.3  Save migration
 └─ Task 4.4  Changelog
 ```
 
-**Note:** Phases 1-3 are independent of each other and can be implemented in any order (or parallelized). Phase 4 depends on all three being complete.
+**Note:** Phases 1-3 are independent of each other and can be implemented in any order (or parallelised). Phase 4 depends on all three being complete.
 
 **Total tasks: 17**
-**Total commits: ~17**
