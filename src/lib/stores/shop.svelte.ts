@@ -70,7 +70,13 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		for (const upgradeId of purchasedUpgrades) {
 			const upgrade = allUpgrades.find((u) => u.id === upgradeId);
 			if (upgrade) {
-				upgrade.apply(stats);
+				for (const mod of upgrade.modifiers) {
+					if (mod.stat === 'overkill') {
+						(stats as any)[mod.stat] = true;
+					} else {
+						(stats as any)[mod.stat] += mod.value;
+					}
+				}
 				updated = new Set([...updated, upgrade.id]);
 			}
 		}

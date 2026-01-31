@@ -63,7 +63,7 @@
 									title={upgrade.title}
 									rarity={upgrade.rarity}
 									image={upgrade.image}
-									stats={upgrade.stats}
+									modifiers={upgrade.modifiers}
 								/>
 							</div>
 						</div>
@@ -88,7 +88,7 @@
 									title={upgrade.title}
 									rarity={upgrade.rarity}
 									image={upgrade.image}
-									stats={upgrade.stats}
+									modifiers={upgrade.modifiers}
 								/>
 							</div>
 						</div>

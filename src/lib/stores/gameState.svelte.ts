@@ -5,7 +5,7 @@ import { createPersistence } from './persistence.svelte';
 import { createEnemy } from './enemy.svelte';
 import { createLeveling } from './leveling.svelte';
 import { createShop } from './shop.svelte';
-import { createDefaultStats } from '$lib/engine/stats';
+import { createDefaultStats, statRegistry } from '$lib/engine/stats';
 import { calculateAttack, calculatePoison } from '$lib/engine/combat';
 import {
 	BASE_BOSS_TIME,
@@ -205,35 +205,31 @@ function createGameState() {
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
-		upgrade.apply(playerStats);
+		// Apply modifiers directly to playerStats (temporary until pipeline wired in Task 0.6)
+		for (const mod of upgrade.modifiers) {
+			if (mod.stat === 'overkill') {
+				(playerStats as any)[mod.stat] = true;
+			} else {
+				(playerStats as any)[mod.stat] += mod.value;
+			}
+		}
+		if (upgrade.onAcquire) upgrade.onAcquire();
 
 		// Track unlocked upgrades for collection
 		unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
 
-		// Track special effects
-		const hasSpecialEffect = upgrade.stats.some(
-			(s) =>
-				s.label.includes('Crit') ||
-				s.label.includes('XP') ||
-				s.label.includes('Poison') ||
-				s.label.includes('Stacks') ||
-				s.label.includes('Duration') ||
-				s.label.includes('Multi') ||
-				s.label.includes('Execute') ||
-				s.label.includes('Overkill') ||
-				s.label.includes('Timer') ||
-				s.label.includes('Lucky') ||
-				s.label.includes('Chest') ||
-				s.label.includes('Boss Chest') ||
-				s.label.includes('Gold')
-		);
-
-		if (hasSpecialEffect) {
+		// Track special effects — derive from modifiers + statRegistry
+		if (upgrade.modifiers.length > 0) {
 			const effectName = upgrade.title;
 			if (!effects.find((e) => e.name === effectName)) {
 				effects.push({
 					name: effectName,
-					description: upgrade.stats.map((s) => `${s.label} ${s.value}`).join(', ')
+					description: upgrade.modifiers
+						.map((m) => {
+							const entry = statRegistry.find((s) => s.key === m.stat);
+							return entry ? `${entry.label} ${entry.format(m.value)}` : `${m.stat} +${m.value}`;
+						})
+						.join(', ')
 				});
 			}
 		}

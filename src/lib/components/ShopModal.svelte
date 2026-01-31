@@ -55,7 +55,7 @@
 							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : isGoldPerKill ? `${upgrade.title} (Lv.${goldPerKillLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
-							stats={upgrade.stats}
+							modifiers={upgrade.modifiers}
 						/>
 						<Button.Root
 							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
@@ -84,7 +84,7 @@
 							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : isGoldPerKill ? `${upgrade.title} (Lv.${goldPerKillLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
-							stats={upgrade.stats}
+							modifiers={upgrade.modifiers}
 						/>
 						<Button.Root
 							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"

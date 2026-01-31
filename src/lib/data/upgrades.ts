@@ -1,4 +1,5 @@
-import type { Upgrade } from '$lib/types';
+import type { Upgrade, StatModifier } from '$lib/types';
+import { statRegistry } from '$lib/engine/stats';
 
 // Card images
 import swordImg from '$lib/assets/images/cards/sword.png';
@@ -446,6 +447,12 @@ export const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
 
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
 export const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
+
+export function getModifierDisplay(mod: StatModifier): { icon: string; label: string; value: string } {
+	const entry = statRegistry.find((s) => s.key === mod.stat);
+	if (!entry) return { icon: '', label: mod.stat, value: `+${mod.value}` };
+	return { icon: entry.icon, label: entry.label, value: entry.format(mod.value) };
+}
 
 const upgradeMap = new Map<string, Upgrade>(allUpgrades.map((u) => [u.id, u]));
 

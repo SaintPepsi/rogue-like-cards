@@ -13,7 +13,8 @@ vi.mock('$lib/assets/images/cards/coins.png', () => ({ default: '' }));
 vi.mock('$lib/assets/images/cards/hammer.png', () => ({ default: '' }));
 vi.mock('$lib/assets/images/cards/pickaxe.png', () => ({ default: '' }));
 
-const { getRandomUpgrades, getUpgradeById, allUpgrades, EXECUTE_CHANCE_BASE_CAP } = await import('./upgrades');
+const { getRandomUpgrades, getUpgradeById, allUpgrades, EXECUTE_CHANCE_BASE_CAP, getModifierDisplay } = await import('./upgrades');
+const { createDefaultStats } = await import('$lib/engine/stats');
 
 describe('getUpgradeById', () => {
 	test('returns the correct upgrade for a valid ID', () => {
@@ -141,5 +142,42 @@ describe('getRandomUpgrades', () => {
 
 		// With max lucky chance, rare+ cards should appear more often
 		expect(rareCountHighLuck).toBeGreaterThan(rareCountNoLuck);
+	});
+});
+
+describe('upgrade card modifiers', () => {
+	test('every card has at least one modifier (except shop-only cards)', () => {
+		for (const card of allUpgrades) {
+			expect(card.modifiers.length, `${card.id} has no modifiers`).toBeGreaterThan(0);
+		}
+	});
+
+	test('all modifier stats reference valid PlayerStats keys', () => {
+		const validKeys = Object.keys(createDefaultStats());
+		for (const card of allUpgrades) {
+			for (const mod of card.modifiers) {
+				expect(validKeys, `${card.id} references unknown stat: ${mod.stat}`).toContain(mod.stat);
+			}
+		}
+	});
+
+	test('no card has apply() or stats[] property', () => {
+		for (const card of allUpgrades) {
+			expect((card as any).apply, `${card.id} still has apply()`).toBeUndefined();
+			expect((card as any).stats, `${card.id} still has stats[]`).toBeUndefined();
+		}
+	});
+
+	test('getModifierDisplay returns display info for known stats', () => {
+		const display = getModifierDisplay({ stat: 'damage', value: 5 });
+		expect(display.icon).toBeTruthy();
+		expect(display.label).toBe('Damage');
+		expect(display.value).toBeTruthy();
+	});
+
+	test('getModifierDisplay handles unknown stats gracefully', () => {
+		const display = getModifierDisplay({ stat: 'unknownStat' as any, value: 3 });
+		expect(display.label).toBe('unknownStat');
+		expect(display.value).toBe('+3');
 	});
 });

@@ -32,7 +32,7 @@
 								title={isUnlocked ? upgrade.title : '???'}
 								rarity={upgrade.rarity}
 								image={upgrade.image}
-								stats={isUnlocked ? upgrade.stats : []}
+								modifiers={isUnlocked ? upgrade.modifiers : []}
 							/>
 							{#if !isUnlocked}
 								<div class="lock-overlay">
