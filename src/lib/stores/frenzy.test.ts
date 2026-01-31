@@ -64,7 +64,7 @@ describe('frenzy stack decay', () => {
 		expect(frenzyCount).toBe(0);
 	});
 
-	test('stack multiplier adds multiple stacks per tap', () => {
+	test('stack multiplier adds multiple stacks per tap with single timer', () => {
 		const timers = createTimerRegistry();
 		let frenzyCount = 0;
 		let frenzyId = 0;
@@ -72,29 +72,27 @@ describe('frenzy stack decay', () => {
 
 		function addFrenzyStack(duration: number) {
 			const stacksToAdd = Math.floor(stackMultiplier);
-			for (let i = 0; i < stacksToAdd; i++) {
-				frenzyId++;
-				frenzyCount++;
-				const id = frenzyId;
-				timers.register(`frenzy_${id}`, {
-					remaining: duration,
-					onExpire: () => {
-						frenzyCount = Math.max(0, frenzyCount - 1);
-					}
-				});
-			}
+			frenzyId++;
+			frenzyCount += stacksToAdd;
+			const id = frenzyId;
+			timers.register(`frenzy_${id}`, {
+				remaining: duration,
+				onExpire: () => {
+					frenzyCount = Math.max(0, frenzyCount - stacksToAdd);
+				}
+			});
 		}
 
 		// Single tap with 3x multiplier should add 3 stacks
 		addFrenzyStack(3000);
 		expect(frenzyCount).toBe(3);
 
-		// All 3 stacks expire together after duration
+		// All 3 stacks expire together after duration (single timer)
 		timers.tick(3000);
 		expect(frenzyCount).toBe(0);
 	});
 
-	test('stack multiplier stacks decay independently', () => {
+	test('stack multiplier batches decay independently per tap', () => {
 		const timers = createTimerRegistry();
 		let frenzyCount = 0;
 		let frenzyId = 0;
@@ -102,17 +100,15 @@ describe('frenzy stack decay', () => {
 
 		function addFrenzyStack(duration: number) {
 			const stacksToAdd = Math.floor(stackMultiplier);
-			for (let i = 0; i < stacksToAdd; i++) {
-				frenzyId++;
-				frenzyCount++;
-				const id = frenzyId;
-				timers.register(`frenzy_${id}`, {
-					remaining: duration,
-					onExpire: () => {
-						frenzyCount = Math.max(0, frenzyCount - 1);
-					}
-				});
-			}
+			frenzyId++;
+			frenzyCount += stacksToAdd;
+			const id = frenzyId;
+			timers.register(`frenzy_${id}`, {
+				remaining: duration,
+				onExpire: () => {
+					frenzyCount = Math.max(0, frenzyCount - stacksToAdd);
+				}
+			});
 		}
 
 		// Tap 1: 2 stacks at t=0
@@ -124,11 +120,11 @@ describe('frenzy stack decay', () => {
 		addFrenzyStack(3000);
 		expect(frenzyCount).toBe(4);
 
-		// At t=3000, first 2 stacks expire
+		// At t=3000, first batch of 2 stacks expires
 		timers.tick(2000);
 		expect(frenzyCount).toBe(2);
 
-		// At t=4000, second 2 stacks expire
+		// At t=4000, second batch of 2 stacks expires
 		timers.tick(1000);
 		expect(frenzyCount).toBe(0);
 	});

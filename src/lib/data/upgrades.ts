@@ -461,6 +461,47 @@ export const allUpgrades: Upgrade[] = [
 		rarity: 'rare',
 		image: fireImg,
 		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]
+	},
+
+	// === FRENZY DURATION ===
+	{
+		id: 'frenzydur1',
+		title: 'Adrenaline Rush',
+		rarity: 'uncommon',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 1 }]
+	},
+	{
+		id: 'frenzydur2',
+		title: 'Sustained Fury',
+		rarity: 'rare',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 2 }]
+	},
+	{
+		id: 'frenzydur3',
+		title: 'Relentless Rage',
+		rarity: 'epic',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 3 }, { stat: 'tapFrenzyBonus', value: 0.03 }]
+	},
+
+	// === FRENZY BONUS (Epic capstone) ===
+	{
+		id: 'frenzy3',
+		title: 'Bloodlust',
+		rarity: 'epic',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.08 }, { stat: 'attackSpeed', value: 0.3 }]
+	},
+
+	// === FRENZY LEGENDARY ===
+	{
+		id: 'frenzylegendary1',
+		title: 'GOTTA GO FAST',
+		rarity: 'legendary',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyStackMultiplier', value: 2 }]
 	}
 ];
 

@@ -130,9 +130,10 @@ describe('stat pipeline integration', () => {
 		}
 	});
 
-	test('all frenzy cards have valid tapFrenzyBonus modifier', () => {
-		const frenzyCards = allUpgrades.filter((u) => u.id.startsWith('frenzy'));
-		expect(frenzyCards.length).toBeGreaterThanOrEqual(2);
+	test('frenzy bonus cards have valid tapFrenzyBonus modifier', () => {
+		const frenzyBonusIds = ['frenzy1', 'frenzy2', 'frenzy3'];
+		const frenzyCards = allUpgrades.filter((u) => frenzyBonusIds.includes(u.id));
+		expect(frenzyCards.length).toBe(3);
 
 		for (const card of frenzyCards) {
 			const frenzyMod = card.modifiers.find((m) => m.stat === 'tapFrenzyBonus');

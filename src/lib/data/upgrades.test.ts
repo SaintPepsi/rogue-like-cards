@@ -181,3 +181,40 @@ describe('upgrade card modifiers', () => {
 		expect(display.value).toBe('+3');
 	});
 });
+
+describe('frenzy upgrade cards', () => {
+	const frenzyIds = ['frenzy1', 'frenzy2', 'frenzy3', 'frenzydur1', 'frenzydur2', 'frenzydur3', 'frenzylegendary1'];
+
+	test('all frenzy cards exist', () => {
+		for (const id of frenzyIds) {
+			expect(getUpgradeById(id), `${id} not found`).toBeDefined();
+		}
+	});
+
+	test('frenzy cards have correct rarities', () => {
+		expect(getUpgradeById('frenzydur1')!.rarity).toBe('uncommon');
+		expect(getUpgradeById('frenzydur2')!.rarity).toBe('rare');
+		expect(getUpgradeById('frenzydur3')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy3')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzylegendary1')!.rarity).toBe('legendary');
+	});
+
+	test('GOTTA GO FAST modifies tapFrenzyStackMultiplier', () => {
+		const card = getUpgradeById('frenzylegendary1')!;
+		const stackMod = card.modifiers.find(m => m.stat === 'tapFrenzyStackMultiplier');
+		expect(stackMod).toBeDefined();
+		expect(stackMod!.value).toBe(2);
+	});
+
+	test('frenzy cards are always available (no filtering)', () => {
+		let foundFrenzyNew = false;
+		for (let i = 0; i < 500; i++) {
+			const result = getRandomUpgrades(10, 1.0, EXECUTE_CHANCE_BASE_CAP, EXECUTE_CHANCE_BASE_CAP, 0);
+			if (result.some(u => frenzyIds.includes(u.id))) {
+				foundFrenzyNew = true;
+				break;
+			}
+		}
+		expect(foundFrenzyNew).toBe(true);
+	});
+});
