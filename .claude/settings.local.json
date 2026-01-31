@@ -1,19 +1,27 @@
 {
-	"permissions": {
-		"allow": [
-			"Bash(git add:*)",
-			"Bash(git commit:*)",
-			"Bash(git branch:*)",
-			"Bash(git checkout:*)",
-			"Bash(git push:*)",
-			"Bash(git init:*)",
-			"Bash(gh repo create:*)",
-			"Bash(gh repo edit:*)",
-			"Bash(bun run test:unit:*)",
-			"Bash(bun run check:*)",
-			"Bash(bun test:*)"
-		]
-	},
-	"enableAllProjectMcpServers": true,
-	"enabledMcpjsonServers": ["svelte"]
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git push:*)",
+      "Bash(git init:*)",
+      "Bash(gh repo create:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(bun run test:unit:*)",
+      "Bash(bun run check:*)",
+      "Bash(bun test:*)",
+      "Bash(npm run test:unit:*)",
+      "Bash(npx playwright install:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npm run dev:*)",
+      "Bash(bun install:*)",
+      "Bash(bun run test:e2e:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "svelte"
+  ]
 }
