@@ -164,7 +164,7 @@
 				gold={gameState.gold}
 				goldDrops={gameState.goldDrops}
 				hits={gameState.hits}
-				poisonStacks={gameState.poisonStacks.length}
+				poisonStacks={gameState.poisonStacks}
 				onPointerDown={gameState.pointerDown}
 				onPointerUp={gameState.pointerUp}
 				frenzyStacks={gameState.frenzyStacks}

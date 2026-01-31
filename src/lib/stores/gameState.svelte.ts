@@ -38,6 +38,10 @@ function createGameState() {
 	// UI state
 	let showGameOver = $state(false);
 
+	// Reactive poison stack count — pipeline.getSystemState() reads from a plain Map
+	// which Svelte can't track, so we sync this after every pipeline mutation.
+	let poisonStackCount = $state(0);
+
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
@@ -110,6 +114,11 @@ function createGameState() {
 		return showGameOver || leveling.hasActiveEvent;
 	}
 
+	function syncPoisonStacks() {
+		const state = pipeline.getSystemState<{ stacks: number[] }>('poison');
+		poisonStackCount = state?.stacks?.length ?? 0;
+	}
+
 	function dealDamage(damage: number, hits: HitInfo[]) {
 		enemy.takeDamage(damage);
 		ui.addHits(hits);
@@ -151,6 +160,7 @@ function createGameState() {
 
 		enemy.setOverkillDamage(result.overkillDamageOut);
 		dealDamage(result.totalDamage, newHits);
+		syncPoisonStacks();
 	}
 
 	function tickSystems() {
@@ -169,6 +179,7 @@ function createGameState() {
 				index: 0,
 			}]);
 		}
+		syncPoisonStacks();
 	}
 
 	let killingEnemy = false;
@@ -187,6 +198,7 @@ function createGameState() {
 				isBossChest: enemy.isBossChest,
 				stage: enemy.stage,
 			});
+			syncPoisonStacks();
 
 			if (enemy.isChest) {
 				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
@@ -475,8 +487,7 @@ function createGameState() {
 			return ui.hits;
 		},
 		get poisonStacks() {
-			const poisonState = pipeline.getSystemState<{ stacks: number[] }>('poison');
-			return poisonState?.stacks ?? [];
+			return poisonStackCount;
 		},
 		get gold() {
 			return gold;
