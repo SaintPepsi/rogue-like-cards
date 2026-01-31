@@ -46,7 +46,12 @@ export type StatEntry = {
 	key: keyof PlayerStats;
 	icon: string;
 	label: string;
+	// format: displays the total stat value (e.g. 1.5 → "+50%")
 	format: (value: number | boolean) => string;
+	// formatMod: displays the modifier delta on upgrade cards (e.g. 0.5 → "+50%")
+	// Falls back to format when absent. Needed for stats where the base is non-zero
+	// (multipliers with base 1) so the delta formatter differs from the total formatter.
+	formatMod?: (value: number | boolean) => string;
 	colorClass?: string;
 	alwaysShow?: boolean;
 };
@@ -61,9 +66,9 @@ const plusSec = (v: number | boolean) => `+${v}s`;
 // UI display concern colocated with stat defaults for convenience — both change together when stats are added/removed.
 export const statRegistry: StatEntry[] = [
 	{ key: 'damage', icon: '⚔️', label: 'Damage', format: num, alwaysShow: true },
-	{ key: 'damageMultiplier', icon: '⚔️', label: 'Damage Bonus', format: bonusPct },
+	{ key: 'damageMultiplier', icon: '⚔️', label: 'Damage Bonus', format: bonusPct, formatMod: plusPct },
 	{ key: 'critChance', icon: '🎯', label: 'Crit Chance', format: pct },
-	{ key: 'critMultiplier', icon: '💥', label: 'Crit Damage', format: (v) => `${(v as number).toFixed(1)}x` },
+	{ key: 'critMultiplier', icon: '💥', label: 'Crit Damage', format: (v) => `${(v as number).toFixed(1)}x`, formatMod: (v) => `+${(v as number).toFixed(1)}x` },
 	{ key: 'poison', icon: '☠️', label: 'Poison', format: (v) => `${formatNumber(v as number)}/stack`, colorClass: 'poison' },
 	{ key: 'poisonMaxStacks', icon: '🧪', label: 'Max Stacks', format: (v) => `${v}`, colorClass: 'poison' },
 	{ key: 'poisonDuration', icon: '🕐', label: 'Duration', format: (v) => `${v}s`, colorClass: 'poison' },
@@ -71,14 +76,14 @@ export const statRegistry: StatEntry[] = [
 	{ key: 'multiStrike', icon: '⚡', label: 'Multi-Strike', format: plusNum },
 	{ key: 'executeChance', icon: '⚰️', label: 'Execute', format: pct },
 	{ key: 'overkill', icon: '💀', label: 'Overkill', format: () => 'Active' },
-	{ key: 'xpMultiplier', icon: '✨', label: 'XP Bonus', format: bonusPct },
+	{ key: 'xpMultiplier', icon: '✨', label: 'XP Bonus', format: bonusPct, formatMod: plusPct },
 	{ key: 'bonusBossTime', icon: '⏱️', label: 'Boss Time', format: plusSec },
 	{ key: 'luckyChance', icon: '🍀', label: 'Lucky', format: plusPct },
 	{ key: 'chestChance', icon: '📦', label: 'Chest Chance', format: pct },
 	{ key: 'bossChestChance', icon: '👑', label: 'Boss Chest', format: pct },
 	{ key: 'goldDropChance', icon: '🪙', label: 'Gold Drop', format: pct, colorClass: 'gold' },
 	{ key: 'goldPerKill', icon: '💵', label: 'Gold/Kill', format: plusNum, colorClass: 'gold' },
-	{ key: 'goldMultiplier', icon: '🏆', label: 'Gold Bonus', format: bonusPct, colorClass: 'gold' },
+	{ key: 'goldMultiplier', icon: '🏆', label: 'Gold Bonus', format: bonusPct, formatMod: plusPct, colorClass: 'gold' },
 	{ key: 'greed', icon: '💰', label: 'Greed', format: plusPct, colorClass: 'greed' },
 	{ key: 'attackSpeed', icon: '🗡️', label: 'Attack Speed', format: (v) => `${(v as number).toFixed(2)}/s`, alwaysShow: true },
 	{ key: 'tapFrenzyBonus', icon: '✨', label: 'Frenzy Bonus', format: plusPct },

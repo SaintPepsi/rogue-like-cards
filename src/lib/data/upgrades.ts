@@ -487,7 +487,8 @@ export const EXECUTE_CHANCE_BASE_CAP = 0.1;
 export function getModifierDisplay(mod: StatModifier): { icon: string; label: string; value: string } {
 	const entry = statRegistry.find((s) => s.key === mod.stat);
 	if (!entry) return { icon: '', label: mod.stat, value: `+${mod.value}` };
-	return { icon: entry.icon, label: entry.label, value: entry.format(mod.value) };
+	const formatter = entry.formatMod ?? entry.format;
+	return { icon: entry.icon, label: entry.label, value: formatter(mod.value) };
 }
 
 // PERFORMANCE: Map for O(1) lookup by ID — called on every save/load and upgrade acquisition

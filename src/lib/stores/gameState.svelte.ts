@@ -266,7 +266,8 @@ function createGameState() {
 					description: upgrade.modifiers
 						.map((m) => {
 							const entry = statRegistry.find((s) => s.key === m.stat);
-							return entry ? `${entry.label} ${entry.format(m.value)}` : `${m.stat} +${m.value}`;
+							const fmt = entry ? (entry.formatMod ?? entry.format) : null;
+							return fmt ? `${entry!.label} ${fmt(m.value)}` : `${m.stat} +${m.value}`;
 						})
 						.join(', ')
 				});
