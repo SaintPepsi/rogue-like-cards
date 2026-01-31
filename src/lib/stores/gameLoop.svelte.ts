@@ -23,7 +23,7 @@ export function createGameLoop() {
 	// Callbacks (set by gameState during start())
 	let callbacks = {
 		onAttack: () => {},
-		onPoisonTick: () => {},
+		onSystemTick: () => {},
 		onBossExpired: () => {},
 		onFrenzyChanged: (_count: number) => {}
 	};
@@ -93,7 +93,7 @@ export function createGameLoop() {
 
 	function start(cbs: {
 		onAttack: () => void;
-		onPoisonTick: () => void;
+		onSystemTick: () => void;
 		onBossExpired: () => void;
 		onFrenzyChanged?: (count: number) => void;
 		getAttackSpeed: () => number;
@@ -102,7 +102,7 @@ export function createGameLoop() {
 	}) {
 		callbacks = {
 			onAttack: cbs.onAttack,
-			onPoisonTick: cbs.onPoisonTick,
+			onSystemTick: cbs.onSystemTick,
 			onBossExpired: cbs.onBossExpired,
 			onFrenzyChanged: cbs.onFrenzyChanged ?? (() => {})
 		};
@@ -110,10 +110,10 @@ export function createGameLoop() {
 		getTapFrenzyBonus = cbs.getTapFrenzyBonus;
 		getTapFrenzyDuration = cbs.getTapFrenzyDuration;
 
-		// Register poison tick (repeating 1000ms)
-		timers.register('poison_tick', {
+		// Register system tick (repeating 1000ms) — runs all pipeline onTick handlers
+		timers.register('system_tick', {
 			remaining: 1000,
-			onExpire: () => callbacks.onPoisonTick(),
+			onExpire: () => callbacks.onSystemTick(),
 			repeat: 1000
 		});
 

@@ -98,6 +98,14 @@ function createGameState() {
 		return showGameOver || leveling.hasActiveEvent;
 	}
 
+	function dealDamage(damage: number, hits: HitInfo[]) {
+		enemy.takeDamage(damage);
+		ui.addHits(hits);
+		if (enemy.isDead()) {
+			killEnemy();
+		}
+	}
+
 	function attack() {
 		if (isModalOpen() || enemy.isDead()) return;
 
@@ -131,15 +139,10 @@ function createGameState() {
 		});
 
 		enemy.setOverkillDamage(result.overkillDamageOut);
-		enemy.takeDamage(result.totalDamage);
-		ui.addHits(newHits);
-
-		if (enemy.isDead()) {
-			killEnemy();
-		}
+		dealDamage(result.totalDamage, newHits);
 	}
 
-	function applyPoison() {
+	function tickSystems() {
 		if (enemy.isDead() || isModalOpen()) return;
 
 		const stats = getPipelineStats();
@@ -148,17 +151,12 @@ function createGameState() {
 		for (const tick of tickResults) {
 			if (tick.damage <= 0) continue;
 
-			enemy.takeDamage(tick.damage);
-			ui.addHits([{
+			dealDamage(tick.damage, [{
 				damage: tick.damage,
 				type: (tick.hitType ?? 'poison') as HitType,
 				id: ui.nextHitId(),
 				index: 0,
 			}]);
-		}
-
-		if (enemy.isDead()) {
-			killEnemy();
 		}
 	}
 
@@ -381,7 +379,7 @@ function createGameState() {
 
 		gameLoop.start({
 			onAttack: attack,
-			onPoisonTick: applyPoison,
+			onSystemTick: tickSystems,
 			onBossExpired: handleBossExpired,
 			onFrenzyChanged: (count) => {
 				statPipeline.removeTransient('frenzy');
@@ -428,7 +426,7 @@ function createGameState() {
 
 		gameLoop.start({
 			onAttack: attack,
-			onPoisonTick: applyPoison,
+			onSystemTick: tickSystems,
 			onBossExpired: handleBossExpired,
 			onFrenzyChanged: (count) => {
 				statPipeline.removeTransient('frenzy');

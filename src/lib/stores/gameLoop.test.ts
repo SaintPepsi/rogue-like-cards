@@ -54,7 +54,7 @@ describe('game loop integration', () => {
 			});
 		}
 
-		timers.register('poison_tick', {
+		timers.register('system_tick', {
 			remaining: 1000,
 			repeat: 1000,
 			onExpire: () => {
