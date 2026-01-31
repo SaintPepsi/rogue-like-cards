@@ -13,6 +13,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.29.0',
+		date: '2026-01-31',
+		changes: [
+			{ category: 'new', description: 'Added layered stat pipeline for cleaner stat computation with base, permanent, class, and transient layers' },
+			{ category: 'new', description: 'Added timer-driven game loop with requestAnimationFrame for smooth attack timing' },
+			{ category: 'new', description: 'Added hold-to-auto-attack and tap frenzy mechanics with visual frenzy indicator' },
+			{ category: 'new', description: 'Added 5 new upgrade cards for attack speed and frenzy bonuses' },
+			{ category: 'changed', description: 'Redesigned upgrade cards to use declarative stat modifiers instead of imperative apply functions' }
+		]
+	},
+	{
 		version: '0.28.0',
 		date: '2026-01-30',
 		changes: [
