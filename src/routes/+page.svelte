@@ -19,6 +19,7 @@
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
 	let showSettingsModal = $state(false);
+	let showGiveUpConfirm = $state(false);
 
 	// Upgrade slot management for crossfade transitions
 	interface UpgradeSlot {
@@ -109,6 +110,11 @@
 	<header>
 		<h1>Rogue Arena</h1>
 		<div class="header-buttons">
+			{#if !gameState.showGameOver}
+				<Button.Root class="flex items-center justify-center h-[38px] px-3 border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(239,68,68,0.15)] text-[#f87171] border-[rgba(239,68,68,0.3)] hover:bg-[rgba(239,68,68,0.3)] hover:text-white text-sm font-semibold" onclick={() => showGiveUpConfirm = true} title="Give Up">
+					Give Up
+				</Button.Root>
+			{/if}
 			<Button.Root class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(139,92,246,0.2)] text-[#a78bfa] border-[rgba(139,92,246,0.3)] hover:bg-[rgba(139,92,246,0.35)] hover:text-white" onclick={() => showUpgradesModal = true} title="Upgrades">
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -207,7 +213,6 @@
 		show={gameState.showShop}
 		gold={gameState.persistentGold}
 		choices={gameState.shopChoices}
-		purchasedUpgrades={gameState.purchasedUpgrades}
 		executeCapLevel={gameState.executeCapLevel}
 		goldPerKillLevel={gameState.goldPerKillLevel}
 		getPrice={gameState.getCardPrice}
@@ -233,6 +238,19 @@
 		onOpenChangelog={() => showChangelogModal = true}
 		onReset={gameState.fullReset}
 	/>
+
+	{#if showGiveUpConfirm}
+		<div class="confirm-overlay">
+			<div class="confirm-dialog">
+				<h3>Give Up?</h3>
+				<p>Your current run will end and gold will be deposited to the shop.</p>
+				<div class="confirm-buttons">
+					<Button.Root class="py-2.5 px-6 bg-[#374151] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]" onclick={() => showGiveUpConfirm = false}>Cancel</Button.Root>
+					<Button.Root class="py-2.5 px-6 bg-linear-to-r from-[#dc2626] to-[#ef4444] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(239,68,68,0.4)]" onclick={() => { showGiveUpConfirm = false; gameState.giveUp(); }}>Give Up</Button.Root>
+				</div>
+			</div>
+		</div>
+	{/if}
 
 	<footer>
 		<p>
@@ -434,6 +452,42 @@
 		bottom: 16px;
 		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.4);
+	}
+
+	.confirm-overlay {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.7);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 200;
+	}
+
+	.confirm-dialog {
+		background: #1a1a2e;
+		padding: 32px;
+		border-radius: 16px;
+		text-align: center;
+		max-width: 400px;
+	}
+
+	.confirm-dialog h3 {
+		margin: 0 0 12px;
+		font-size: 1.4rem;
+		color: #f87171;
+	}
+
+	.confirm-dialog p {
+		margin: 0 0 24px;
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 0.95rem;
+	}
+
+	.confirm-buttons {
+		display: flex;
+		justify-content: center;
+		gap: 12px;
 	}
 
 	@media (max-width: 768px) {

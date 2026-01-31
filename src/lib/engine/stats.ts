@@ -77,7 +77,7 @@ export const statRegistry: StatEntry[] = [
 	{ key: 'poisonCritChance', icon: '💀', label: 'Poison Crit', format: asPercent, colorClass: 'poison' },
 	{ key: 'multiStrike', icon: '⚡', label: 'Multi-Strike', format: asPlusNumber },
 	{ key: 'executeChance', icon: '⚰️', label: 'Execute', format: asPercent },
-	{ key: 'overkill', icon: '💀', label: 'Overkill', format: () => 'Active' },
+	// { key: 'overkill', icon: '💀', label: 'Overkill', format: () => 'Active' }, // disabled — needs redesign
 	{ key: 'xpMultiplier', icon: '✨', label: 'XP Bonus', format: asBonusPercent, formatMod: asPlusPercent },
 	{ key: 'bonusBossTime', icon: '⏱️', label: 'Boss Time', format: asPlusSeconds },
 	{ key: 'luckyChance', icon: '🍀', label: 'Lucky', format: asPlusPercent },

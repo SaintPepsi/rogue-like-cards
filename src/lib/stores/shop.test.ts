@@ -24,7 +24,7 @@ describe('createShop', () => {
 	test('starts with zero gold and empty upgrades', () => {
 		const shop = createShop(persistence);
 		expect(shop.persistentGold).toBe(0);
-		expect(shop.purchasedUpgrades.size).toBe(0);
+		expect(shop.purchasedUpgradeIds).toEqual([]);
 		expect(shop.showShop).toBe(false);
 	});
 
@@ -87,6 +87,32 @@ describe('createShop', () => {
 		vi.useRealTimers();
 	});
 
+	test('buying same card twice increases its count and price', () => {
+		vi.useFakeTimers();
+		const shop = createShop(persistence);
+		shop.depositGold(100000);
+
+		const stats = createDefaultStats();
+		shop.open(stats);
+
+		const upgrade = shop.shopChoices[0];
+		if (upgrade.id === 'execute_cap' || upgrade.id === 'gold_per_kill') return;
+
+		const firstPrice = shop.getPrice(upgrade);
+		shop.buy(upgrade, stats);
+		vi.advanceTimersByTime(500);
+
+		const secondPrice = shop.getPrice(upgrade);
+		expect(secondPrice).toBeGreaterThan(firstPrice);
+		expect(shop.purchasedUpgradeIds.filter((id) => id === upgrade.id)).toHaveLength(1);
+
+		shop.buy(upgrade, stats);
+		vi.advanceTimersByTime(500);
+		expect(shop.purchasedUpgradeIds.filter((id) => id === upgrade.id)).toHaveLength(2);
+
+		vi.useRealTimers();
+	});
+
 	test('getPrice returns positive number', () => {
 		const shop = createShop(persistence);
 		shop.open(createDefaultStats());
@@ -99,7 +125,7 @@ describe('createShop', () => {
 		const p = mockPersistence();
 		(p.loadPersistent as ReturnType<typeof vi.fn>).mockReturnValue({
 			gold: 500,
-			purchasedUpgradeIds: ['upgrade1'],
+			purchasedUpgradeCounts: { upgrade1: 2 },
 			executeCapBonus: 0.05,
 			goldPerKillBonus: 2
 		});
@@ -108,7 +134,7 @@ describe('createShop', () => {
 		shop.load();
 
 		expect(shop.persistentGold).toBe(500);
-		expect(shop.purchasedUpgrades.has('upgrade1')).toBe(true);
+		expect(shop.purchasedUpgradeIds).toEqual(['upgrade1', 'upgrade1']);
 	});
 
 	test('fullReset clears all persistent state', () => {
@@ -117,7 +143,7 @@ describe('createShop', () => {
 
 		shop.fullReset();
 		expect(shop.persistentGold).toBe(0);
-		expect(shop.purchasedUpgrades.size).toBe(0);
+		expect(shop.purchasedUpgradeIds).toEqual([]);
 		expect(persistence.clearPersistent).toHaveBeenCalled();
 	});
 

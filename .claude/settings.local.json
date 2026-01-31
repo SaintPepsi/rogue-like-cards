@@ -35,7 +35,10 @@
       "Bash(npx vitest:*)",
       "Bash(git status:*)",
       "Skill(superpowers:writing-plans)",
-      "Bash(npx svelte-check:*)"
+      "Bash(npx svelte-check:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr edit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

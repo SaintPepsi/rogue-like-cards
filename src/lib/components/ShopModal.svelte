@@ -9,7 +9,6 @@
 		show: boolean;
 		gold: number;
 		choices: Upgrade[];
-		purchasedUpgrades: Set<string>;
 		executeCapLevel: number;
 		goldPerKillLevel: number;
 		getPrice: (upgrade: Upgrade) => number;
@@ -18,7 +17,7 @@
 		onPlayAgain: () => void;
 	};
 
-	let { show, gold, choices, purchasedUpgrades, executeCapLevel, goldPerKillLevel, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
+	let { show, gold, choices, executeCapLevel, goldPerKillLevel, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
 
 	// Track which cards are animating out/in
 	let animatingOut = $state<Set<string>>(new Set());
@@ -61,7 +60,6 @@
 					{@const isGoldPerKill = upgrade.id === 'gold_per_kill'}
 					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
-					{@const alreadyOwned = !isExecuteCap && !isGoldPerKill && purchasedUpgrades.has(upgrade.id)}
 					{@const isAnimatingOut = animatingOut.has(upgrade.id)}
 					{@const isAnimatingIn = animatingIn.has(upgrade.id)}
 					<div class="card-wrapper" class:animate-out={isAnimatingOut} class:animate-in={isAnimatingIn}>
@@ -72,15 +70,11 @@
 							modifiers={getModifiers(upgrade)}
 						/>
 						<Button.Root
-							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
-							disabled={!canAfford || alreadyOwned}
+							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
+							disabled={!canAfford}
 							onclick={() => handleBuy(upgrade)}
 						>
-							{#if alreadyOwned}
-								Owned
-							{:else}
-								Buy for {formatNumber(price)}g
-							{/if}
+							Buy for {formatNumber(price)}g
 						</Button.Root>
 					</div>
 				{/each}
@@ -91,7 +85,6 @@
 					{@const isGoldPerKill = upgrade.id === 'gold_per_kill'}
 					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
-					{@const alreadyOwned = !isExecuteCap && !isGoldPerKill && purchasedUpgrades.has(upgrade.id)}
 					{@const isAnimatingOut = animatingOut.has(upgrade.id)}
 					{@const isAnimatingIn = animatingIn.has(upgrade.id)}
 					<div class="card-wrapper" class:animate-out={isAnimatingOut} class:animate-in={isAnimatingIn}>
@@ -102,15 +95,11 @@
 							modifiers={getModifiers(upgrade)}
 						/>
 						<Button.Root
-							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
-							disabled={!canAfford || alreadyOwned}
+							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
+							disabled={!canAfford}
 							onclick={() => handleBuy(upgrade)}
 						>
-							{#if alreadyOwned}
-								Owned
-							{:else}
-								Buy for {formatNumber(price)}g
-							{/if}
+							Buy for {formatNumber(price)}g
 						</Button.Root>
 					</div>
 				{/each}

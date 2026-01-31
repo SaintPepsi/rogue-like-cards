@@ -29,7 +29,7 @@ export interface SessionSaveData {
 
 export interface PersistentSaveData {
 	gold: number;
-	purchasedUpgradeIds: string[];
+	purchasedUpgradeCounts: Record<string, number>;
 	executeCapBonus: number;
 	goldPerKillBonus: number;
 }

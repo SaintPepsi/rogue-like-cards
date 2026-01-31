@@ -216,14 +216,14 @@ const _allUpgrades = [
 		modifiers: [{ stat: 'multiStrike', value: 3 }]
 	},
 
-	// === OVERKILL ===
-	{
-		id: 'overkill_1',
-		title: 'Overkill',
-		rarity: 'rare',
-		image: hammerImg,
-		modifiers: [{ stat: 'overkill', value: 1 }]
-	},
+	// === OVERKILL === (disabled — needs redesign before release)
+	// {
+	// 	id: 'overkill_1',
+	// 	title: 'Overkill',
+	// 	rarity: 'rare',
+	// 	image: hammerImg,
+	// 	modifiers: [{ stat: 'overkill', value: 1 }]
+	// },
 
 	// === EXECUTE ===
 	{

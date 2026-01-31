@@ -105,9 +105,15 @@ function createGameState() {
 	}
 
 	function handleBossExpired() {
+		gameLoop.reset();
 		shop.depositGold(gold);
 		showGameOver = true;
 		persistence.clearSession();
+	}
+
+	function giveUp() {
+		if (showGameOver) return;
+		handleBossExpired();
 	}
 
 	// Centralized check: is the game currently paused by a modal?
@@ -341,7 +347,7 @@ function createGameState() {
 		// Restore stats via pipeline from saved upgrade IDs
 		statPipeline.setAcquiredUpgrades(data.unlockedUpgradeIds);
 		// Also apply shop purchased upgrades
-		const shopIds = [...shop.purchasedUpgrades];
+		const shopIds = shop.purchasedUpgradeIds;
 		if (shopIds.length > 0) {
 			// Combine session upgrades + shop upgrades
 			statPipeline.setAcquiredUpgrades([...data.unlockedUpgradeIds, ...shopIds]);
@@ -412,7 +418,7 @@ function createGameState() {
 	}
 
 	function applyShopUpgrades() {
-		const shopIds = [...shop.purchasedUpgrades];
+		const shopIds = shop.purchasedUpgradeIds;
 		if (shopIds.length === 0) return;
 		statPipeline.setAcquiredUpgrades(shopIds);
 		for (const id of shopIds) {
@@ -514,9 +520,6 @@ function createGameState() {
 		get persistentGold() {
 			return shop.persistentGold;
 		},
-		get purchasedUpgrades() {
-			return shop.purchasedUpgrades;
-		},
 		get showShop() {
 			return shop.showShop;
 		},
@@ -550,6 +553,7 @@ function createGameState() {
 		openNextUpgrade,
 		resetGame,
 		fullReset,
+		giveUp,
 		init,
 		openShop: () => shop.open(getEffectiveStats()),
 		closeShop: () => shop.close(),
