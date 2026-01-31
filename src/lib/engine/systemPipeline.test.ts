@@ -6,6 +6,8 @@ import {
 	type AttackContext,
 	type AttackPipelineResult
 } from '$lib/engine/systemPipeline';
+import type { PlayerStats } from '$lib/types';
+import { createDefaultStats } from '$lib/engine/stats';
 
 // --- Mock systems for testing ---
 
@@ -103,15 +105,10 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 	};
 }
 
-function makeStats(overrides: Record<string, number> = {}): Record<string, number> {
+function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
+		...createDefaultStats(),
 		damage: 10,
-		multiStrike: 0,
-		damageMultiplier: 1,
-		overkill: 0,
-		executeChance: 0,
-		critChance: 0,
-		critMultiplier: 1.5,
 		...overrides,
 	};
 }
@@ -266,7 +263,7 @@ describe('runAttack — reactors', () => {
 describe('runAttack — isActive gating', () => {
 	test('inactive system is excluded from dispatch', () => {
 		const runner = createPipelineRunner([conditionalSystem]);
-		const stats = makeStats({ conditionMet: 0 });
+		const stats = makeStats();
 		runner.refreshSystems(stats);
 
 		// Should not error — system is simply skipped
@@ -285,13 +282,15 @@ describe('runAttack — isActive gating', () => {
 		const runner = createPipelineRunner([activeTracker]);
 
 		// Initially inactive
-		runner.refreshSystems(makeStats({ trackerEnabled: 0 }));
-		runner.runAttack(makeStats({ trackerEnabled: 0 }), makeCtx());
+		const inactive = { ...makeStats(), trackerEnabled: 0 } as PlayerStats;
+		runner.refreshSystems(inactive);
+		runner.runAttack(inactive, makeCtx());
 		expect(runner.getSystemState<{ hitCount: number }>('active-tracker').hitCount).toBe(0);
 
 		// Activate
-		runner.refreshSystems(makeStats({ trackerEnabled: 1 }));
-		runner.runAttack(makeStats({ trackerEnabled: 1 }), makeCtx());
+		const active = { ...makeStats(), trackerEnabled: 1 } as PlayerStats;
+		runner.refreshSystems(active);
+		runner.runAttack(active, makeCtx());
 		expect(runner.getSystemState<{ hitCount: number }>('active-tracker').hitCount).toBe(1);
 	});
 });
@@ -320,7 +319,7 @@ describe('runAttack — effects (cross-system communication)', () => {
 describe('runAttack — overkill calculation', () => {
 	test('overkillDamageOut is 0 when overkill stat is off', () => {
 		const runner = createPipelineRunner([noopSystem]);
-		const stats = makeStats({ damage: 50, overkill: 0 });
+		const stats = makeStats({ damage: 50, overkill: false });
 		runner.refreshSystems(stats);
 
 		const result = runner.runAttack(stats, makeCtx({ enemyHealth: 10 }));
@@ -329,7 +328,7 @@ describe('runAttack — overkill calculation', () => {
 
 	test('overkillDamageOut captures excess damage when overkill is on', () => {
 		const runner = createPipelineRunner([noopSystem]);
-		const stats = makeStats({ damage: 50, overkill: 1 });
+		const stats = makeStats({ damage: 50, overkill: true });
 		runner.refreshSystems(stats);
 
 		const result = runner.runAttack(stats, makeCtx({ enemyHealth: 10 }));

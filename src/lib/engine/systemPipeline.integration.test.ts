@@ -1,5 +1,7 @@
 import { describe, test, expect } from 'vitest';
 import { createPipelineRunner, type AttackContext } from '$lib/engine/systemPipeline';
+import type { PlayerStats } from '$lib/types';
+import { createDefaultStats } from '$lib/engine/stats';
 import { executeSystem } from '$lib/systems/execute';
 import { critSystem } from '$lib/systems/crit';
 import { damageMultiplierSystem } from '$lib/systems/damageMultiplier';
@@ -16,19 +18,10 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 	};
 }
 
-function makeStats(overrides: Record<string, number> = {}): Record<string, number> {
+function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
+		...createDefaultStats(),
 		damage: 10,
-		multiStrike: 0,
-		damageMultiplier: 1,
-		overkill: 0,
-		executeChance: 0,
-		critChance: 0,
-		critMultiplier: 1.5,
-		poison: 0,
-		poisonDuration: 5,
-		poisonMaxStacks: 5,
-		poisonCritChance: 0,
 		...overrides,
 	};
 }

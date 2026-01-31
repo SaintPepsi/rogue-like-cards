@@ -30,6 +30,7 @@ export type PlayerStats = {
 	attackSpeed: number;
 	tapFrenzyBonus: number;
 	tapFrenzyDuration: number;
+	executeCap: number; // Max execute chance (from shop upgrades)
 };
 
 export type Upgrade = {

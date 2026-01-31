@@ -1,3 +1,5 @@
+import type { PlayerStats } from '$lib/types';
+
 // --- Hit type system (extensible via declaration merging) ---
 
 export interface HitTypeMap {
@@ -52,22 +54,22 @@ export interface SystemDefinition<TState = any> {
 	id: string;
 	initialState: () => TState;
 	priority?: number;
-	isActive?: (stats: Record<string, number>) => boolean;
+	isActive?: (stats: PlayerStats) => boolean;
 
 	// Transforms (ordered by priority, indexed by transformsFrom)
 	transformsFrom?: string[];
-	beforeAttack?: (state: TState, ctx: AttackContext, stats: Record<string, number>)
+	beforeAttack?: (state: TState, ctx: AttackContext, stats: PlayerStats)
 		=> { state: TState; skip?: boolean; hits?: PipelineHit[] } | null;
-	transformHit?: (state: TState, hit: PipelineHit, stats: Record<string, number>, rng: Rng)
+	transformHit?: (state: TState, hit: PipelineHit, stats: PlayerStats, rng: Rng)
 		=> { state: TState; hit: PipelineHit } | null;
 
 	// Reactors (unordered, indexed by reactsTo)
 	reactsTo?: string[];
-	onHit?: (state: TState, hit: PipelineHit, stats: Record<string, number>)
+	onHit?: (state: TState, hit: PipelineHit, stats: PlayerStats)
 		=> ReactorResult<TState> | null;
 
 	// Lifecycle
-	onTick?: (state: TState, stats: Record<string, number>, ctx: TickContext)
+	onTick?: (state: TState, stats: PlayerStats, ctx: TickContext)
 		=> { state: TState; damage: number; hitType?: string };
 	onKill?: (state: TState, ctx: KillContext) => TState;
 
@@ -104,7 +106,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		systemsById.set(sys.id, sys);
 	}
 
-	function refreshSystems(stats: Record<string, number>): void {
+	function refreshSystems(stats: PlayerStats): void {
 		activeBeforeAttack = [];
 		transformIndex = new Map();
 		reactorIndex = new Map();
@@ -148,7 +150,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		activeKillSystems = active.filter(sys => sys.onKill);
 	}
 
-	function runAttack(stats: Record<string, number>, ctx: AttackContext): AttackPipelineResult {
+	function runAttack(stats: PlayerStats, ctx: AttackContext): AttackPipelineResult {
 		const allEffects: PipelineEffect[] = [];
 
 		// Step 1: beforeAttack transforms (execute, etc.)
@@ -178,7 +180,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 
 			dispatchEffects(allEffects);
 			const remaining = ctx.enemyHealth - totalDamage;
-			const overkillDamageOut = stats.overkill > 0 && remaining < 0 ? Math.abs(remaining) : 0;
+			const overkillDamageOut = stats.overkill && remaining < 0 ? Math.abs(remaining) : 0;
 			return { totalDamage, hits: finalHits, overkillDamageOut, effects: allEffects };
 		}
 
@@ -239,7 +241,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 
 		// Step 7: Overkill
 		const remaining = ctx.enemyHealth - totalDamage;
-		const overkillDamageOut = stats.overkill > 0 && remaining < 0 ? Math.abs(remaining) : 0;
+		const overkillDamageOut = stats.overkill && remaining < 0 ? Math.abs(remaining) : 0;
 
 		return { totalDamage, hits: finalHits, overkillDamageOut, effects: allEffects };
 	}
@@ -261,7 +263,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 	}
 
-	function runTick(stats: Record<string, number>, ctx: TickContext): { systemId: string; damage: number; hitType?: string }[] {
+	function runTick(stats: PlayerStats, ctx: TickContext): { systemId: string; damage: number; hitType?: string }[] {
 		const results: { systemId: string; damage: number; hitType?: string }[] = [];
 		for (const sys of activeTickSystems) {
 			const result = sys.onTick!(states.get(sys.id), stats, ctx);

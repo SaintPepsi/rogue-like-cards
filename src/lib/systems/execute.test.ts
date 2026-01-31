@@ -1,6 +1,16 @@
 import { describe, test, expect } from 'vitest';
 import { executeSystem } from './execute';
 import type { AttackContext } from '$lib/engine/systemPipeline';
+import type { PlayerStats } from '$lib/types';
+import { createDefaultStats } from '$lib/engine/stats';
+
+function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
+	return {
+		...createDefaultStats(),
+		damage: 10,
+		...overrides,
+	};
+}
 
 function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 	return {
@@ -19,11 +29,11 @@ describe('executeSystem', () => {
 	});
 
 	test('isActive returns false when executeChance is 0', () => {
-		expect(executeSystem.isActive!({ executeChance: 0 })).toBe(false);
+		expect(executeSystem.isActive!(makeStats({ executeChance: 0 }))).toBe(false);
 	});
 
 	test('isActive returns true when executeChance > 0', () => {
-		expect(executeSystem.isActive!({ executeChance: 0.3 })).toBe(true);
+		expect(executeSystem.isActive!(makeStats({ executeChance: 0.3 }))).toBe(true);
 	});
 
 	test('does not trigger on bosses', () => {
@@ -31,7 +41,7 @@ describe('executeSystem', () => {
 		const result = executeSystem.beforeAttack!(
 			state,
 			makeCtx({ isBoss: true, enemyHealth: 50 }),
-			{ executeChance: 1.0, executeCap: 1.0 }
+			makeStats({ executeChance: 1.0, executeCap: 1.0 })
 		);
 		expect(result).not.toBeNull();
 		expect(result!.skip).toBe(false);
@@ -42,7 +52,7 @@ describe('executeSystem', () => {
 		const result = executeSystem.beforeAttack!(
 			state,
 			makeCtx({ enemyHealth: 50, rng: () => 0.1 }),
-			{ executeChance: 0.3 }
+			makeStats({ executeChance: 0.3, executeCap: 1.0 })
 		);
 		expect(result).not.toBeNull();
 		expect(result!.skip).toBe(true);
@@ -56,7 +66,7 @@ describe('executeSystem', () => {
 		const result = executeSystem.beforeAttack!(
 			state,
 			makeCtx({ enemyHealth: 50, rng: () => 0.9 }),
-			{ executeChance: 0.3 }
+			makeStats({ executeChance: 0.3, executeCap: 1.0 })
 		);
 		expect(result).not.toBeNull();
 		expect(result!.skip).toBe(false);
@@ -69,7 +79,7 @@ describe('executeSystem', () => {
 		const result = executeSystem.beforeAttack!(
 			state,
 			makeCtx({ enemyHealth: 50, rng: () => 0.3 }),
-			{ executeChance: 0.5, executeCap: 0.2 }
+			makeStats({ executeChance: 0.5, executeCap: 0.2 })
 		);
 		expect(result!.skip).toBe(false);
 	});
@@ -80,7 +90,7 @@ describe('executeSystem', () => {
 		const result = executeSystem.beforeAttack!(
 			state,
 			makeCtx({ enemyHealth: 50, rng: () => 0.1 }),
-			{ executeChance: 0.5, executeCap: 0.2 }
+			makeStats({ executeChance: 0.5, executeCap: 0.2 })
 		);
 		expect(result!.skip).toBe(true);
 	});

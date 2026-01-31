@@ -1,30 +1,29 @@
 import { describe, test, expect } from 'vitest';
 import { poisonSystem, type PoisonState } from './poison';
 import type { PipelineHit, KillContext } from '$lib/engine/systemPipeline';
+import type { PlayerStats } from '$lib/types';
+import { createDefaultStats } from '$lib/engine/stats';
 
 function makeHit(type: string, damage = 10, index = 0): PipelineHit {
 	return { type, damage, index } as PipelineHit;
 }
 
-function makeStats(overrides: Record<string, number> = {}): Record<string, number> {
+function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
+		...createDefaultStats(),
+		damage: 10,
 		poison: 2,
-		poisonDuration: 5,
-		poisonMaxStacks: 5,
-		poisonCritChance: 0,
-		critMultiplier: 1.5,
-		damageMultiplier: 1,
 		...overrides,
 	};
 }
 
 describe('poisonSystem — isActive', () => {
 	test('inactive when poison is 0', () => {
-		expect(poisonSystem.isActive!({ poison: 0 })).toBe(false);
+		expect(poisonSystem.isActive!(makeStats({ poison: 0 }))).toBe(false);
 	});
 
 	test('active when poison > 0', () => {
-		expect(poisonSystem.isActive!({ poison: 2 })).toBe(true);
+		expect(poisonSystem.isActive!(makeStats({ poison: 2 }))).toBe(true);
 	});
 });
 

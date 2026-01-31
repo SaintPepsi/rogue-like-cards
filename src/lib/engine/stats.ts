@@ -25,7 +25,8 @@ export function createDefaultStats(): PlayerStats {
 		goldPerKill: 0,
 		attackSpeed: 0.8,
 		tapFrenzyBonus: 0.05,
-		tapFrenzyDuration: 3
+		tapFrenzyDuration: 3,
+		executeCap: 0.1
 	};
 }
 

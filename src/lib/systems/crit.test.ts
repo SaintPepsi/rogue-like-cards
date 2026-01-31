@@ -1,9 +1,19 @@
 import { describe, test, expect } from 'vitest';
 import { critSystem } from './crit';
 import type { PipelineHit } from '$lib/engine/systemPipeline';
+import type { PlayerStats } from '$lib/types';
+import { createDefaultStats } from '$lib/engine/stats';
 
 function makeHit(overrides: Partial<PipelineHit & { damage: number; index: number }> = {}): PipelineHit {
 	return { type: 'hit', damage: 10, index: 0, ...overrides } as PipelineHit;
+}
+
+function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
+	return {
+		...createDefaultStats(),
+		damage: 10,
+		...overrides,
+	};
 }
 
 describe('critSystem', () => {
@@ -21,7 +31,7 @@ describe('critSystem', () => {
 		const result = critSystem.transformHit!(
 			state,
 			makeHit({ damage: 10 }),
-			{ critChance: 0.5, critMultiplier: 2 },
+			makeStats({ critChance: 0.5, critMultiplier: 2 }),
 			() => 0.1 // below 0.5
 		);
 		expect(result).not.toBeNull();
@@ -36,7 +46,7 @@ describe('critSystem', () => {
 		const result = critSystem.transformHit!(
 			state,
 			hit,
-			{ critChance: 0.5, critMultiplier: 2 },
+			makeStats({ critChance: 0.5, critMultiplier: 2 }),
 			() => 0.9 // above 0.5
 		);
 		expect(result).not.toBeNull();
@@ -49,7 +59,7 @@ describe('critSystem', () => {
 		const result = critSystem.transformHit!(
 			state,
 			makeHit({ damage: 5 }),
-			{ critChance: 1.0, critMultiplier: 3 },
+			makeStats({ critChance: 1.0, critMultiplier: 3 }),
 			() => 0.99
 		);
 		expect(result!.hit.type).toBe('criticalHit');
@@ -61,7 +71,7 @@ describe('critSystem', () => {
 		const result = critSystem.transformHit!(
 			state,
 			makeHit({ damage: 10 }),
-			{ critChance: 0, critMultiplier: 2 },
+			makeStats({ critChance: 0, critMultiplier: 2 }),
 			() => 0.0
 		);
 		expect(result!.hit.type).toBe('hit');
@@ -72,7 +82,7 @@ describe('critSystem', () => {
 		const result = critSystem.transformHit!(
 			state,
 			makeHit({ damage: 7 }),
-			{ critChance: 1.0, critMultiplier: 1.5 },
+			makeStats({ critChance: 1.0, critMultiplier: 1.5 }),
 			() => 0
 		);
 		expect((result!.hit as any).damage).toBe(10); // floor(7 * 1.5) = 10
@@ -83,7 +93,7 @@ describe('critSystem', () => {
 		const result = critSystem.transformHit!(
 			state,
 			makeHit({ damage: 10, index: 2 }),
-			{ critChance: 1.0, critMultiplier: 2 },
+			makeStats({ critChance: 1.0, critMultiplier: 2 }),
 			() => 0
 		);
 		expect((result!.hit as any).index).toBe(2);

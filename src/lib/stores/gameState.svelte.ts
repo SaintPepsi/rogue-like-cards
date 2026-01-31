@@ -65,15 +65,6 @@ function createGameState() {
 		}
 		// overkill is boolean in PlayerStats but number in pipeline
 		(stats as any).overkill = statPipeline.get('overkill') > 0;
-		return stats;
-	}
-
-	function getPipelineStats(): Record<string, number> {
-		const stats: Record<string, number> = {};
-		for (const key of Object.keys(BASE_STATS) as (keyof PlayerStats)[]) {
-			const val = statPipeline.get(key);
-			stats[key] = typeof val === 'boolean' ? (val ? 1 : 0) : val;
-		}
 		stats.executeCap = shop.getExecuteCapValue();
 		return stats;
 	}
@@ -109,7 +100,7 @@ function createGameState() {
 	function attack() {
 		if (isModalOpen() || enemy.isDead()) return;
 
-		const stats = getPipelineStats();
+		const stats = getEffectiveStats();
 		pipeline.refreshSystems(stats);
 
 		const result = pipeline.runAttack(stats, {
@@ -145,7 +136,7 @@ function createGameState() {
 	function tickSystems() {
 		if (enemy.isDead() || isModalOpen()) return;
 
-		const stats = getPipelineStats();
+		const stats = getEffectiveStats();
 		const tickResults = pipeline.runTick(stats, { deltaMs: 1000 });
 
 		for (const tick of tickResults) {
@@ -408,7 +399,7 @@ function createGameState() {
 			applyShopUpgrades();
 			enemy.spawnEnemy(statPipeline.get('greed'));
 		} else {
-			pipeline.refreshSystems(getPipelineStats());
+			pipeline.refreshSystems(getEffectiveStats());
 			if (enemy.isBoss) {
 				const data = persistence.loadSession();
 				gameLoop.startBossTimer(data?.bossTimeRemaining ?? bossTimerMax);

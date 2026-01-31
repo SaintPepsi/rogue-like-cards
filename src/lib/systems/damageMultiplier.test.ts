@@ -1,6 +1,16 @@
 import { describe, test, expect } from 'vitest';
 import { damageMultiplierSystem } from './damageMultiplier';
 import type { PipelineHit } from '$lib/engine/systemPipeline';
+import type { PlayerStats } from '$lib/types';
+import { createDefaultStats } from '$lib/engine/stats';
+
+function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
+	return {
+		...createDefaultStats(),
+		damage: 10,
+		...overrides,
+	};
+}
 
 function makeHit(type: string, damage: number, index = 0): PipelineHit {
 	return { type, damage, index } as PipelineHit;
@@ -22,7 +32,7 @@ describe('damageMultiplierSystem', () => {
 		const result = damageMultiplierSystem.transformHit!(
 			state,
 			makeHit('hit', 10),
-			{ damageMultiplier: 2 },
+			makeStats({ damageMultiplier: 2 }),
 			() => 0
 		);
 		expect((result!.hit as any).damage).toBe(20);
@@ -33,7 +43,7 @@ describe('damageMultiplierSystem', () => {
 		const result = damageMultiplierSystem.transformHit!(
 			state,
 			makeHit('criticalHit', 15),
-			{ damageMultiplier: 3 },
+			makeStats({ damageMultiplier: 3 }),
 			() => 0
 		);
 		expect((result!.hit as any).damage).toBe(45);
@@ -44,7 +54,7 @@ describe('damageMultiplierSystem', () => {
 		const result = damageMultiplierSystem.transformHit!(
 			state,
 			makeHit('hit', 7),
-			{ damageMultiplier: 1.5 },
+			makeStats({ damageMultiplier: 1.5 }),
 			() => 0
 		);
 		expect((result!.hit as any).damage).toBe(10); // floor(7 * 1.5)
@@ -55,7 +65,7 @@ describe('damageMultiplierSystem', () => {
 		const result = damageMultiplierSystem.transformHit!(
 			state,
 			makeHit('hit', 10),
-			{ damageMultiplier: 1 },
+			makeStats({ damageMultiplier: 1 }),
 			() => 0
 		);
 		expect((result!.hit as any).damage).toBe(10);
