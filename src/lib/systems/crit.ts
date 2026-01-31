@@ -14,17 +14,16 @@ export const critSystem: SystemDefinition<{}> = {
 	transformsFrom: ['hit'],
 
 	transformHit: (state, hit, stats, rng) => {
-		const h = hit as PipelineHit & { damage: number; index: number };
 		if (rng() >= stats.critChance) return { state, hit };
 
 		return {
 			state,
 			hit: {
-				type: 'criticalHit' as any,
-				damage: Math.floor(h.damage * stats.critMultiplier),
-				index: h.index,
+				type: 'criticalHit',
+				damage: Math.floor(hit.damage * stats.critMultiplier),
+				index: hit.index,
 				critMultiplier: stats.critMultiplier,
-			} as PipelineHit,
+			} as PipelineHit<'criticalHit'>,
 		};
 	},
 };

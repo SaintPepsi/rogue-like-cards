@@ -59,14 +59,32 @@ function createGameState() {
 
 	// Helper: build a PlayerStats object from pipeline
 	function getEffectiveStats(): PlayerStats {
-		const stats = {} as PlayerStats;
-		for (const key of Object.keys(BASE_STATS) as (keyof PlayerStats)[]) {
-			(stats as any)[key] = statPipeline.get(key);
-		}
-		// overkill is boolean in PlayerStats but number in pipeline
-		(stats as any).overkill = statPipeline.get('overkill') > 0;
-		stats.executeCap = shop.getExecuteCapValue();
-		return stats;
+		return {
+			damage: statPipeline.get('damage'),
+			critChance: statPipeline.get('critChance'),
+			critMultiplier: statPipeline.get('critMultiplier'),
+			xpMultiplier: statPipeline.get('xpMultiplier'),
+			damageMultiplier: statPipeline.get('damageMultiplier'),
+			poison: statPipeline.get('poison'),
+			poisonCritChance: statPipeline.get('poisonCritChance'),
+			poisonMaxStacks: statPipeline.get('poisonMaxStacks'),
+			poisonDuration: statPipeline.get('poisonDuration'),
+			multiStrike: statPipeline.get('multiStrike'),
+			overkill: statPipeline.get('overkill') > 0,
+			executeChance: statPipeline.get('executeChance'),
+			bonusBossTime: statPipeline.get('bonusBossTime'),
+			greed: statPipeline.get('greed'),
+			luckyChance: statPipeline.get('luckyChance'),
+			chestChance: statPipeline.get('chestChance'),
+			bossChestChance: statPipeline.get('bossChestChance'),
+			goldMultiplier: statPipeline.get('goldMultiplier'),
+			goldDropChance: statPipeline.get('goldDropChance'),
+			goldPerKill: statPipeline.get('goldPerKill'),
+			attackSpeed: statPipeline.get('attackSpeed'),
+			tapFrenzyBonus: statPipeline.get('tapFrenzyBonus'),
+			tapFrenzyDuration: statPipeline.get('tapFrenzyDuration'),
+			executeCap: shop.getExecuteCapValue(),
+		};
 	}
 
 	function upgradeContext() {
@@ -113,7 +131,6 @@ function createGameState() {
 
 		// Map pipeline hits to UI HitInfo
 		const newHits: HitInfo[] = result.hits.map((h) => {
-			const pipeHit = h as any;
 			let uiType: HitType;
 			switch (h.type) {
 				case 'criticalHit': uiType = 'crit'; break;
@@ -122,10 +139,10 @@ function createGameState() {
 				default: uiType = h.type as HitType;
 			}
 			return {
-				damage: pipeHit.damage ?? 0,
+				damage: h.damage,
 				type: uiType,
 				id: ui.nextHitId(),
-				index: pipeHit.index ?? 0,
+				index: h.index,
 			};
 		});
 

@@ -7,7 +7,7 @@ export interface HitTypeMap {
 }
 
 export type HitType = keyof HitTypeMap & string;
-export type PipelineHit<T extends HitType = HitType> = { type: T } & HitTypeMap[T];
+export type PipelineHit<T extends HitType = HitType> = { type: T; damage: number; index: number } & HitTypeMap[T];
 
 // --- Effect for cross-system communication ---
 
@@ -167,7 +167,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 
 			for (const hit of result.hits) {
 				finalHits.push(hit);
-				totalDamage += (hit as any).damage ?? 0;
+				totalDamage += hit.damage;
 
 				// Offer to reactors
 				for (const reactor of reactorIndex.get(hit.type) ?? []) {
@@ -188,7 +188,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		const strikes = 1 + (stats.multiStrike ?? 0);
 		const baseHits: PipelineHit[] = [];
 		for (let i = 0; i < strikes; i++) {
-			let damage = stats.damage ?? 0;
+			let damage = stats.damage;
 			if (i === 0 && ctx.overkillDamage > 0) {
 				damage += ctx.overkillDamage;
 			}
@@ -224,7 +224,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 			}
 
 			// Step 4: Accumulate damage
-			totalDamage += (currentHit as any).damage ?? 0;
+			totalDamage += currentHit.damage;
 			finalHits.push(currentHit);
 
 			// Step 5: Reactors

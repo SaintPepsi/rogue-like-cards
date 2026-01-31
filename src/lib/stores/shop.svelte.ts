@@ -1,5 +1,5 @@
 import type { PlayerStats, Upgrade } from '$lib/types';
-import { getRandomUpgrades, allUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
+import { getRandomUpgrades, getExecuteCap, EXECUTE_CAP_BONUS_PER_LEVEL, executeCapUpgrade, goldPerKillUpgrade, GOLD_PER_KILL_BONUS_PER_LEVEL } from '$lib/data/upgrades';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 import type { createPersistence } from './persistence.svelte';
 
@@ -63,24 +63,6 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	function depositGold(amount: number) {
 		persistentGold += amount;
 		save();
-	}
-
-	function applyPurchasedUpgrades(stats: PlayerStats, unlockedUpgrades: Set<string>): Set<string> {
-		let updated = unlockedUpgrades;
-		for (const upgradeId of purchasedUpgrades) {
-			const upgrade = allUpgrades.find((u) => u.id === upgradeId);
-			if (upgrade) {
-				for (const mod of upgrade.modifiers) {
-					if (mod.stat === 'overkill') {
-						(stats as any)[mod.stat] = true;
-					} else {
-						(stats as any)[mod.stat] += mod.value;
-					}
-				}
-				updated = new Set([...updated, upgrade.id]);
-			}
-		}
-		return updated;
 	}
 
 	function getExecuteCapValue(): number {
@@ -153,7 +135,6 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		close,
 		buy,
 		depositGold,
-		applyPurchasedUpgrades,
 		save,
 		load,
 		fullReset,

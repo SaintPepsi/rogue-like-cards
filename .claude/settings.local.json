@@ -23,7 +23,12 @@
       "WebFetch(domain:github.com)",
       "Skill(superpowers:brainstorming)",
       "Skill(superpowers:executing-plans)",
-      "Skill(superpowers:using-git-worktrees)"
+      "Skill(superpowers:using-git-worktrees)",
+      "Bash(git check-ignore:*)",
+      "Bash(echo:*)",
+      "Bash(git worktree:*)",
+      "Skill(superpowers:finishing-a-development-branch)",
+      "Bash(git mv:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

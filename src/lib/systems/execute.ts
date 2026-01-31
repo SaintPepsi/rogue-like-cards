@@ -26,10 +26,10 @@ export const executeSystem: SystemDefinition<{}> = {
 			state,
 			skip: true,
 			hits: [{
-				type: 'executeHit' as any,
+				type: 'executeHit',
 				damage: ctx.enemyHealth,
 				index: 0,
-			} as PipelineHit],
+			} as PipelineHit<'executeHit'>],
 		};
 	},
 };

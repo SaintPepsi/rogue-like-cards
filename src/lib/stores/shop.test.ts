@@ -151,13 +151,4 @@ describe('createShop', () => {
 		expect(shop.getGoldPerKillBonus()).toBe(0);
 	});
 
-	test('applyPurchasedUpgrades returns updated unlocked set', () => {
-		const shop = createShop(persistence);
-		const stats = createDefaultStats();
-		const unlocked = new Set<string>();
-
-		const result = shop.applyPurchasedUpgrades(stats, unlocked);
-		// With no purchased upgrades, should return same set (possibly empty)
-		expect(result).toBeDefined();
-	});
 });

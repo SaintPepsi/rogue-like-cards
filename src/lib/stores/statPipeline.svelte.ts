@@ -7,6 +7,7 @@ import { allUpgrades } from '$lib/data/upgrades';
 import type { PlayerStats, StatModifier } from '$lib/types';
 
 type StatKey = keyof PlayerStats;
+type SourcedModifier = StatModifier & { source: string };
 
 // Pipeline layers per stat:
 // 0: Base (class overrides)
@@ -29,7 +30,7 @@ export function createStatPipeline() {
 	let acquiredUpgradeIds = $state<string[]>([]);
 	let classBaseOverrides = $state<StatModifier[]>([]);
 	let classModifiers = $state<StatModifier[]>([]);
-	let transientModifiers = $state<StatModifier[]>([]);
+	let transientModifiers = $state<SourcedModifier[]>([]);
 	let transientSteps = $state<{ stat: StatKey; step: StatStep; source: string }[]>([]);
 
 	function initPipelines(): Record<StatKey, PipelineLayer[]> {
@@ -114,7 +115,7 @@ export function createStatPipeline() {
 	}
 
 	function addTransient(source: string, mods: StatModifier[]): void {
-		transientModifiers = [...transientModifiers, ...mods.map((m) => ({ ...m }))];
+		transientModifiers = [...transientModifiers, ...mods.map((m) => ({ ...m, source }))];
 		rebuildTransientLayer();
 	}
 
@@ -124,7 +125,7 @@ export function createStatPipeline() {
 	}
 
 	function removeTransient(source: string): void {
-		transientModifiers = transientModifiers.filter((m) => (m as any).source !== source);
+		transientModifiers = transientModifiers.filter((m) => m.source !== source);
 		transientSteps = transientSteps.filter((s) => s.source !== source);
 		rebuildTransientLayer();
 	}
