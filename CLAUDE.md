@@ -47,6 +47,7 @@ function addItem(data: Omit<Item, 'id'>) {
 ## Code Style
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
+- Prefer early returns over nested `if/else` blocks. Guard clauses at the top of a function make the happy path obvious and reduce indentation depth.
 
 ## Code Proximity Principles
 

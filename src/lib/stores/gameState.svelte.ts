@@ -262,20 +262,18 @@ function createGameState() {
 			}
 		}
 
-		const allConsumed = leveling.closeActiveEvent();
-		if (allConsumed) {
-			gameLoop.resume();
-		} else {
+		if (!leveling.closeActiveEvent()) {
 			leveling.openNextUpgrade();
+			saveGame();
+			return;
 		}
+		gameLoop.resume();
 		saveGame();
 	}
 
 	function openNextUpgrade() {
-		const event = leveling.openNextUpgrade();
-		if (event) {
-			gameLoop.pause();
-		}
+		if (!leveling.openNextUpgrade()) return;
+		gameLoop.pause();
 	}
 
 	function serializeEvent(event: { type: string; choices: Upgrade[]; gold?: number }) {
@@ -366,15 +364,7 @@ function createGameState() {
 		shop.resetShopUI();
 		persistence.clearSession();
 
-		// Apply purchased upgrades from shop via pipeline
-		const shopIds = [...shop.purchasedUpgrades];
-		if (shopIds.length > 0) {
-			statPipeline.setAcquiredUpgrades(shopIds);
-			for (const id of shopIds) {
-				unlockedUpgrades = new Set([...unlockedUpgrades, id]);
-			}
-		}
-
+		applyShopUpgrades();
 		enemy.reset(statPipeline.get('greed'));
 
 		gameLoop.start({
@@ -402,25 +392,26 @@ function createGameState() {
 		resetGame();
 	}
 
+	function applyShopUpgrades() {
+		const shopIds = [...shop.purchasedUpgrades];
+		if (shopIds.length === 0) return;
+		statPipeline.setAcquiredUpgrades(shopIds);
+		for (const id of shopIds) {
+			unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+		}
+	}
+
 	function init() {
 		shop.load();
-		const loaded = loadGame();
-		if (!loaded) {
-			// Apply purchased upgrades for new game
-			const shopIds = [...shop.purchasedUpgrades];
-			if (shopIds.length > 0) {
-				statPipeline.setAcquiredUpgrades(shopIds);
-				for (const id of shopIds) {
-					unlockedUpgrades = new Set([...unlockedUpgrades, id]);
-				}
-			}
+
+		if (!loadGame()) {
+			applyShopUpgrades();
 			enemy.spawnEnemy(statPipeline.get('greed'));
 		} else {
 			pipeline.refreshSystems(getPipelineStats());
 			if (enemy.isBoss) {
 				const data = persistence.loadSession();
-				const savedBossTime = data?.bossTimeRemaining;
-				gameLoop.startBossTimer(savedBossTime ?? bossTimerMax);
+				gameLoop.startBossTimer(data?.bossTimeRemaining ?? bossTimerMax);
 			}
 		}
 

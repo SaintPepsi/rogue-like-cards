@@ -48,15 +48,14 @@ export const poisonSystem: SystemDefinition<PoisonState> = {
 	onKill: (_state, _ctx) => ({ stacks: [] }),
 
 	handleEffect: (state, action, payload) => {
-		if (action === 'addStacks') {
-			const duration = payload.duration ?? 5;
-			const count = payload.count ?? 1;
-			let stacks = [...state.stacks];
-			for (let i = 0; i < count; i++) {
-				stacks = stackMgr.add(stacks, duration);
-			}
-			return { stacks };
+		if (action !== 'addStacks') return state;
+
+		const duration = payload.duration ?? 5;
+		const count = payload.count ?? 1;
+		let stacks = [...state.stacks];
+		for (let i = 0; i < count; i++) {
+			stacks = stackMgr.add(stacks, duration);
 		}
-		return state;
+		return { stacks };
 	},
 };

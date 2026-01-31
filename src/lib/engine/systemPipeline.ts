@@ -154,38 +154,32 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		// Step 1: beforeAttack transforms (execute, etc.)
 		for (const sys of activeBeforeAttack) {
 			const result = sys.beforeAttack!(states.get(sys.id), ctx, stats);
-			if (result !== null) {
-				states.set(sys.id, result.state);
-				if (result.skip && result.hits) {
-					// Short-circuit: use provided hits, skip to reactors
-					const finalHits: PipelineHit[] = [];
-					let totalDamage = 0;
+			if (result === null) continue;
 
-					for (const hit of result.hits) {
-						finalHits.push(hit);
-						totalDamage += (hit as any).damage ?? 0;
+			states.set(sys.id, result.state);
+			if (!result.skip || !result.hits) continue;
 
-						// Offer to reactors
-						const hitReactors = reactorIndex.get(hit.type) ?? [];
-						for (const reactor of hitReactors) {
-							const rResult = reactor.onHit!(states.get(reactor.id), hit, stats);
-							if (rResult !== null) {
-								states.set(reactor.id, rResult.state);
-								if (rResult.effects) allEffects.push(...rResult.effects);
-							}
-						}
-					}
+			// Short-circuit: use provided hits, skip to reactors
+			const finalHits: PipelineHit[] = [];
+			let totalDamage = 0;
 
-					// Dispatch effects
-					dispatchEffects(allEffects);
+			for (const hit of result.hits) {
+				finalHits.push(hit);
+				totalDamage += (hit as any).damage ?? 0;
 
-					// Overkill
-					const remaining = ctx.enemyHealth - totalDamage;
-					const overkillDamageOut = stats.overkill > 0 && remaining < 0 ? Math.abs(remaining) : 0;
-
-					return { totalDamage, hits: finalHits, overkillDamageOut, effects: allEffects };
+				// Offer to reactors
+				for (const reactor of reactorIndex.get(hit.type) ?? []) {
+					const rResult = reactor.onHit!(states.get(reactor.id), hit, stats);
+					if (rResult === null) continue;
+					states.set(reactor.id, rResult.state);
+					if (rResult.effects) allEffects.push(...rResult.effects);
 				}
 			}
+
+			dispatchEffects(allEffects);
+			const remaining = ctx.enemyHealth - totalDamage;
+			const overkillDamageOut = stats.overkill > 0 && remaining < 0 ? Math.abs(remaining) : 0;
+			return { totalDamage, hits: finalHits, overkillDamageOut, effects: allEffects };
 		}
 
 		// Step 2: Generate base hits
@@ -210,24 +204,20 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 			const transforms = transformIndex.get(currentHit.type) ?? [];
 			for (const sys of transforms) {
 				const result = sys.transformHit!(states.get(sys.id), currentHit, stats, ctx.rng);
-				if (result !== null) {
-					states.set(sys.id, result.state);
-					currentHit = result.hit;
-				}
+				if (result === null) continue;
+				states.set(sys.id, result.state);
+				currentHit = result.hit;
 			}
 
 			// If hit type changed, run transforms for the new type too
 			// (e.g., damageMultiplier accepts both 'hit' and 'criticalHit')
 			if (currentHit.type !== baseHit.type) {
-				const newTransforms = transformIndex.get(currentHit.type) ?? [];
-				for (const sys of newTransforms) {
-					// Skip if this system already ran (it was in the original type's list)
+				for (const sys of transformIndex.get(currentHit.type) ?? []) {
 					if (transforms.includes(sys)) continue;
 					const result = sys.transformHit!(states.get(sys.id), currentHit, stats, ctx.rng);
-					if (result !== null) {
-						states.set(sys.id, result.state);
-						currentHit = result.hit;
-					}
+					if (result === null) continue;
+					states.set(sys.id, result.state);
+					currentHit = result.hit;
 				}
 			}
 
@@ -236,13 +226,11 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 			finalHits.push(currentHit);
 
 			// Step 5: Reactors
-			const hitReactors = reactorIndex.get(currentHit.type) ?? [];
-			for (const reactor of hitReactors) {
+			for (const reactor of reactorIndex.get(currentHit.type) ?? []) {
 				const result = reactor.onHit!(states.get(reactor.id), currentHit, stats);
-				if (result !== null) {
-					states.set(reactor.id, result.state);
-					if (result.effects) allEffects.push(...result.effects);
-				}
+				if (result === null) continue;
+				states.set(reactor.id, result.state);
+				if (result.effects) allEffects.push(...result.effects);
 			}
 		}
 
