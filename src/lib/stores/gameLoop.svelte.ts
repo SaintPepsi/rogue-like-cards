@@ -21,6 +21,9 @@ export function createGameLoop() {
 	let frenzyCount = $state(0);
 	let frenzyId = $state(0);
 
+	// Boss countdown — exposed for UI display
+	let bossTimeRemaining = $state(0);
+
 	// Callbacks (set by gameState during start())
 	let callbacks = {
 		onAttack: () => {},
@@ -52,9 +55,11 @@ export function createGameLoop() {
 		callbacks.onFrenzyChanged(frenzyCount);
 	}
 
-	function fireAttack() {
+	function fireAttack(userInitiated: boolean) {
 		callbacks.onAttack();
-		addFrenzyStack();
+		if (userInitiated) {
+			addFrenzyStack();
+		}
 		attackQueuedTap = false;
 
 		// Re-register attack cooldown
@@ -67,9 +72,10 @@ export function createGameLoop() {
 		timers.register('attack_cooldown', {
 			remaining: interval,
 			onExpire: () => {
+				// Auto-attacks from cooldown are not user-initiated
 				const canAttack = pointerHeld || frenzyCount > 0;
 				if (canAttack || attackQueuedTap) {
-					fireAttack();
+					fireAttack(attackQueuedTap);
 				}
 			}
 		});
@@ -140,8 +146,8 @@ export function createGameLoop() {
 	function pointerDown() {
 		pointerHeld = true;
 		if (!timers.has('attack_cooldown')) {
-			// No cooldown active — fire immediately
-			fireAttack();
+			// No cooldown active — fire immediately (user-initiated)
+			fireAttack(true);
 		} else {
 			attackQueuedTap = true;
 		}
@@ -152,7 +158,7 @@ export function createGameLoop() {
 	}
 
 	function startBossTimer(maxTime: number) {
-		let bossTimeRemaining = maxTime;
+		bossTimeRemaining = maxTime;
 		timers.register('boss_countdown', {
 			remaining: 1000,
 			repeat: 1000,
@@ -168,6 +174,7 @@ export function createGameLoop() {
 
 	function stopBossTimer() {
 		timers.remove('boss_countdown');
+		bossTimeRemaining = 0;
 	}
 
 	function reset() {
@@ -178,6 +185,7 @@ export function createGameLoop() {
 		attackQueuedTap = false;
 		frenzyCount = 0;
 		frenzyId = 0;
+		bossTimeRemaining = 0;
 		lastFrameTime = 0;
 	}
 
@@ -186,6 +194,7 @@ export function createGameLoop() {
 		get timers() { return timers; },
 
 		get frenzyStacks() { return frenzyCount; },
+		get bossTimeRemaining() { return bossTimeRemaining; },
 		get paused() { return paused; },
 		get pointerHeld() { return pointerHeld; },
 

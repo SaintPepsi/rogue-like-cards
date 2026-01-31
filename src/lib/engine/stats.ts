@@ -81,5 +81,5 @@ export const statRegistry: StatEntry[] = [
 	{ key: 'goldMultiplier', icon: '🏆', label: 'Gold Bonus', format: bonusPct, colorClass: 'gold' },
 	{ key: 'greed', icon: '💰', label: 'Greed', format: plusPct, colorClass: 'greed' },
 	{ key: 'attackSpeed', icon: '🗡️', label: 'Attack Speed', format: (v) => `${(v as number).toFixed(1)}/s`, alwaysShow: true },
-	{ key: 'tapFrenzyBonus', icon: '🔥', label: 'Frenzy Bonus', format: plusPct },
+	{ key: 'tapFrenzyBonus', icon: '✨', label: 'Frenzy Bonus', format: plusPct },
 ];

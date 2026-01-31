@@ -5,6 +5,7 @@
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
+	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
 
 	type Props = {
 		isBoss: boolean;
@@ -61,7 +62,7 @@
 			{/if}
 			{#if frenzyStacks > 0}
 				<div class="frenzy-counter">
-					<span class="frenzy-icon">🔥</span>
+					<div class="frenzy-icon" style:background-image="url({frenzyGlint})"></div>
 					<span class="frenzy-count">{frenzyStacks}</span>
 				</div>
 			{/if}
@@ -264,7 +265,17 @@
 	}
 
 	.frenzy-icon {
-		font-size: 0.7rem;
+		width: 14px;
+		height: 14px;
+		image-rendering: pixelated;
+		background-size: calc(4 * 14px) 14px;
+		background-repeat: no-repeat;
+		animation: frenzy-sprite 0.4s steps(4) infinite;
+	}
+
+	@keyframes frenzy-sprite {
+		from { background-position: 0 0; }
+		to { background-position: -56px 0; }
 	}
 
 	.frenzy-count {

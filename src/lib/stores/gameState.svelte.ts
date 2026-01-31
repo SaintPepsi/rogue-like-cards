@@ -311,8 +311,8 @@ function createGameState() {
 			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
 			timestamp: Date.now(),
-			bossTimeRemaining: gameLoop.timers.has('boss_countdown')
-				? Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000)
+			bossTimeRemaining: gameLoop.bossTimeRemaining > 0
+				? gameLoop.bossTimeRemaining
 				: undefined
 		});
 	}
@@ -460,7 +460,7 @@ function createGameState() {
 			return enemy.isBoss;
 		},
 		get bossTimer() {
-			return Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000);
+			return gameLoop.bossTimeRemaining;
 		},
 		get enemyHealth() {
 			return enemy.enemyHealth;
