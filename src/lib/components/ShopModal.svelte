@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import type { Upgrade } from '$lib/types';
+	import type { Upgrade, StatModifier } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
@@ -20,17 +20,30 @@
 
 	let { show, gold, choices, purchasedUpgrades, executeCapLevel, goldPerKillLevel, getPrice, onBuy, onBack, onPlayAgain }: Props = $props();
 
-	// Track which cards are animating out
+	// Track which cards are animating out/in
 	let animatingOut = $state<Set<string>>(new Set());
+	let animatingIn = $state<Set<string>>(new Set());
+
+	function getModifiers(upgrade: Upgrade): StatModifier[] {
+		if (upgrade.id === 'execute_cap') return [{ stat: 'executeChance', value: 0.005 }];
+		if (upgrade.id === 'gold_per_kill') return [{ stat: 'goldPerKill', value: 1 }];
+		return upgrade.modifiers;
+	}
 
 	function handleBuy(upgrade: Upgrade) {
 		const success = onBuy(upgrade);
 		if (success) {
-			// Animate all cards out, then they'll re-render with new choices
+			// Phase 1: fade out old cards
 			const ids = new Set(choices.map(c => c.id));
 			animatingOut = ids;
 			setTimeout(() => {
+				// Phase 2: swap choices, start new cards invisible
 				animatingOut = new Set();
+				animatingIn = new Set(choices.map(c => c.id));
+				// Phase 3: after one frame, trigger fade-in transition
+				requestAnimationFrame(() => {
+					animatingIn = new Set();
+				});
 			}, 400);
 		}
 	}
@@ -49,13 +62,14 @@
 					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
 					{@const alreadyOwned = !isExecuteCap && !isGoldPerKill && purchasedUpgrades.has(upgrade.id)}
-					{@const isAnimating = animatingOut.has(upgrade.id)}
-					<div class="card-wrapper" class:animate-out={isAnimating}>
+					{@const isAnimatingOut = animatingOut.has(upgrade.id)}
+					{@const isAnimatingIn = animatingIn.has(upgrade.id)}
+					<div class="card-wrapper" class:animate-out={isAnimatingOut} class:animate-in={isAnimatingIn}>
 						<UpgradeCard
 							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : isGoldPerKill ? `${upgrade.title} (Lv.${goldPerKillLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
-							modifiers={upgrade.modifiers}
+							modifiers={getModifiers(upgrade)}
 						/>
 						<Button.Root
 							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
@@ -78,13 +92,14 @@
 					{@const price = getPrice(upgrade)}
 					{@const canAfford = gold >= price}
 					{@const alreadyOwned = !isExecuteCap && !isGoldPerKill && purchasedUpgrades.has(upgrade.id)}
-					{@const isAnimating = animatingOut.has(upgrade.id)}
-					<div class="card-wrapper" class:animate-out={isAnimating}>
+					{@const isAnimatingOut = animatingOut.has(upgrade.id)}
+					{@const isAnimatingIn = animatingIn.has(upgrade.id)}
+					<div class="card-wrapper" class:animate-out={isAnimatingOut} class:animate-in={isAnimatingIn}>
 						<UpgradeCard
 							title={isExecuteCap ? `${upgrade.title} (Lv.${executeCapLevel})` : isGoldPerKill ? `${upgrade.title} (Lv.${goldPerKillLevel})` : upgrade.title}
 							rarity={upgrade.rarity}
 							image={upgrade.image}
-							modifiers={upgrade.modifiers}
+							modifiers={getModifiers(upgrade)}
 						/>
 						<Button.Root
 							class="py-2.5 px-4 border-none rounded-lg text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 {canAfford && !alreadyOwned ? 'bg-linear-to-r from-[#fbbf24] to-[#f59e0b] text-[#1a1a2e] hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]' : alreadyOwned ? 'bg-[#22c55e] text-white cursor-default' : 'bg-[#374151] text-white/50 cursor-not-allowed'}"
@@ -169,6 +184,11 @@
 		opacity: 0;
 		transform: scale(0.85) translateY(20px);
 		pointer-events: none;
+	}
+
+	.card-wrapper.animate-in {
+		opacity: 0;
+		transform: scale(0.85) translateY(-20px);
 	}
 
 	.button-row {

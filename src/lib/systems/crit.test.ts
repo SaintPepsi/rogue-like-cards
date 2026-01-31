@@ -88,6 +88,18 @@ describe('critSystem', () => {
 		expect((result!.hit as any).damage).toBe(10); // floor(7 * 1.5) = 10
 	});
 
+	test('crit damage is at least base damage + 1', () => {
+		const state = critSystem.initialState();
+		const result = critSystem.transformHit!(
+			state,
+			makeHit({ damage: 1 }),
+			makeStats({ critChance: 1.0, critMultiplier: 1.5 }),
+			() => 0
+		);
+		// floor(1 * 1.5) = 1, but crit must deal more than base: max(1+1, 1) = 2
+		expect((result!.hit as any).damage).toBe(2);
+	});
+
 	test('preserves hit index', () => {
 		const state = critSystem.initialState();
 		const result = critSystem.transformHit!(

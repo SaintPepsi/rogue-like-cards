@@ -13,6 +13,7 @@ import timerImg from '$lib/assets/images/cards/timer.png';
 import coinsImg from '$lib/assets/images/cards/coins.png';
 import hammerImg from '$lib/assets/images/cards/hammer.png';
 import pickaxeImg from '$lib/assets/images/cards/pickaxe.png';
+import mimicImg from '$lib/assets/images/mimic-closed.png';
 
 const _allUpgrades = [
 	// === DAMAGE UPGRADES ===
@@ -307,7 +308,7 @@ const _allUpgrades = [
 		id: 'boss_chest_1',
 		title: "Mimic's Blessing",
 		rarity: 'legendary',
-		image: chestImg,
+		image: mimicImg,
 		modifiers: [{ stat: 'bossChestChance', value: 0.001 }, { stat: 'chestChance', value: 0.001 }]
 	},
 	{

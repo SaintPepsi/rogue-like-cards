@@ -20,7 +20,7 @@ export const critSystem: SystemDefinition<{}> = {
 			state,
 			hit: {
 				type: 'criticalHit',
-				damage: Math.floor(hit.damage * stats.critMultiplier),
+				damage: Math.max(hit.damage + 1, Math.floor(hit.damage * stats.critMultiplier)),
 				index: hit.index,
 				critMultiplier: stats.critMultiplier,
 			} as PipelineHit<'criticalHit'>,
