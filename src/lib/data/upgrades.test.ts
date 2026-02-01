@@ -344,3 +344,21 @@ describe('gaussian lucky system', () => {
 		expect(fp(10.0)).toBeCloseTo(3.33, 1);
 	});
 });
+
+describe('multistrike rarity bump', () => {
+	test('multi_strike_1 is rare with +1', () => {
+		const card = getUpgradeById('multi_strike_1')!;
+		expect(card.rarity).toBe('rare');
+		expect(card.modifiers[0].value).toBe(1);
+	});
+	test('multi_strike_2 is epic with +2', () => {
+		const card = getUpgradeById('multi_strike_2')!;
+		expect(card.rarity).toBe('epic');
+		expect(card.modifiers[0].value).toBe(2);
+	});
+	test('multi_strike_3 is legendary with +3', () => {
+		const card = getUpgradeById('multi_strike_3')!;
+		expect(card.rarity).toBe('legendary');
+		expect(card.modifiers[0].value).toBe(3);
+	});
+});

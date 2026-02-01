@@ -197,24 +197,26 @@ const _allUpgrades = [
 	},
 
 	// === MULTI-STRIKE UPGRADES ===
+	// DECISION: Multistrike bumped up one rarity tier — multi-hit is too powerful at lower rarities
+	// since it multiplies all on-hit effects (execute, poison application, crit rolls).
 	{
 		id: 'multi_strike_1',
 		title: 'Double Tap',
-		rarity: 'uncommon',
+		rarity: 'rare',
 		image: swordImg,
 		modifiers: [{ stat: 'multiStrike', value: 1 }]
 	},
 	{
 		id: 'multi_strike_2',
 		title: 'Flurry',
-		rarity: 'rare',
+		rarity: 'epic',
 		image: swordImg,
 		modifiers: [{ stat: 'multiStrike', value: 2 }]
 	},
 	{
 		id: 'multi_strike_3',
 		title: 'Blade Storm',
-		rarity: 'epic',
+		rarity: 'legendary',
 		image: axeImg,
 		modifiers: [{ stat: 'multiStrike', value: 3 }]
 	},
