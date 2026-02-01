@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { formatNumber } from '$lib/format';
 	import { playHitSound } from './playHitSound';
 
@@ -9,7 +10,7 @@
 
 	let { damage, index }: Props = $props();
 
-	playHitSound('hit:poison', index);
+	onMount(() => playHitSound('hit:poison', index));
 
 	// Random position within the enemy area
 	const randomX = Math.floor(Math.random() * 100) - 50;
@@ -32,6 +33,7 @@
 		font-weight: bold;
 		animation: poison-float 0.6s ease-out forwards;
 		pointer-events: none;
+		display: flex;
 		opacity: 0;
 		text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 	}
