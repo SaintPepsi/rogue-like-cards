@@ -34,8 +34,10 @@ export function createDefaultStats(): PlayerStats {
 		goldDropChance: 0.1,
 		goldPerKill: 0,
 		attackSpeed: 0.8,
+		attackSpeedBonus: 0,
 		tapFrenzyBonus: 0.05,
 		tapFrenzyDuration: 3,
+		tapFrenzyDurationBonus: 0,
 		tapFrenzyStackMultiplier: 1,
 		executeCap: 0.1
 	};
@@ -143,8 +145,15 @@ export const statRegistry: StatEntry[] = [
 		format: (v) => `${(v as number).toFixed(2)}/s`,
 		alwaysShow: true
 	},
+	{ key: 'attackSpeedBonus', icon: '🗡️', label: 'Attack Speed Bonus', format: asPlusPercent },
 	{ key: 'tapFrenzyBonus', icon: '✨', label: 'Frenzy Bonus', format: asPlusPercent },
 	{ key: 'tapFrenzyDuration', icon: '⏳', label: 'Frenzy Duration', format: asPlusSeconds },
+	{
+		key: 'tapFrenzyDurationBonus',
+		icon: '⏳',
+		label: 'Frenzy Duration Bonus',
+		format: asPlusPercent
+	},
 	{
 		key: 'tapFrenzyStackMultiplier',
 		icon: '🔥',

@@ -89,8 +89,10 @@ function createGameState() {
 			goldDropChance: statPipeline.get('goldDropChance'),
 			goldPerKill: statPipeline.get('goldPerKill'),
 			attackSpeed: statPipeline.get('attackSpeed'),
+			attackSpeedBonus: statPipeline.get('attackSpeedBonus'),
 			tapFrenzyBonus: statPipeline.get('tapFrenzyBonus'),
 			tapFrenzyDuration: statPipeline.get('tapFrenzyDuration'),
+			tapFrenzyDurationBonus: statPipeline.get('tapFrenzyDurationBonus'),
 			tapFrenzyStackMultiplier: statPipeline.get('tapFrenzyStackMultiplier'),
 			executeCap: shop.getExecuteCapValue()
 		};
