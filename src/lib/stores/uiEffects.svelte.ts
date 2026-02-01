@@ -1,6 +1,4 @@
 import type { HitInfo, HitType, GoldDrop } from '$lib/types';
-import { sfx } from '$lib/audio';
-import type { SfxEventName } from '$lib/audio/sfx.svelte';
 
 // DECISION: Durations tuned to feel snappy without overlapping too much during rapid combat.
 // 700ms for hits — long enough to read the number, short enough to not clutter during multi-strike.
@@ -13,10 +11,6 @@ const GOLD_DROP_DISPLAY_MS = 1200;
 // (execute, poison, poisonCrit) always display since they convey important gameplay info.
 const MAX_HITS_ON_SCREEN = 100;
 
-// DECISION: Stagger hit audio by 50ms per hit index, matching the visual
-// animation-delay (index * 0.05s) in hit components. Without this, multi-strike
-// sounds all fire simultaneously which sounds like a single hit.
-const HIT_AUDIO_STAGGER_MS = 50;
 const LOW_PRIORITY_HIT_TYPES: Set<HitType> = new Set(['normal', 'crit', 'hit', 'criticalHit']);
 
 export function createUIEffects() {
@@ -39,16 +33,6 @@ export function createUIEffects() {
 		});
 		if (accepted.length === 0) return;
 		hits = [...hits, ...accepted];
-
-		// Play hit audio staggered to match the visual animation delay per hit
-		for (const hit of accepted) {
-			const eventName = `hit:${hit.type}` as SfxEventName;
-			if (hit.index === 0) {
-				sfx.play(eventName);
-			} else {
-				setTimeout(() => sfx.play(eventName), hit.index * HIT_AUDIO_STAGGER_MS);
-			}
-		}
 		const hitIds = accepted.map((h) => h.id);
 		setTimeout(() => {
 			hits = hits.filter((h) => !hitIds.includes(h.id));
