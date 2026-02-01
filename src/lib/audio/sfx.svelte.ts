@@ -27,6 +27,7 @@ interface SfxConfig {
 	volume: number;
 	rate?: number;
 	bus?: BusName;
+	fadeOutMs?: number;
 }
 
 const SFX_REGISTRY = {
@@ -35,7 +36,7 @@ const SFX_REGISTRY = {
 	'hit:execute': { src: bellCutUrl, volume: 1.0 },
 	'hit:poison': { src: bodyHitUrl, volume: 0.5 },
 	'hit:poisonCrit': { src: bodyHitUrl, volume: 0.7, rate: 1.1 },
-	'enemy:death': { src: oofUrl, volume: 0.7, rate: 1.2 },
+	'enemy:death': { src: oofUrl, volume: 0.7, rate: 0.6, fadeOutMs: 400 },
 	'enemy:bossSpawn': { src: scream14Url, volume: 0.9, rate: 0.4 },
 	'enemy:bossDeath': { src: scream18Url, volume: 1.0, rate: 0.4 },
 	'gold:drop': { src: coinJingleUrl, volume: 0.4 },
@@ -123,6 +124,11 @@ export function createSfx(audioManager: AudioManager) {
 			rate *= 1 - HIT_PITCH_VARIATION + Math.random() * HIT_PITCH_VARIATION * 2;
 		}
 		howl.rate(rate, id);
+
+		// Fade out if configured — starts immediately, volume ramps to 0 over fadeOutMs
+		if ('fadeOutMs' in config && config.fadeOutMs) {
+			howl.fade(effectiveVolume, 0, config.fadeOutMs, id);
+		}
 	}
 
 	return { play };
