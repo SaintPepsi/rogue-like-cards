@@ -3,7 +3,7 @@
 
 	let {
 		title,
-		expanded = false,
+		expanded = true,
 		children
 	}: { title: string; expanded?: boolean; children: Snippet } = $props();
 
@@ -25,7 +25,6 @@
 
 <style>
 	.stat-group {
-		margin-bottom: 16px;
 		background: rgba(0, 0, 0, 0.3);
 		border-radius: 8px;
 		overflow: hidden;

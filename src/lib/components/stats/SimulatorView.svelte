@@ -368,6 +368,11 @@
 		flex-direction: column;
 		gap: 24px;
 	}
+	.charts {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+		gap: 16px;
+	}
 	.controls {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
