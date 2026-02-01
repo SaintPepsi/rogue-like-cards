@@ -35,7 +35,7 @@ const SFX_REGISTRY = {
 	'hit:execute': { src: bellCutUrl, volume: 1.0 },
 	'hit:poison': { src: bodyHitUrl, volume: 0.5 },
 	'hit:poisonCrit': { src: bodyHitUrl, volume: 0.7, rate: 1.1 },
-	'enemy:death': { src: oofUrl, volume: 0.7, rate: 0.6 },
+	'enemy:death': { src: oofUrl, volume: 0.7, rate: 1.2 },
 	'enemy:bossSpawn': { src: scream14Url, volume: 0.9, rate: 0.4 },
 	'enemy:bossDeath': { src: scream18Url, volume: 1.0, rate: 0.4 },
 	'gold:drop': { src: coinJingleUrl, volume: 0.4 },

@@ -1,3 +1,5 @@
+import { sfx } from '$lib/audio';
+
 export function useCardFlip() {
 	let flippedCards = $state<boolean[]>([]);
 	let enabledCards = $state<boolean[]>([]);
@@ -14,6 +16,7 @@ export function useCardFlip() {
 				setTimeout(
 					() => {
 						flippedCards[i] = true;
+						sfx.play('ui:cardFlip');
 					},
 					200 + i * 250
 				)

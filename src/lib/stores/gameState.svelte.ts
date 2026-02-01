@@ -174,19 +174,6 @@ function createGameState() {
 			};
 		});
 
-		// DECISION: Stagger hit audio by 50ms per hit index, matching the visual
-		// animation-delay (index * 0.05s) in hit components. Without this, multi-strike
-		// sounds all fire simultaneously which sounds like a single hit.
-		const HIT_AUDIO_STAGGER_MS = 50;
-		for (const hit of newHits) {
-			const eventName = `hit:${hit.type}` as import('$lib/audio/sfx.svelte').SfxEventName;
-			if (hit.index === 0) {
-				sfx.play(eventName);
-			} else {
-				setTimeout(() => sfx.play(eventName), hit.index * HIT_AUDIO_STAGGER_MS);
-			}
-		}
-
 		enemy.setOverkillDamage(result.overkillDamageOut);
 		dealDamage(result.totalDamage, newHits);
 		syncPoisonStacks();
@@ -298,7 +285,6 @@ function createGameState() {
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
-		sfx.play('ui:cardSelect');
 		statPipeline.acquireUpgrade(upgrade.id);
 		if (upgrade.onAcquire) upgrade.onAcquire();
 
@@ -333,7 +319,6 @@ function createGameState() {
 
 	function openNextUpgrade() {
 		if (!leveling.openNextUpgrade()) return;
-		sfx.play('ui:cardFlip');
 		gameLoop.pause();
 	}
 

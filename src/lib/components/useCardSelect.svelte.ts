@@ -1,3 +1,5 @@
+import { sfx } from '$lib/audio';
+
 export function useCardSelect() {
 	let selectedIndex = $state(-1);
 	let selecting = $state(false);
@@ -7,6 +9,7 @@ export function useCardSelect() {
 		if (selecting) return;
 		selectedIndex = index;
 		selecting = true;
+		sfx.play('ui:cardSelect');
 
 		// After card animation (300ms), fire callback.
 		// Don't reset state — the component may be exiting and should
