@@ -32,6 +32,7 @@
 		font-weight: bold;
 		animation: crit-float 0.7s ease-out forwards;
 		pointer-events: none;
+		display: flex;
 		opacity: 0;
 		text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
 	}
