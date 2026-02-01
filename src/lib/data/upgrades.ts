@@ -89,17 +89,40 @@ const _allUpgrades = [
 	},
 
 	// === XP UPGRADES ===
+	// DECISION: Lower values spread across all tiers. XP multiplier already has sqrt diminishing
+	// returns in the reward formula, so even small bonuses compound meaningfully at high values.
 	{
 		id: 'xp_1',
 		title: 'Quick Learner',
 		rarity: 'common',
 		image: bookImg,
-		modifiers: [{ stat: 'xpMultiplier', value: 0.25 }]
+		modifiers: [{ stat: 'xpMultiplier', value: 0.05 }]
 	},
 	{
 		id: 'xp_2',
 		title: 'Wisdom',
 		rarity: 'uncommon',
+		image: bookImg,
+		modifiers: [{ stat: 'xpMultiplier', value: 0.1 }]
+	},
+	{
+		id: 'xp_3',
+		title: 'Scholar',
+		rarity: 'rare',
+		image: bookImg,
+		modifiers: [{ stat: 'xpMultiplier', value: 0.15 }]
+	},
+	{
+		id: 'xp_4',
+		title: 'Enlightenment',
+		rarity: 'epic',
+		image: bookImg,
+		modifiers: [{ stat: 'xpMultiplier', value: 0.25 }]
+	},
+	{
+		id: 'xp_5',
+		title: 'Transcendence',
+		rarity: 'legendary',
 		image: bookImg,
 		modifiers: [{ stat: 'xpMultiplier', value: 0.5 }]
 	},

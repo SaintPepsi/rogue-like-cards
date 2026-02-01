@@ -387,3 +387,24 @@ describe('execute rework', () => {
 		});
 	}
 });
+
+describe('xp multiplier cards (all tiers)', () => {
+	const xpCards = [
+		{ id: 'xp_1', rarity: 'common', value: 0.05 },
+		{ id: 'xp_2', rarity: 'uncommon', value: 0.1 },
+		{ id: 'xp_3', rarity: 'rare', value: 0.15 },
+		{ id: 'xp_4', rarity: 'epic', value: 0.25 },
+		{ id: 'xp_5', rarity: 'legendary', value: 0.5 }
+	];
+
+	for (const { id, rarity, value } of xpCards) {
+		test(`${id} exists with rarity ${rarity} and xpMultiplier ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'xpMultiplier');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+});
