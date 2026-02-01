@@ -52,7 +52,8 @@
 			"Skill(sancoca-skills:writing-skills)",
 			"Skill(writing-plans)",
 			"WebFetch(domain:bits-ui.com)",
-			"WebFetch(domain:github.com)"
+			"WebFetch(domain:github.com)",
+			"Skill(brainstorming)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
