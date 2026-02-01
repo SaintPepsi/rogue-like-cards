@@ -17,6 +17,7 @@ import bigThumpUrl from '$lib/assets/audio/sfx/big-distant-thump-6.wav';
 import cardDraw3Url from '$lib/assets/audio/sfx/card-draw-3.wav';
 import cardDraw2Url from '$lib/assets/audio/sfx/card-draw-2.wav';
 import wooshUrl from '$lib/assets/audio/sfx/woosh-13.wav';
+import clockTickingUrl from '$lib/assets/audio/sfx/clock_ticking.wav';
 
 // DECISION: Bus assignment per event prefix.
 // 'hit:*', 'enemy:*', 'gold:*', 'chest:*', 'game:*' → sfx bus
@@ -47,7 +48,8 @@ const SFX_REGISTRY = {
 	'game:over': { src: bigThumpUrl, volume: 1.0 },
 	'ui:cardFlip': { src: cardDraw3Url, volume: 0.5, bus: 'ui' as BusName },
 	'ui:cardSelect': { src: cardDraw2Url, volume: 0.6, bus: 'ui' as BusName },
-	'hit:miss': { src: wooshUrl, volume: 0.5 }
+	'hit:miss': { src: wooshUrl, volume: 0.5 },
+	'boss:clockTicking': { src: clockTickingUrl, volume: 0.8 }
 } as const satisfies Record<string, SfxConfig>;
 
 export type SfxEventName = keyof typeof SFX_REGISTRY;

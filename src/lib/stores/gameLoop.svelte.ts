@@ -15,12 +15,17 @@ export function createGameLoop() {
 
 	// Boss countdown — exposed for UI display
 	let bossTimeRemaining = $state(0);
+	// DECISION: Track whether the clock ticking sound has already fired this boss fight.
+	// Resets on startBossTimer/stopBossTimer/reset so it triggers once per boss encounter.
+	const BOSS_URGENT_THRESHOLD_SECONDS = 5;
+	let bossUrgentFired = false;
 
 	// Callbacks (set by gameState during start())
 	let callbacks = {
 		onAttack: () => {},
 		onSystemTick: () => {},
-		onBossExpired: () => {}
+		onBossExpired: () => {},
+		onBossTimerUrgent: () => {}
 	};
 
 	// Stat readers (set by gameState, read from pipeline)
@@ -68,13 +73,15 @@ export function createGameLoop() {
 		onAttack: () => void;
 		onSystemTick: () => void;
 		onBossExpired: () => void;
+		onBossTimerUrgent: () => void;
 		getAttackSpeed: () => number;
 		getFrenzyCount: () => number;
 	}) {
 		callbacks = {
 			onAttack: cbs.onAttack,
 			onSystemTick: cbs.onSystemTick,
-			onBossExpired: cbs.onBossExpired
+			onBossExpired: cbs.onBossExpired,
+			onBossTimerUrgent: cbs.onBossTimerUrgent
 		};
 		getAttackSpeed = cbs.getAttackSpeed;
 		getFrenzyCount = cbs.getFrenzyCount;
@@ -120,6 +127,7 @@ export function createGameLoop() {
 
 	function startBossTimer(maxTime: number) {
 		bossTimeRemaining = maxTime;
+		bossUrgentFired = false;
 		timers.register('boss_countdown', {
 			remaining: 1000,
 			repeat: 1000,
@@ -128,6 +136,9 @@ export function createGameLoop() {
 				if (bossTimeRemaining <= 0) {
 					timers.remove('boss_countdown');
 					callbacks.onBossExpired();
+				} else if (!bossUrgentFired && bossTimeRemaining < BOSS_URGENT_THRESHOLD_SECONDS) {
+					bossUrgentFired = true;
+					callbacks.onBossTimerUrgent();
 				}
 			}
 		});
@@ -136,6 +147,7 @@ export function createGameLoop() {
 	function stopBossTimer() {
 		timers.remove('boss_countdown');
 		bossTimeRemaining = 0;
+		bossUrgentFired = false;
 	}
 
 	function reset() {
@@ -145,6 +157,7 @@ export function createGameLoop() {
 		pointerHeld = false;
 		attackQueuedTap = false;
 		bossTimeRemaining = 0;
+		bossUrgentFired = false;
 		lastFrameTime = 0;
 	}
 
