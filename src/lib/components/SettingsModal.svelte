@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
+	import { audioManager } from '$lib/audio';
 	type Props = {
 		show: boolean;
 		onClose: () => void;
@@ -55,6 +56,62 @@
 				>
 			</div>
 			<div class="modal-content">
+				<div class="audio-section">
+					<div class="audio-header">
+						<span class="audio-title">Audio</span>
+						<Button.Root
+							class="mute-btn {audioManager.muted ? 'muted' : ''}"
+							onclick={() => audioManager.toggleMute()}
+						>
+							{audioManager.muted ? '🔇' : '🔊'}
+						</Button.Root>
+					</div>
+
+					<label class="volume-slider">
+						<span class="slider-label">SFX</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioManager.sfxVolume}
+							oninput={(e) => audioManager.setSfxVolume(Number(e.currentTarget.value))}
+							disabled={audioManager.muted}
+						/>
+						<span class="slider-value">{Math.round(audioManager.sfxVolume * 100)}%</span>
+					</label>
+
+					<label class="volume-slider">
+						<span class="slider-label">Music</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioManager.musicVolume}
+							oninput={(e) => audioManager.setMusicVolume(Number(e.currentTarget.value))}
+							disabled={audioManager.muted}
+						/>
+						<span class="slider-value">{Math.round(audioManager.musicVolume * 100)}%</span>
+					</label>
+
+					<label class="volume-slider">
+						<span class="slider-label">UI</span>
+						<input
+							type="range"
+							min="0"
+							max="1"
+							step="0.01"
+							value={audioManager.uiVolume}
+							oninput={(e) => audioManager.setUiVolume(Number(e.currentTarget.value))}
+							disabled={audioManager.muted}
+						/>
+						<span class="slider-value">{Math.round(audioManager.uiVolume * 100)}%</span>
+					</label>
+				</div>
+
+				<div class="settings-divider"></div>
+
 				<Button.Root
 					class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-white/[0.08] rounded-[10px] text-white/90 cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-white/10"
 					onclick={handleChangelog}
@@ -126,6 +183,91 @@
 
 	.modal-content {
 		padding: 12px;
+	}
+
+	.audio-section {
+		padding: 4px 4px 8px;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.audio-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 4px;
+	}
+
+	.audio-title {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.5);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	:global(.mute-btn) {
+		background: rgba(255, 255, 255, 0.05) !important;
+		border: 1px solid rgba(255, 255, 255, 0.08) !important;
+		border-radius: 8px !important;
+		padding: 4px 10px !important;
+		font-size: 1.1rem !important;
+		cursor: pointer !important;
+		transition: background 0.15s !important;
+	}
+
+	:global(.mute-btn:hover) {
+		background: rgba(255, 255, 255, 0.1) !important;
+	}
+
+	:global(.mute-btn.muted) {
+		background: rgba(239, 68, 68, 0.1) !important;
+		border-color: rgba(239, 68, 68, 0.2) !important;
+	}
+
+	.volume-slider {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 0 4px;
+	}
+
+	.slider-label {
+		width: 40px;
+		font-size: 0.85rem;
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.volume-slider input[type='range'] {
+		flex: 1;
+		height: 4px;
+		-webkit-appearance: none;
+		appearance: none;
+		background: rgba(255, 255, 255, 0.15);
+		border-radius: 2px;
+		outline: none;
+	}
+
+	.volume-slider input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: white;
+		cursor: pointer;
+	}
+
+	.volume-slider input[type='range']:disabled {
+		opacity: 0.3;
+	}
+
+	.slider-value {
+		width: 36px;
+		text-align: right;
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.4);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.settings-icon {
