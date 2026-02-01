@@ -21,6 +21,8 @@ import { createPersistence } from './persistence.svelte';
 import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
+import { createRunHistory } from './runHistory.svelte';
+import type { StatSnapshot } from './runHistory.svelte';
 import { sfx } from '$lib/audio';
 
 function createGameState() {
@@ -61,6 +63,12 @@ function createGameState() {
 
 	// Shop / persistent upgrades
 	const shop = createShop(persistence);
+
+	// Run history — records stat snapshots for the /stats dev page.
+	// No-op stub in production so call sites don't need conditionals.
+	const runHistory = import.meta.env.DEV
+		? createRunHistory()
+		: { snapshots: [] as StatSnapshot[], addSnapshot() {}, reset() {} };
 
 	// Derived values
 	const bossTimerMax = $derived(BASE_BOSS_TIME + statPipeline.get('bonusBossTime'));
@@ -263,6 +271,13 @@ function createGameState() {
 				gameLoop.stopBossTimer();
 				sfx.play('enemy:bossDeath');
 				enemy.advanceStage();
+				runHistory.addSnapshot({
+					event: 'stage_transition',
+					stats: getEffectiveStats(),
+					stage: enemy.stage,
+					level: leveling.level,
+					upgradesPicked: [...statPipeline.acquiredUpgradeIds]
+				});
 			}
 
 			leveling.checkLevelUp(upgradeContext());
@@ -286,6 +301,13 @@ function createGameState() {
 
 	function selectUpgrade(upgrade: Upgrade) {
 		statPipeline.acquireUpgrade(upgrade.id);
+		runHistory.addSnapshot({
+			event: 'level_up',
+			stats: getEffectiveStats(),
+			stage: enemy.stage,
+			level: leveling.level,
+			upgradesPicked: [...statPipeline.acquiredUpgradeIds]
+		});
 		if (upgrade.onAcquire) upgrade.onAcquire();
 
 		// Track unlocked upgrades for collection
@@ -410,6 +432,7 @@ function createGameState() {
 		frenzy.reset();
 		statPipeline.reset();
 		pipeline.reset();
+		runHistory.reset();
 
 		effects = [];
 		unlockedUpgrades = new Set();
@@ -556,6 +579,10 @@ function createGameState() {
 		get frenzyStacks() {
 			return frenzy.count;
 		},
+		get runSnapshots() {
+			return runHistory.snapshots;
+		},
+		resetRunHistory: () => runHistory.reset(),
 
 		// Actions
 		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
