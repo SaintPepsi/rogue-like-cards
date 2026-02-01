@@ -26,6 +26,7 @@
 		"@sveltejs/adapter-vercel": "^6.3.1",
 		"@sveltejs/kit": "^2.50.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"@types/howler": "^2.2.12",
 		"@types/node": "^22",
 		"@vitest/browser-playwright": "^4.0.18",
 		"eslint": "^9.39.2",
@@ -48,6 +49,7 @@
 		"@tailwindcss/vite": "^4.1.18",
 		"bits-ui": "^2.15.4",
 		"chart.js": "^4.5.1",
+		"howler": "^2.2.4",
 		"tailwindcss": "^4.1.18"
 	}
 }
