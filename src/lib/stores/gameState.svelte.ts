@@ -447,6 +447,15 @@ function createGameState() {
 		enemy.reset(statPipeline.get('greed'));
 
 		gameLoop.start(buildGameLoopCallbacks());
+
+		// Record baseline snapshot so /stats has data from the start of the run
+		runHistory.addSnapshot({
+			event: 'stage_transition',
+			stats: getEffectiveStats(),
+			stage: enemy.stage,
+			level: leveling.level,
+			upgradesPicked: [...statPipeline.acquiredUpgradeIds]
+		});
 	}
 
 	function fullReset() {
@@ -478,6 +487,15 @@ function createGameState() {
 		}
 
 		gameLoop.start(buildGameLoopCallbacks());
+
+		// Record baseline snapshot so /stats has data from the start of the run
+		runHistory.addSnapshot({
+			event: 'stage_transition',
+			stats: getEffectiveStats(),
+			stage: enemy.stage,
+			level: leveling.level,
+			upgradesPicked: [...statPipeline.acquiredUpgradeIds]
+		});
 	}
 
 	return {

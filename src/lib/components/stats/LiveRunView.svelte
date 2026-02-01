@@ -5,11 +5,10 @@
 	import type { StatSnapshot } from '$lib/stores/runHistory.svelte';
 
 	const snapshots: StatSnapshot[] = $derived(gameState.runSnapshots);
-	const stageSnapshots: StatSnapshot[] = $derived(
-		snapshots.filter((s) => s.event === 'stage_transition')
-	);
 
-	const labels: number[] = $derived(stageSnapshots.map((s) => s.stage));
+	// Use sequential index as x-axis label since snapshots include both
+	// stage_transition and level_up events
+	const labels: number[] = $derived(snapshots.map((_, i) => i + 1));
 
 	// Chart dataset color palette
 	const COLORS = {
@@ -37,7 +36,7 @@
 	};
 </script>
 
-{#if stageSnapshots.length === 0}
+{#if snapshots.length === 0}
 	<p class="empty">Start a run to see progression data.</p>
 {:else}
 	<div class="chart-grid">
@@ -48,33 +47,33 @@
 				datasets={[
 					{
 						label: 'Base Damage',
-						data: stageSnapshots.map((s) => s.stats.damage),
+						data: snapshots.map((s) => s.stats.damage),
 						borderColor: COLORS.damage
 					},
 					{
 						label: 'Crit Chance %',
-						data: stageSnapshots.map((s) => s.stats.critChance * 100),
+						data: snapshots.map((s) => s.stats.critChance * 100),
 						borderColor: COLORS.critChance
 					},
 					{
 						label: 'Crit Multiplier',
-						data: stageSnapshots.map((s) => s.stats.critMultiplier),
+						data: snapshots.map((s) => s.stats.critMultiplier),
 						borderColor: COLORS.critMultiplier
 					},
 					{
 						label: 'Attack Speed',
-						data: stageSnapshots.map((s) => s.stats.attackSpeed),
+						data: snapshots.map((s) => s.stats.attackSpeed),
 						borderColor: COLORS.attackSpeed
 					},
 					{
 						label: 'Multi-Strike',
-						data: stageSnapshots.map((s) => s.stats.multiStrike),
+						data: snapshots.map((s) => s.stats.multiStrike),
 						borderColor: COLORS.multiStrike,
 						stepped: 'before'
 					},
 					{
 						label: 'Effective DPS',
-						data: stageSnapshots.map((s) => s.computedDps),
+						data: snapshots.map((s) => s.computedDps),
 						borderColor: COLORS.dps
 					}
 				]}
@@ -88,23 +87,23 @@
 				datasets={[
 					{
 						label: 'Poison/Stack',
-						data: stageSnapshots.map((s) => s.stats.poison),
+						data: snapshots.map((s) => s.stats.poison),
 						borderColor: COLORS.poison
 					},
 					{
 						label: 'Max Stacks',
-						data: stageSnapshots.map((s) => s.stats.poisonMaxStacks),
+						data: snapshots.map((s) => s.stats.poisonMaxStacks),
 						borderColor: COLORS.poisonStacks,
 						stepped: 'before'
 					},
 					{
 						label: 'Duration (s)',
-						data: stageSnapshots.map((s) => s.stats.poisonDuration),
+						data: snapshots.map((s) => s.stats.poisonDuration),
 						borderColor: COLORS.poisonDuration
 					},
 					{
 						label: 'Poison DPS',
-						data: stageSnapshots.map((s) => s.poisonDps),
+						data: snapshots.map((s) => s.poisonDps),
 						borderColor: COLORS.poisonDps
 					}
 				]}
@@ -118,22 +117,22 @@
 				datasets={[
 					{
 						label: 'Execute Chance %',
-						data: stageSnapshots.map((s) => s.stats.executeChance * 100),
+						data: snapshots.map((s) => s.stats.executeChance * 100),
 						borderColor: COLORS.execute
 					},
 					{
 						label: 'Execute Cap %',
-						data: stageSnapshots.map((s) => s.stats.executeCap * 100),
+						data: snapshots.map((s) => s.stats.executeCap * 100),
 						borderColor: COLORS.executeCap
 					},
 					{
 						label: 'Damage Multiplier',
-						data: stageSnapshots.map((s) => s.stats.damageMultiplier),
+						data: snapshots.map((s) => s.stats.damageMultiplier),
 						borderColor: COLORS.damageMult
 					},
 					{
 						label: 'XP Multiplier',
-						data: stageSnapshots.map((s) => s.stats.xpMultiplier),
+						data: snapshots.map((s) => s.stats.xpMultiplier),
 						borderColor: COLORS.xpMult
 					}
 				]}
@@ -147,17 +146,17 @@
 				datasets={[
 					{
 						label: 'Gold/Kill',
-						data: stageSnapshots.map((s) => s.stats.goldPerKill),
+						data: snapshots.map((s) => s.stats.goldPerKill),
 						borderColor: COLORS.goldPerKill
 					},
 					{
 						label: 'Gold Drop %',
-						data: stageSnapshots.map((s) => s.stats.goldDropChance * 100),
+						data: snapshots.map((s) => s.stats.goldDropChance * 100),
 						borderColor: COLORS.goldDrop
 					},
 					{
 						label: 'Gold Multiplier',
-						data: stageSnapshots.map((s) => s.stats.goldMultiplier),
+						data: snapshots.map((s) => s.stats.goldMultiplier),
 						borderColor: COLORS.goldMult
 					}
 				]}
@@ -172,17 +171,17 @@
 				datasets={[
 					{
 						label: 'Enemy HP',
-						data: stageSnapshots.map((s) => s.enemyHp),
+						data: snapshots.map((s) => s.enemyHp),
 						borderColor: COLORS.enemyHp
 					},
 					{
 						label: 'Boss HP',
-						data: stageSnapshots.map((s) => s.bossHp),
+						data: snapshots.map((s) => s.bossHp),
 						borderColor: COLORS.bossHp
 					},
 					{
 						label: 'XP to Next Level',
-						data: stageSnapshots.map((s) => s.xpToNextLevel),
+						data: snapshots.map((s) => s.xpToNextLevel),
 						borderColor: COLORS.xpToNext
 					}
 				]}
@@ -197,13 +196,13 @@
 				datasets={[
 					{
 						label: 'Effective DPS',
-						data: stageSnapshots.map((s) => s.computedDps),
+						data: snapshots.map((s) => s.computedDps),
 						borderColor: COLORS.dps,
 						yAxisID: 'y'
 					},
 					{
 						label: 'Enemy HP',
-						data: stageSnapshots.map((s) => s.enemyHp),
+						data: snapshots.map((s) => s.enemyHp),
 						borderColor: COLORS.enemyHp,
 						yAxisID: 'y1'
 					}
@@ -213,7 +212,7 @@
 				title="Time-to-Kill (seconds)"
 				{labels}
 				datasets={[
-					{ label: 'TTK', data: stageSnapshots.map((s) => s.timeToKill), borderColor: COLORS.ttk }
+					{ label: 'TTK', data: snapshots.map((s) => s.timeToKill), borderColor: COLORS.ttk }
 				]}
 			/>
 		</StatGroup>
