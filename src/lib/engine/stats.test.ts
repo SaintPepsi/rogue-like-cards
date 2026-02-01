@@ -32,6 +32,10 @@ describe('createDefaultStats', () => {
 		expect(createDefaultStats().tapFrenzyDurationBonus).toBe(0);
 	});
 
+	test('tapFrenzyDuration base is 1s (reduced from 3s)', () => {
+		expect(createDefaultStats().tapFrenzyDuration).toBe(1);
+	});
+
 	test('returns a new object each time (no shared references)', () => {
 		const a = createDefaultStats();
 		const b = createDefaultStats();

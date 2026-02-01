@@ -10,7 +10,7 @@ import { formatNumber } from '$lib/format';
 //   executeCap: 5% — reduced from 10%; execute is instant kill so even 5% is very strong. Shop upgrades raise the cap.
 //   poisonMaxStacks/Duration: 5/5 — conservative base so poison-build cards feel impactful when stacked
 //   tapFrenzyBonus: 5% per tap — requires rapid tapping to meaningfully boost DPS (~20 taps = double speed)
-//   tapFrenzyDuration: 3s — short window forces active engagement, decays fast if player stops
+//   tapFrenzyDuration: 1s — very short base window; flat cards add seconds, % cards multiply total
 export function createDefaultStats(): PlayerStats {
 	return {
 		damage: 1,
@@ -36,7 +36,7 @@ export function createDefaultStats(): PlayerStats {
 		attackSpeed: 0.8,
 		attackSpeedBonus: 0,
 		tapFrenzyBonus: 0.05,
-		tapFrenzyDuration: 3,
+		tapFrenzyDuration: 1,
 		tapFrenzyDurationBonus: 0,
 		tapFrenzyStackMultiplier: 1,
 		executeCap: 0.05

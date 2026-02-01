@@ -226,7 +226,9 @@ describe('frenzy upgrade cards', () => {
 		'frenzy_bonus_3',
 		'frenzy_duration_1',
 		'frenzy_duration_2',
-		'frenzy_duration_3',
+		'frenzy_duration_bonus_1',
+		'frenzy_duration_bonus_2',
+		'frenzy_duration_bonus_3',
 		'frenzy_legendary_1'
 	];
 
@@ -237,9 +239,11 @@ describe('frenzy upgrade cards', () => {
 	});
 
 	test('frenzy cards have correct rarities', () => {
-		expect(getUpgradeById('frenzy_duration_1')!.rarity).toBe('uncommon');
-		expect(getUpgradeById('frenzy_duration_2')!.rarity).toBe('rare');
-		expect(getUpgradeById('frenzy_duration_3')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy_duration_1')!.rarity).toBe('common');
+		expect(getUpgradeById('frenzy_duration_2')!.rarity).toBe('uncommon');
+		expect(getUpgradeById('frenzy_duration_bonus_1')!.rarity).toBe('rare');
+		expect(getUpgradeById('frenzy_duration_bonus_2')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy_duration_bonus_3')!.rarity).toBe('legendary');
 		expect(getUpgradeById('frenzy_bonus_3')!.rarity).toBe('epic');
 		expect(getUpgradeById('frenzy_legendary_1')!.rarity).toBe('legendary');
 	});
@@ -498,4 +502,34 @@ describe('xp multiplier cards (all tiers)', () => {
 			expect(mod!.value).toBe(value);
 		});
 	}
+});
+
+describe('frenzy duration cards (split paths)', () => {
+	test('flat duration cards exist at common/uncommon', () => {
+		const flat1 = getUpgradeById('frenzy_duration_1')!;
+		expect(flat1.rarity).toBe('common');
+		expect(flat1.modifiers[0].stat).toBe('tapFrenzyDuration');
+		expect(flat1.modifiers[0].value).toBe(0.5);
+
+		const flat2 = getUpgradeById('frenzy_duration_2')!;
+		expect(flat2.rarity).toBe('uncommon');
+		expect(flat2.modifiers[0].stat).toBe('tapFrenzyDuration');
+		expect(flat2.modifiers[0].value).toBe(1);
+	});
+
+	test('percentage duration bonus cards exist at rare/epic/legendary', () => {
+		const pct1 = getUpgradeById('frenzy_duration_bonus_1')!;
+		expect(pct1.rarity).toBe('rare');
+		expect(pct1.modifiers[0].stat).toBe('tapFrenzyDurationBonus');
+		expect(pct1.modifiers[0].value).toBe(0.25);
+
+		const pct2 = getUpgradeById('frenzy_duration_bonus_2')!;
+		expect(pct2.rarity).toBe('epic');
+		expect(pct2.modifiers[0].stat).toBe('tapFrenzyDurationBonus');
+
+		const pct3 = getUpgradeById('frenzy_duration_bonus_3')!;
+		expect(pct3.rarity).toBe('legendary');
+		expect(pct3.modifiers[0].stat).toBe('tapFrenzyDurationBonus');
+		expect(pct3.modifiers[0].value).toBe(1.0);
+	});
 });

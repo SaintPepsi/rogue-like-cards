@@ -659,30 +659,49 @@ const _allUpgrades = [
 		]
 	},
 
-	// === FRENZY DURATION ===
+	// === FRENZY DURATION (flat seconds, common/uncommon) ===
+	// DECISION: Two paths for frenzy duration — flat seconds for early game,
+	// percentage bonus for late game scaling. Base duration is 1s so flat +1s
+	// is a massive early boost, while percentage scales with accumulated flat.
 	{
 		id: 'frenzy_duration_1',
 		title: 'Adrenaline Rush',
-		rarity: 'uncommon',
+		rarity: 'common',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyDuration', value: 1 }]
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 0.5 }]
 	},
 	{
 		id: 'frenzy_duration_2',
 		title: 'Sustained Fury',
+		rarity: 'uncommon',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 1 }]
+	},
+
+	// === FRENZY DURATION BONUS (percentage, rare+) ===
+	{
+		id: 'frenzy_duration_bonus_1',
+		title: 'Endless Rage',
 		rarity: 'rare',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyDuration', value: 2 }]
+		modifiers: [{ stat: 'tapFrenzyDurationBonus', value: 0.25 }]
 	},
 	{
-		id: 'frenzy_duration_3',
+		id: 'frenzy_duration_bonus_2',
 		title: 'Relentless Rage',
 		rarity: 'epic',
 		image: fireImg,
 		modifiers: [
-			{ stat: 'tapFrenzyDuration', value: 3 },
+			{ stat: 'tapFrenzyDurationBonus', value: 0.5 },
 			{ stat: 'tapFrenzyBonus', value: 0.03 }
 		]
+	},
+	{
+		id: 'frenzy_duration_bonus_3',
+		title: 'Eternal Fury',
+		rarity: 'legendary',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDurationBonus', value: 1.0 }]
 	},
 
 	// === FRENZY BONUS (Epic capstone) ===
