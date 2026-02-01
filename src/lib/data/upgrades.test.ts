@@ -452,6 +452,33 @@ describe('gold per kill cards (two paths)', () => {
 	}
 });
 
+describe('attack speed cards (percentage-based)', () => {
+	const speedCards = [
+		{ id: 'attack_speed_1', rarity: 'common', value: 0.005 },
+		{ id: 'attack_speed_2', rarity: 'uncommon', value: 0.01 },
+		{ id: 'attack_speed_3', rarity: 'rare', value: 0.025 },
+		{ id: 'attack_speed_4', rarity: 'epic', value: 0.05 },
+		{ id: 'attack_speed_5', rarity: 'legendary', value: 0.25 }
+	];
+
+	for (const { id, rarity, value } of speedCards) {
+		test(`${id} uses attackSpeedBonus (not flat attackSpeed)`, () => {
+			const card = getUpgradeById(id)!;
+			expect(card).toBeDefined();
+			expect(card.rarity).toBe(rarity);
+			expect(card.modifiers[0].stat).toBe('attackSpeedBonus');
+			expect(card.modifiers[0].value).toBe(value);
+		});
+	}
+
+	test('no upgrade cards use flat attackSpeed stat', () => {
+		const flatSpeedCards = allUpgrades.filter((u) =>
+			u.modifiers.some((m) => m.stat === 'attackSpeed')
+		);
+		expect(flatSpeedCards).toHaveLength(0);
+	});
+});
+
 describe('xp multiplier cards (all tiers)', () => {
 	const xpCards = [
 		{ id: 'xp_1', rarity: 'common', value: 0.05 },

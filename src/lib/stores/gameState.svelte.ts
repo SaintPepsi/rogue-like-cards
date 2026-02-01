@@ -402,7 +402,8 @@ function createGameState() {
 			onSystemTick: tickSystems,
 			onBossExpired: handleBossExpired,
 			onBossTimerUrgent: () => sfx.play('boss:clockTicking'),
-			getAttackSpeed: () => statPipeline.get('attackSpeed'),
+			getAttackSpeed: () =>
+				statPipeline.get('attackSpeed') * (1 + statPipeline.get('attackSpeedBonus')),
 			getFrenzyCount: () => frenzy.count
 		};
 	}

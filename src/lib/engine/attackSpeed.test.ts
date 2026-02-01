@@ -18,6 +18,21 @@ describe('getEffectiveAttackSpeed', () => {
 	test('handles zero bonus gracefully', () => {
 		expect(getEffectiveAttackSpeed(0.8, 10, 0)).toBe(0.8);
 	});
+
+	test('applies attackSpeedBonus as percentage multiplier', () => {
+		// 0.8 * (1 + 0.25) * (1 + 0) = 1.0
+		expect(getEffectiveAttackSpeed(0.8, 0, 0.05, 0.25)).toBe(1.0);
+	});
+
+	test('attackSpeedBonus stacks with frenzy', () => {
+		// 0.8 * (1 + 0.25) * (1 + 5 * 0.05) = 0.8 * 1.25 * 1.25 = 1.25
+		expect(getEffectiveAttackSpeed(0.8, 5, 0.05, 0.25)).toBe(1.25);
+	});
+
+	test('defaults attackSpeedBonus to 0', () => {
+		// Without 4th arg, should behave like before
+		expect(getEffectiveAttackSpeed(0.8, 0, 0.05)).toBe(0.8);
+	});
 });
 
 describe('getAttackIntervalMs', () => {

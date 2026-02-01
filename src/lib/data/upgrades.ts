@@ -601,26 +601,43 @@ const _allUpgrades = [
 	},
 
 	// === ATTACK SPEED ===
+	// DECISION: Percentage-based attack speed bonus instead of flat. Base speed (0.8/s) stays
+	// fixed, cards add % bonus. This prevents early-game speed from becoming too fast too quickly
+	// while still allowing meaningful late-game scaling.
 	{
 		id: 'attack_speed_1',
 		title: 'Quick Hands',
 		rarity: 'common',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeed', value: 0.1 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.005 }]
 	},
 	{
 		id: 'attack_speed_2',
 		title: 'Swift Strikes',
 		rarity: 'uncommon',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeed', value: 0.2 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.01 }]
 	},
 	{
 		id: 'attack_speed_3',
-		title: 'Blade Storm',
+		title: 'Rapid Assault',
 		rarity: 'rare',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeed', value: 0.4 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.025 }]
+	},
+	{
+		id: 'attack_speed_4',
+		title: 'Lightning Reflexes',
+		rarity: 'epic',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.05 }]
+	},
+	{
+		id: 'attack_speed_5',
+		title: 'Blade Storm',
+		rarity: 'legendary',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.25 }]
 	},
 
 	// === FRENZY ===
@@ -638,7 +655,7 @@ const _allUpgrades = [
 		image: fireImg,
 		modifiers: [
 			{ stat: 'tapFrenzyBonus', value: 0.05 },
-			{ stat: 'attackSpeed', value: 0.2 }
+			{ stat: 'attackSpeedBonus', value: 0.02 }
 		]
 	},
 
@@ -676,7 +693,7 @@ const _allUpgrades = [
 		image: fireImg,
 		modifiers: [
 			{ stat: 'tapFrenzyBonus', value: 0.08 },
-			{ stat: 'attackSpeed', value: 0.3 }
+			{ stat: 'attackSpeedBonus', value: 0.03 }
 		]
 	},
 
