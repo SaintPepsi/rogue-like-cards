@@ -420,6 +420,68 @@ const _allUpgrades = [
 		]
 	},
 
+	// === GOLD PER KILL (flat, all tiers) ===
+	// DECISION: Flat gold increases the base that goldMultiplier percentage cards multiply.
+	// Two-path synergy mirrors the frenzy duration split.
+	{
+		id: 'gold_per_kill_1',
+		title: 'Coin Pouch',
+		rarity: 'common',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 1 }]
+	},
+	{
+		id: 'gold_per_kill_2',
+		title: 'Bounty Hunter',
+		rarity: 'uncommon',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 2 }]
+	},
+	{
+		id: 'gold_per_kill_3',
+		title: 'War Profiteer',
+		rarity: 'rare',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 3 }]
+	},
+	{
+		id: 'gold_per_kill_4',
+		title: "Merchant's Eye",
+		rarity: 'epic',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 5 }]
+	},
+	{
+		id: 'gold_per_kill_5',
+		title: 'Midas Touch',
+		rarity: 'legendary',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 10 }]
+	},
+
+	// === GOLD MULTIPLIER (percentage, rare+) ===
+	{
+		id: 'gold_multiplier_1',
+		title: 'Silver Lining',
+		rarity: 'rare',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldMultiplier', value: 0.1 }]
+	},
+	{
+		id: 'gold_multiplier_2',
+		title: 'Golden Age',
+		rarity: 'epic',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldMultiplier', value: 0.25 }]
+	},
+	{
+		id: 'gold_multiplier_3',
+		title: "Dragon's Treasury",
+		rarity: 'legendary',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldMultiplier', value: 0.5 }]
+	},
+
 	// === DAMAGE MULTIPLIER ===
 	{
 		id: 'damage_multiplier_1',

@@ -388,6 +388,44 @@ describe('execute rework', () => {
 	}
 });
 
+describe('gold per kill cards (two paths)', () => {
+	const flatGoldCards = [
+		{ id: 'gold_per_kill_1', rarity: 'common', value: 1 },
+		{ id: 'gold_per_kill_2', rarity: 'uncommon', value: 2 },
+		{ id: 'gold_per_kill_3', rarity: 'rare', value: 3 },
+		{ id: 'gold_per_kill_4', rarity: 'epic', value: 5 },
+		{ id: 'gold_per_kill_5', rarity: 'legendary', value: 10 }
+	];
+
+	for (const { id, rarity, value } of flatGoldCards) {
+		test(`${id} exists with rarity ${rarity} and goldPerKill ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'goldPerKill');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+
+	const pctGoldCards = [
+		{ id: 'gold_multiplier_1', rarity: 'rare', value: 0.1 },
+		{ id: 'gold_multiplier_2', rarity: 'epic', value: 0.25 },
+		{ id: 'gold_multiplier_3', rarity: 'legendary', value: 0.5 }
+	];
+
+	for (const { id, rarity, value } of pctGoldCards) {
+		test(`${id} exists with rarity ${rarity} and goldMultiplier ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'goldMultiplier');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+});
+
 describe('xp multiplier cards (all tiers)', () => {
 	const xpCards = [
 		{ id: 'xp_1', rarity: 'common', value: 0.05 },
