@@ -78,6 +78,9 @@ function isHitEvent(name: string): boolean {
 
 export function createSfx(audioManager: AudioManager) {
 	// Pre-create Howl instances for each unique source URL
+	// DECISION: Plain Map (not SvelteMap) — this cache is internal to createSfx,
+	// never read reactively by Svelte components. No reactivity needed.
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity
 	const howlCache = new Map<string, Howl>();
 
 	function getHowl(src: string): Howl {
@@ -115,7 +118,7 @@ export function createSfx(audioManager: AudioManager) {
 		howl.volume(effectiveVolume, id);
 
 		// Apply rate: option override > config > 1.0, with pitch variation for hits
-		let rate = options?.rate ?? config.rate ?? 1.0;
+		let rate = options?.rate ?? ('rate' in config ? config.rate : undefined) ?? 1.0;
 		if (isHitEvent(name) && !options?.rate) {
 			rate *= 1 - HIT_PITCH_VARIATION + Math.random() * HIT_PITCH_VARIATION * 2;
 		}
