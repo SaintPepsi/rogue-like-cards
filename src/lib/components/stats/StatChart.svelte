@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	type ChartDataset = {
 		label: string;
 		data: number[];
 		borderColor: string;
 		backgroundColor?: string;
-		stepped?: boolean | string;
+		stepped?: boolean | 'before' | 'after' | 'middle';
 		fill?: boolean;
 		yAxisID?: string;
 	};
@@ -28,7 +28,15 @@
 	let canvas: HTMLCanvasElement | undefined = $state();
 	let chartInstance: { destroy: () => void } | undefined;
 
-	onMount(async () => {
+	onMount(() => {
+		initChart();
+	});
+
+	onDestroy(() => {
+		chartInstance?.destroy();
+	});
+
+	async function initChart() {
 		const { Chart, registerables } = await import('chart.js');
 		Chart.register(...registerables);
 
@@ -78,11 +86,7 @@
 				scales
 			}
 		});
-
-		return () => {
-			chartInstance?.destroy();
-		};
-	});
+	}
 </script>
 
 <div class="chart-container">
