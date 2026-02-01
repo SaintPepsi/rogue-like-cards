@@ -269,3 +269,78 @@ describe('frenzy upgrade cards', () => {
 		expect(foundFrenzyNew).toBe(true);
 	});
 });
+
+describe('gaussian lucky system', () => {
+	test('at 0 lucky, common dominates', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.common / 2000).toBeGreaterThan(0.5);
+	});
+
+	test('at 200% lucky, rare tier is more common than common and legendary', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 2.0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.rare).toBeGreaterThan(counts.common);
+		expect(counts.rare).toBeGreaterThan(counts.legendary);
+	});
+
+	test('at 1000% lucky, epic tier dominates over common and uncommon', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 10.0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.epic).toBeGreaterThan(counts.common);
+		expect(counts.epic).toBeGreaterThan(counts.uncommon);
+	});
+
+	test('legendary is never 100% even at extreme lucky', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 100.0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.legendary / 2000).toBeLessThan(1.0);
+		expect(counts.legendary / 2000).toBeGreaterThan(0.5);
+	});
+
+	test('focus point calculation matches design breakpoints', () => {
+		const fp = (lucky: number) => 4 * (1 - 1 / (1 + lucky / 2));
+		expect(fp(0)).toBeCloseTo(0.0);
+		expect(fp(0.5)).toBeCloseTo(0.8, 0);
+		expect(fp(1.0)).toBeCloseTo(1.33, 1);
+		expect(fp(2.0)).toBeCloseTo(2.0, 1);
+		expect(fp(5.0)).toBeCloseTo(2.86, 1);
+		expect(fp(10.0)).toBeCloseTo(3.33, 1);
+	});
+});

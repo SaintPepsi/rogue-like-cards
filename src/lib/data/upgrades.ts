@@ -631,29 +631,49 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
-// DECISION: Each tier is roughly 1/3 the previous (67→22→7→3→1), summing to 100.
-// This gives ~1 legendary per 100 draws and ~1 epic per 33 draws.
-// The 1/3 ratio keeps higher tiers exciting without making them unobtainable.
-const RARITY_TIER_CHANCES: Record<string, number> = {
-	common: 67, // 67% chance per pick
-	uncommon: 22, // 22% chance per pick  (~1/3 of common)
-	rare: 7, //  7% chance per pick  (~1/3 of uncommon)
-	epic: 3, //  3% chance per pick  (~1/3 of rare)
-	legendary: 1 //  1% chance per pick  (~1/3 of epic)
+// DECISION: Gaussian rarity distribution centered on a lucky-driven focus point.
+// At 0 lucky, focusPoint=0 (common). Lucky pushes it asymptotically toward 4 (legendary).
+// The sigma=0.8 gaussian spread means tiers ±1 from focus get significant weight,
+// tiers ±2 get small weight, and beyond is negligible.
+// This replaces the old linear redistribution system which had a hard ceiling on lucky benefit.
+const RARITY_TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+const TIER_INDEX: Record<string, number> = {
+	common: 0,
+	uncommon: 1,
+	rare: 2,
+	epic: 3,
+	legendary: 4
 };
 
-// DECISION: Lucky redistributes 20% points from common into higher tiers.
-// The split (5/7/5/3) favors rare slightly, keeping legendaries special even with full luck.
-// At max lucky (1.0): common drops from 67% to 47%, legendary rises from 1% to 4%.
-const LUCKY_TIER_BONUS: Record<string, number> = {
-	common: -20, // loses 20% points
-	uncommon: 5, // gains 5% points
-	rare: 7, // gains 7% points
-	epic: 5, // gains 5% points
-	legendary: 3 // gains 3% points
-};
+const GAUSSIAN_SIGMA = 0.8;
 
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+function getFocusPoint(luckyChance: number): number {
+	return 4 * (1 - 1 / (1 + luckyChance / 2));
+}
+
+function gaussianWeight(tierIndex: number, focusPoint: number): number {
+	const distance = tierIndex - focusPoint;
+	return Math.exp(-(distance * distance) / (2 * GAUSSIAN_SIGMA * GAUSSIAN_SIGMA));
+}
+
+function getRarityWeights(luckyChance: number): Record<string, number> {
+	const focusPoint = getFocusPoint(luckyChance);
+	const weights: Record<string, number> = {};
+
+	let totalGaussian = 0;
+	for (const rarity of RARITY_TIERS) {
+		const w = gaussianWeight(TIER_INDEX[rarity], focusPoint);
+		weights[rarity] = w;
+		totalGaussian += w;
+	}
+
+	// Normalize to sum to 100
+	for (const rarity of RARITY_TIERS) {
+		weights[rarity] = (weights[rarity] / totalGaussian) * 100;
+	}
+
+	return weights;
+}
 
 // Pick N cards from a pool using rarity-weighted random selection (no duplicates).
 // The pool can be any pre-filtered set of upgrades.
@@ -665,24 +685,15 @@ export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number
 		tiers[upgrade.rarity].push(upgrade);
 	}
 
-	// Build effective tier chances (base + lucky bonus)
-	const tierChances: Record<string, number> = {};
-	for (const rarity of Object.keys(RARITY_TIER_CHANCES)) {
-		const base = RARITY_TIER_CHANCES[rarity] ?? 0;
-		const bonus = (LUCKY_TIER_BONUS[rarity] ?? 0) * luckyChance;
-		tierChances[rarity] = Math.max(0, base + bonus);
-	}
+	const tierWeights = getRarityWeights(luckyChance);
 
-	// Build carousel: each tier gets tickets equal to its % chance,
+	// Build carousel: each tier gets tickets equal to its % weight,
 	// distributed evenly across cards in that tier.
-	// Use 100 total tickets so 1 ticket = 1% chance.
 	const carousel: Upgrade[] = [];
-	for (const [rarity, chance] of Object.entries(tierChances)) {
+	for (const [rarity, weight] of Object.entries(tierWeights)) {
 		const cards = tiers[rarity];
 		if (!cards || cards.length === 0) continue;
-		// Round up tickets so every non-empty tier gets representation
-		const totalTickets = Math.max(1, Math.round(chance));
-		// Spread tickets across cards in the tier
+		const totalTickets = Math.max(1, Math.round(weight));
 		for (let t = 0; t < totalTickets; t++) {
 			carousel.push(cards[t % cards.length]);
 		}
@@ -731,10 +742,10 @@ export function getRandomUpgrades(
 	let pool = [...allUpgrades];
 
 	// Filter by minimum rarity
-	const minIndex = RARITY_ORDER.indexOf(minRarity as (typeof RARITY_ORDER)[number]);
+	const minIndex = RARITY_TIERS.indexOf(minRarity as (typeof RARITY_TIERS)[number]);
 	if (minIndex > 0) {
-		const allowed = new Set(RARITY_ORDER.slice(minIndex));
-		pool = pool.filter((u) => allowed.has(u.rarity as (typeof RARITY_ORDER)[number]));
+		const allowed = new Set(RARITY_TIERS.slice(minIndex));
+		pool = pool.filter((u) => allowed.has(u.rarity as (typeof RARITY_TIERS)[number]));
 	}
 
 	// Filter out execute upgrades if player has hit their current cap
