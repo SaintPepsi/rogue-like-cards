@@ -1,7 +1,8 @@
 name: Auto Version Bump
 
 on:
-  push:
+  pull_request:
+    types: [opened]
     branches:
       - master
 
@@ -10,23 +11,27 @@ permissions:
   pull-requests: write
 
 jobs:
-  # On merge to master: bump minor version, reset patch to 0
   bump-minor:
     runs-on: ubuntu-latest
+    # Skip if the latest commit is already a version bump
+    if: "!contains(github.event.pull_request.title, '[skip ci]')"
 
     steps:
-      - name: Checkout master
+      - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Bump minor version
+      - name: Check if version bump is needed
+        id: check
         run: |
-          # Skip if this is a version bump commit (avoid infinite loop)
+          # Skip if the last commit on this branch is already a version bump
           LAST_MSG=$(git log -1 --pretty=%s)
           if echo "$LAST_MSG" | grep -q '\[skip ci\]'; then
-            echo "Skipping version bump commit"
+            echo "Latest commit is already a version bump, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
@@ -48,6 +53,15 @@ jobs:
           NEW_VERSION="$MAJOR.$NEW_MINOR.0"
           echo "New version: $NEW_VERSION"
 
+          echo "skip=false" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Bump version files
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          NEW_VERSION="${{ steps.check.outputs.new_version }}"
+
           # Update version.ts
           sed -i "s/VERSION = '.*'/VERSION = '$NEW_VERSION'/" src/lib/version.ts
 
@@ -55,32 +69,19 @@ jobs:
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
           # Update the latest changelog entry version to match the new version
-          # This prevents the changelog from appearing one version behind the app
           CHANGELOG_FILE="src/lib/changelog.ts"
           LATEST_CHANGELOG_VERSION=$(grep -oP "version: '\K[^']+" "$CHANGELOG_FILE" | head -1)
           if [ -n "$LATEST_CHANGELOG_VERSION" ]; then
-            # Replace only the first occurrence of the version in the changelog
             sed -i "0,/version: '$LATEST_CHANGELOG_VERSION'/s/version: '$LATEST_CHANGELOG_VERSION'/version: '$NEW_VERSION'/" "$CHANGELOG_FILE"
           fi
 
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-
-      - name: Create version bump PR
-        if: env.NEW_VERSION
+      - name: Commit and push version bump
+        if: steps.check.outputs.skip != 'true'
         run: |
-          BRANCH="chore/bump-version-${{ env.NEW_VERSION }}"
+          NEW_VERSION="${{ steps.check.outputs.new_version }}"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git checkout -b "$BRANCH"
           git add src/lib/version.ts package.json src/lib/changelog.ts
           git diff --cached --quiet && exit 0
-          git commit -m "chore: bump version to ${{ env.NEW_VERSION }} [skip ci]"
-          git push -u origin "$BRANCH"
-          PR_URL=$(gh pr create \
-            --title "chore: bump version to ${{ env.NEW_VERSION }}" \
-            --body "Automated minor version bump to ${{ env.NEW_VERSION }}." \
-            --base master \
-            --head "$BRANCH")
-          gh pr merge "$PR_URL" --squash --auto
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git push
