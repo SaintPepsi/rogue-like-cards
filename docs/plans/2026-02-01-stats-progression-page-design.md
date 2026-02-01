@@ -6,6 +6,25 @@ A dev-only page at `/stats` for visualizing game balance through stat progressio
 
 Gated behind `import.meta.env.DEV` — not accessible in production.
 
+## Core Constraint: No Duplicate Formulas
+
+The stats page and simulator must **never contain their own stat, damage, or wave formulas**. All derived values (effective DPS, enemy HP, poison DPS, time-to-kill, XP thresholds) must be computed by calling the real engine functions (`getWaveConfig`, `xpToNextLevel`, `applyUpgrade`, etc.).
+
+This ensures balance changes automatically propagate to the visualization without manual syncing.
+
+**What this means in practice:**
+
+- **Live Run snapshots** call real engine functions with current stage/stats to compute derived fields.
+- **Simulator** drives a loop over the real `applyUpgrade()` and `getWaveConfig()` functions — it contains no math of its own.
+- **New derived values** (e.g. `computeEffectiveDps`) are added to the engine first, then called from both the game and the stats page. The engine is the single source of truth.
+
+```ts
+// DECISION: Simulator must NEVER contain its own stat/damage/wave formulas.
+// It calls the real engine functions (applyUpgrade, getWaveConfig, computeEffectiveDps, etc.)
+// so that balance changes automatically propagate to the visualization.
+// If you need a new derived value here, add it to the engine first, then call it.
+```
+
 ## Data Recording
 
 ### Snapshot Store (`src/lib/stores/runHistory.svelte.ts`)
@@ -116,22 +135,44 @@ Displays recorded snapshots as grouped accordion charts. If no snapshots exist, 
 
 ## Simulator Engine (`src/lib/engine/simulator.ts`)
 
-Pure functions that take a build plan and produce stat curves:
+A thin loop that drives real engine functions — **zero formulas of its own**.
 
 ```ts
 type BuildStep = { level: number; upgradeId: string };
 type BuildPlan = BuildStep[];
 
-function simulateBuild(plan: BuildPlan, maxStage: number): StatSnapshot[];
+function simulateBuild(plan: BuildPlan, maxStage: number): StatSnapshot[] {
+	let stats = { ...DEFAULT_STATS };
+	const snapshots: StatSnapshot[] = [];
+
+	for (let stage = 1; stage <= maxStage; stage++) {
+		// Apply upgrades using the REAL applyUpgrade() from the engine
+		for (const step of plan.filter((s) => s.level === stage)) {
+			stats = applyUpgrade(stats, step.upgradeId);
+		}
+		// Compute derived values using REAL engine functions
+		const wave = getWaveConfig(stage, stats);
+		const dps = computeEffectiveDps(stats);
+		const poisonDps = computePoisonDps(stats);
+		snapshots.push({
+			stage,
+			stats: { ...stats },
+			computedDps: dps,
+			poisonDps,
+			enemyHp: wave.enemyHp,
+			bossHp: wave.bossHp,
+			timeToKill: wave.enemyHp / dps,
+			xpToNextLevel: xpToNextLevel(stage)
+			// ...
+		});
+	}
+	return snapshots;
+}
 ```
 
-1. Start with `DEFAULT_STATS`
-2. Sort plan by level
-3. For each stage 1..maxStage:
-   - Apply any upgrades scheduled at current level
-   - Compute derived values (DPS, enemy HP, etc.) using existing wave/stat formulas
-   - Emit a snapshot
-4. Return array of snapshots (same shape as live snapshots, for chart reuse)
+**`computeEffectiveDps`** and **`computePoisonDps`** are new engine functions (added to the engine, not the simulator) that the game itself can also use for tooltips/UI.
+
+The simulator has no knowledge of how damage, crits, or scaling work — it just calls the engine.
 
 ## File Layout
 
