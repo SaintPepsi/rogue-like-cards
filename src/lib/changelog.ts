@@ -13,6 +13,54 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.34.0',
+		date: '2026-02-02',
+		changes: [
+			{
+				category: 'changed',
+				description:
+					'Redesigned rarity distribution to use a gaussian focus system driven by Lucky stat'
+			},
+			{
+				category: 'changed',
+				description:
+					'Rebalanced upgrade cards across all tiers with new progression curves for crit, attack speed, execute, XP, gold, and lucky stats'
+			},
+			{
+				category: 'new',
+				description:
+					'Added percentage-based attack speed bonus system replacing flat attack speed upgrades'
+			},
+			{
+				category: 'new',
+				description:
+					'Added split frenzy duration paths: flat seconds for early game, percentage bonus for late game scaling'
+			},
+			{
+				category: 'changed',
+				description: 'Reduced base frenzy duration to 1 second for more active engagement'
+			},
+			{
+				category: 'changed',
+				description:
+					'Added 25% hard cap on crit chance and crit damage prerequisite requiring crit chance before crit damage cards appear'
+			},
+			{
+				category: 'changed',
+				description:
+					'Halved enemy base HP and doubled kills per wave for more frequent upgrade opportunities'
+			},
+			{
+				category: 'new',
+				description: 'Added tiered execute cap shop cards at uncommon, rare, and epic rarities'
+			},
+			{
+				category: 'changed',
+				description: 'Rebalanced combo and legendary cards to match new stat ranges'
+			}
+		]
+	},
+	{
 		version: '0.33.0',
 		date: '2026-02-01',
 		changes: [
