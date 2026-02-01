@@ -746,14 +746,34 @@ const _allUpgrades = [
 export type UpgradeId = (typeof _allUpgrades)[number]['id'];
 export const allUpgrades: readonly Upgrade[] = _allUpgrades;
 
-// === EXECUTE CAP (shop-only stackable card) ===
-export const executeCapUpgrade: Upgrade = {
-	id: 'execute_cap',
-	title: "Executioner's Pact",
-	rarity: 'epic',
-	image: pickaxeImg,
-	modifiers: [] // Applied via executeCapBonus in gameState, not through normal stats
+// === EXECUTE CAP (shop-only stackable cards) ===
+// DECISION: Tiered execute cap shop cards. Higher rarities give bigger cap increases
+// per purchase. All use the same executeCapBonus accumulator.
+export const executeCapUpgrades: Record<string, Upgrade> = {
+	execute_cap_1: {
+		id: 'execute_cap_1',
+		title: "Headsman's Contract",
+		rarity: 'uncommon',
+		image: pickaxeImg,
+		modifiers: [] // +0.25% cap per purchase
+	},
+	execute_cap_2: {
+		id: 'execute_cap_2',
+		title: "Executioner's Pact",
+		rarity: 'rare',
+		image: pickaxeImg,
+		modifiers: [] // +0.5% cap per purchase
+	},
+	execute_cap_3: {
+		id: 'execute_cap_3',
+		title: 'Death Warrant',
+		rarity: 'epic',
+		image: pickaxeImg,
+		modifiers: [] // +1% cap per purchase
+	}
 };
+// Backwards compat: old saves reference 'execute_cap'
+export const executeCapUpgrade: Upgrade = executeCapUpgrades['execute_cap_2'];
 
 // === GOLD PER KILL (shop-only stackable card) ===
 export const goldPerKillUpgrade: Upgrade = {
@@ -767,6 +787,14 @@ export const goldPerKillUpgrade: Upgrade = {
 // DECISION: Base cap reduced from 10% to 5%. Execute is instant kill, so even 5% is very strong.
 // Shop upgrades can raise the cap further.
 export const EXECUTE_CHANCE_BASE_CAP = 0.05;
+
+export const EXECUTE_CAP_BONUS_PER_TIER: Record<string, number> = {
+	execute_cap_1: 0.0025,
+	execute_cap_2: 0.005,
+	execute_cap_3: 0.01
+};
+
+export const executeCapIds = new Set(Object.keys(executeCapUpgrades));
 
 export function getModifierDisplay(mod: StatModifier): {
 	icon: string;

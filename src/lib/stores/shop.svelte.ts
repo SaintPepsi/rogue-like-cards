@@ -5,13 +5,14 @@ import {
 	pickByRarity,
 	getExecuteCap,
 	getUpgradeById,
-	executeCapUpgrade,
+	executeCapUpgrades,
+	executeCapIds,
+	EXECUTE_CAP_BONUS_PER_TIER,
 	goldPerKillUpgrade
 } from '$lib/data/upgrades';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 import type { createPersistence } from './persistence.svelte';
 
-const EXECUTE_CAP_BONUS_PER_LEVEL = 0.005;
 const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
 
 export function createShop(persistence: ReturnType<typeof createPersistence>) {
@@ -24,8 +25,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let rerollCost = $state(1);
 
 	function getPrice(upgrade: Upgrade): number {
-		if (upgrade.id === 'execute_cap') {
-			const level = Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+		if (executeCapIds.has(upgrade.id)) {
+			const bonusPerLevel = EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005;
+			const level = bonusPerLevel > 0 ? Math.round(executeCapBonus / bonusPerLevel) : 0;
 			return calculateCardPrice(upgrade.rarity, level);
 		}
 		if (upgrade.id === 'gold_per_kill') {
@@ -38,7 +40,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	const SHOP_CARD_SLOTS = 3;
 
 	function generateChoices(stats: PlayerStats): Upgrade[] {
-		const allCards = [...allUpgrades, executeCapUpgrade, goldPerKillUpgrade];
+		const allCards = [...allUpgrades, ...Object.values(executeCapUpgrades), goldPerKillUpgrade];
 		return pickByRarity(allCards, SHOP_CARD_SLOTS, stats.luckyChance);
 	}
 
@@ -68,8 +70,8 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 
 		persistentGold -= price;
 
-		if (upgrade.id === 'execute_cap') {
-			executeCapBonus += EXECUTE_CAP_BONUS_PER_LEVEL;
+		if (executeCapIds.has(upgrade.id)) {
+			executeCapBonus += EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005;
 		} else if (upgrade.id === 'gold_per_kill') {
 			goldPerKillBonus += GOLD_PER_KILL_BONUS_PER_LEVEL;
 		} else {
@@ -121,7 +123,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 
 		if (data.shopChoiceIds) {
 			const specialCards: Record<string, Upgrade> = {
-				execute_cap: executeCapUpgrade,
+				...executeCapUpgrades,
+				// Backwards compat: old saves may have 'execute_cap'
+				execute_cap: executeCapUpgrades['execute_cap_2'],
 				gold_per_kill: goldPerKillUpgrade
 			};
 			shopChoices = data.shopChoiceIds
@@ -171,7 +175,8 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 			return goldPerKillBonus;
 		},
 		get executeCapLevel() {
-			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+			// Use the middle tier (0.005) as the reference for level display
+			return Math.round(executeCapBonus / 0.005);
 		},
 		get goldPerKillLevel() {
 			return Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);

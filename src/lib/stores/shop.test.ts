@@ -125,7 +125,7 @@ describe('createShop', () => {
 		shop.open(stats);
 
 		const upgrade = shop.shopChoices[0];
-		if (upgrade.id === 'execute_cap' || upgrade.id === 'gold_per_kill') return;
+		if (upgrade.id.startsWith('execute_cap') || upgrade.id === 'gold_per_kill') return;
 
 		const firstPrice = shop.getPrice(upgrade);
 		shop.buy(upgrade, stats);
@@ -255,7 +255,8 @@ describe('createShop', () => {
 		const shop = createShop(p);
 		shop.load();
 
-		expect(shop.shopChoices.map((c) => c.id)).toEqual(['execute_cap', 'gold_per_kill']);
+		// Old 'execute_cap' maps to 'execute_cap_2' via backwards compat
+		expect(shop.shopChoices.map((c) => c.id)).toEqual(['execute_cap_2', 'gold_per_kill']);
 	});
 
 	test('fullReset clears all persistent state', () => {
