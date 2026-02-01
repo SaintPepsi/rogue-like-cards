@@ -772,8 +772,6 @@ export const executeCapUpgrades: Record<string, Upgrade> = {
 		modifiers: [] // +1% cap per purchase
 	}
 };
-// Backwards compat: old saves reference 'execute_cap'
-export const executeCapUpgrade: Upgrade = executeCapUpgrades['execute_cap_2'];
 
 // === GOLD PER KILL (shop-only stackable card) ===
 export const goldPerKillUpgrade: Upgrade = {

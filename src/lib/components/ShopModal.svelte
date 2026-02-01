@@ -73,14 +73,21 @@
 		}, REROLL_FADE_MS);
 	}
 
+	const executeCapBonusValues: Record<string, number> = {
+		execute_cap_1: 0.0025,
+		execute_cap_2: 0.005,
+		execute_cap_3: 0.01
+	};
+
 	function getModifiers(upgrade: Upgrade): StatModifier[] {
-		if (upgrade.id === 'execute_cap') return [{ stat: 'executeChance', value: 0.005 }];
+		if (upgrade.id in executeCapBonusValues)
+			return [{ stat: 'executeChance', value: executeCapBonusValues[upgrade.id] }];
 		if (upgrade.id === 'gold_per_kill') return [{ stat: 'goldPerKill', value: 1 }];
 		return upgrade.modifiers;
 	}
 
 	function getTitle(upgrade: Upgrade): string {
-		if (upgrade.id === 'execute_cap') return `${upgrade.title} (Lv.${executeCapLevel})`;
+		if (upgrade.id in executeCapBonusValues) return `${upgrade.title} (Lv.${executeCapLevel})`;
 		if (upgrade.id === 'gold_per_kill') return `${upgrade.title} (Lv.${goldPerKillLevel})`;
 		return upgrade.title;
 	}
