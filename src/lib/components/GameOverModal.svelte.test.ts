@@ -10,8 +10,11 @@ const baseProps = {
 	enemiesKilled: 42,
 	goldEarned: 89,
 	totalGold: 320,
+	isLoggedIn: false,
 	onReset: noop,
-	onOpenShop: noop
+	onOpenShop: noop,
+	onOpenLeaderboard: noop,
+	onOpenLogin: noop
 };
 
 describe('GameOverModal', () => {

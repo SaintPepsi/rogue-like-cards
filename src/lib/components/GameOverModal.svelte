@@ -7,14 +7,28 @@
 		enemiesKilled: number;
 		goldEarned: number;
 		totalGold: number;
+		isLoggedIn: boolean;
 		onReset: () => void;
 		onOpenShop: () => void;
+		onOpenLeaderboard: () => void;
+		onOpenLogin: () => void;
 	};
 
 	import { formatNumber } from '$lib/format';
 
-	let { show, stage, level, enemiesKilled, goldEarned, totalGold, onReset, onOpenShop }: Props =
-		$props();
+	let {
+		show,
+		stage,
+		level,
+		enemiesKilled,
+		goldEarned,
+		totalGold,
+		isLoggedIn,
+		onReset,
+		onOpenShop,
+		onOpenLeaderboard,
+		onOpenLogin
+	}: Props = $props();
 </script>
 
 {#if show}
@@ -31,10 +45,21 @@
 			<p class="gold-display">
 				Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span>
 			</p>
+			{#if isLoggedIn}
+				<p class="score-submitted">Score submitted to leaderboard!</p>
+			{:else}
+				<p class="sign-in-prompt">
+					<button class="link-btn" onclick={onOpenLogin}>Sign in</button> to save your score to the leaderboard
+				</p>
+			{/if}
 			<div class="button-row">
 				<Button.Root
 					class="px-6 py-3 bg-linear-to-r from-[#fbbf24] to-[#f59e0b] border-none rounded-lg text-[#1a1a2e] text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]"
 					onclick={onOpenShop}>Buy Cards</Button.Root
+				>
+				<Button.Root
+					class="px-6 py-3 bg-linear-to-r from-[#8b5cf6] to-[#a78bfa] border-none rounded-lg text-white text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(139,92,246,0.4)]"
+					onclick={onOpenLeaderboard}>Leaderboard</Button.Root
 				>
 				<Button.Root
 					class="px-6 py-3 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]"
@@ -107,5 +132,30 @@
 		display: flex;
 		justify-content: center;
 		gap: 12px;
+		flex-wrap: wrap;
+	}
+
+	.score-submitted {
+		color: #4ade80;
+		font-size: 0.9rem;
+		font-weight: 600;
+	}
+
+	.sign-in-prompt {
+		font-size: 0.9rem;
+	}
+
+	.link-btn {
+		background: none;
+		border: none;
+		color: #a78bfa;
+		font-size: 0.9rem;
+		cursor: pointer;
+		text-decoration: underline;
+		padding: 0;
+	}
+
+	.link-btn:hover {
+		color: #c4b5fd;
 	}
 </style>
