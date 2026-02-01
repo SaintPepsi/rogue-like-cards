@@ -13,6 +13,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.31.0',
+		date: '2026-02-01',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added sound effects for combat hits, enemy deaths, boss encounters, gold drops, and card interactions'
+			},
+			{
+				category: 'new',
+				description:
+					'Added audio settings with volume sliders for SFX, Music, and UI buses plus a mute toggle'
+			}
+		]
+	},
+	{
 		version: '0.30.0',
 		date: '2026-02-01',
 		changes: [
