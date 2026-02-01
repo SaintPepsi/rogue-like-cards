@@ -1,9 +1,12 @@
+// NOTE: PlayerStats could live in engine/stats.ts alongside BASE_STATS (they always change together).
+// HitType, HitInfo, GoldDrop are UI-only types that could move to stores/uiEffects.svelte.ts.
+// Kept here for now as a shared type module — revisit if types.ts grows further.
+
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export type StatModifier = {
-	icon: string;
-	label: string;
-	value: string;
+	stat: keyof PlayerStats;
+	value: number;
 };
 
 export type PlayerStats = {
@@ -28,6 +31,11 @@ export type PlayerStats = {
 	goldMultiplier: number; // Bonus gold from chests
 	goldDropChance: number; // Chance for mobs to drop gold on kill
 	goldPerKill: number; // Bonus flat gold per kill drop
+	attackSpeed: number;
+	tapFrenzyBonus: number;
+	tapFrenzyDuration: number;
+	tapFrenzyStackMultiplier: number; // Multiplier on frenzy stacks per tap (legendary-only)
+	executeCap: number; // Max execute chance (from shop upgrades)
 };
 
 export type Upgrade = {
@@ -35,8 +43,8 @@ export type Upgrade = {
 	title: string;
 	rarity: Rarity;
 	image: string;
-	stats: StatModifier[];
-	apply: (stats: PlayerStats) => void;
+	modifiers: StatModifier[];
+	onAcquire?: () => void;
 };
 
 export type Effect = {
@@ -44,7 +52,15 @@ export type Effect = {
 	description: string;
 };
 
-export type HitType = 'normal' | 'crit' | 'execute' | 'poison' | 'poisonCrit';
+export type HitType =
+	| 'normal'
+	| 'crit'
+	| 'execute'
+	| 'poison'
+	| 'poisonCrit'
+	| 'hit'
+	| 'criticalHit'
+	| 'executeHit';
 
 export type HitInfo = {
 	damage: number;

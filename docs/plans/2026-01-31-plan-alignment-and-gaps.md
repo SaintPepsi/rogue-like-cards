@@ -11,10 +11,13 @@
 The current codebase mutates `playerStats` directly via `apply()` functions on upgrade cards:
 
 ```typescript
-apply: (s) => { s.damage += 3 }
+apply: (s) => {
+	s.damage += 3;
+};
 ```
 
 This creates issues:
+
 - **Temporary effects need manual reversal** (e.g., Blinking Eyes darkness drains a stat, must restore on death)
 - **Save migration is fragile** — persisted stat values bake in old formulas
 - **Fast-changing modifiers** (frenzy stacks at 60fps) require mutation + reversal cycles
@@ -30,17 +33,26 @@ Stats are never mutated. All effective values are computed by piping a base valu
 type StatStep = (value: number) => number;
 
 // Flat additive (upgrade card: +3 damage)
-const add = (n: number): StatStep => (v) => v + n;
+const add =
+	(n: number): StatStep =>
+	(v) =>
+		v + n;
 
 // Multiplicative (frenzy: 1 + stacks * bonus)
-const multiply = (n: number): StatStep => (v) => v * n;
+const multiply =
+	(n: number): StatStep =>
+	(v) =>
+		v * n;
 
 // Conditional (rogue finisher: +execute if poison > 5)
 const conditionalAdd = (n: number, condition: boolean): StatStep =>
-  condition ? (v) => v + n : (v) => v;
+	condition ? (v) => v + n : (v) => v;
 
 // Floor (never below 0)
-const clampMin = (min: number): StatStep => (v) => Math.max(min, v);
+const clampMin =
+	(min: number): StatStep =>
+	(v) =>
+		Math.max(min, v);
 ```
 
 **Layered pipeline with per-layer memoisation:**
@@ -57,51 +69,52 @@ Layer 4: Clamp       -> floor at 0 (pure passthrough, never dirty)
 
 ```typescript
 type PipelineLayer = {
-  steps: StatStep[];
-  cachedResult: number;
-  cachedInput: number;
-  dirty: boolean;
+	steps: StatStep[];
+	cachedResult: number;
+	cachedInput: number;
+	dirty: boolean;
 };
 
 function computeLayered(stat: keyof PlayerStats, layers: PipelineLayer[]): number {
-  let value = BASE_STATS[stat];
+	let value = BASE_STATS[stat];
 
-  for (let i = 0; i < layers.length; i++) {
-    const layer = layers[i];
-    if (!layer.dirty && layer.cachedInput === value) {
-      value = layer.cachedResult;
-      continue;
-    }
+	for (let i = 0; i < layers.length; i++) {
+		const layer = layers[i];
+		if (!layer.dirty && layer.cachedInput === value) {
+			value = layer.cachedResult;
+			continue;
+		}
 
-    layer.cachedInput = value;
-    for (let j = 0; j < layer.steps.length; j++) {
-      value = layer.steps[j](value);
-    }
-    layer.cachedResult = value;
-    layer.dirty = false;
-  }
+		layer.cachedInput = value;
+		for (let j = 0; j < layer.steps.length; j++) {
+			value = layer.steps[j](value);
+		}
+		layer.cachedResult = value;
+		layer.dirty = false;
+	}
 
-  return value;
+	return value;
 }
 ```
 
 **Dirty propagation:** Dirtying a layer implicitly dirties all subsequent layers (their input changed). In practice:
+
 - Layer 1 (permanent) changes during paused modals — infrequent
 - Layer 3 (transient) changes during combat — frequent but only recomputes the last layer
 - At 60fps, most frames hit cache on all layers
 
 **Dirty triggers:**
 
-| Event | Layer dirtied |
-|---|---|
-| Upgrade acquired | Layer 1 (permanent) |
-| Class selected | Layer 0 (base) + Layer 2 (class) |
-| Enemy spawns with aura/debuff | Layer 3 (transient) |
-| Enemy dies (clear transients) | Layer 3 (transient) |
-| Frenzy stack added/removed | Layer 3 (transient) |
-| Darkness stack added/removed | Layer 3 (transient) |
-| Spore debuff applied/expired | Layer 3 (transient) |
-| Game loaded from save | All layers (`dirtyAll()`) |
+| Event                         | Layer dirtied                    |
+| ----------------------------- | -------------------------------- |
+| Upgrade acquired              | Layer 1 (permanent)              |
+| Class selected                | Layer 0 (base) + Layer 2 (class) |
+| Enemy spawns with aura/debuff | Layer 3 (transient)              |
+| Enemy dies (clear transients) | Layer 3 (transient)              |
+| Frenzy stack added/removed    | Layer 3 (transient)              |
+| Darkness stack added/removed  | Layer 3 (transient)              |
+| Spore debuff applied/expired  | Layer 3 (transient)              |
+| Game loaded from save         | All layers (`dirtyAll()`)        |
 
 ### Card Migration
 
@@ -161,9 +174,9 @@ A named timer map managed by the game loop. The engine ticks all active timers b
 
 ```typescript
 type GameTimer = {
-  remaining: number;      // ms remaining until expiry
-  onExpire: () => void;   // fires when remaining <= 0
-  repeat?: number;        // if set, auto-resets to this value on expiry (for intervals)
+	remaining: number; // ms remaining until expiry
+	onExpire: () => void; // fires when remaining <= 0
+	repeat?: number; // if set, auto-resets to this value on expiry (for intervals)
 };
 
 type TimerRegistry = Map<string, GameTimer>;
@@ -173,17 +186,17 @@ type TimerRegistry = Map<string, GameTimer>;
 
 ```typescript
 function tickTimers(deltaMs: number, timers: TimerRegistry): void {
-  for (const [name, timer] of timers) {
-    timer.remaining -= deltaMs;
-    if (timer.remaining <= 0) {
-      timer.onExpire();
-      if (timer.repeat != null) {
-        timer.remaining += timer.repeat; // carry remainder for accuracy
-      } else {
-        timers.delete(name);
-      }
-    }
-  }
+	for (const [name, timer] of timers) {
+		timer.remaining -= deltaMs;
+		if (timer.remaining <= 0) {
+			timer.onExpire();
+			if (timer.repeat != null) {
+				timer.remaining += timer.repeat; // carry remainder for accuracy
+			} else {
+				timers.delete(name);
+			}
+		}
+	}
 }
 ```
 
@@ -199,23 +212,23 @@ hasTimer(name: string): boolean
 
 ### Timer Usage Across Plans
 
-| Timer name | Plan | Type | Duration | Purpose |
-|---|---|---|---|---|
-| `attack_cooldown` | 0 | one-shot, re-registered per attack | `1000 / effectiveAttackSpeed` | Attack rate limiting |
-| `poison_tick` | 0 | repeating | 1000ms (modified by frost aura via stat pipeline) | Poison damage ticks |
-| `boss_countdown` | 0 | repeating 1000ms | Until `bossTimeRemaining <= 0` | Boss timer seconds |
-| `frenzy_{id}` | 0 | one-shot | `tapFrenzyDuration * 1000` | Individual frenzy stack expiry |
-| `goblin_dodge` | 1 | repeating | 4000ms (reducible) | Goblin dodge charge cycle |
-| `spore_cloud` | 1 | repeating | 5000ms | Red Mushroom spore release |
-| `spore_debuff_{id}` | 1 | one-shot | 3000ms | Individual spore stack expiry |
-| `darkness_check` | 1 | repeating | 1000ms | Blinking Eyes idle detection |
-| `element_frost` | 3 | one-shot | 5000ms | Frost element expiry |
-| `element_fire` | 3 | one-shot | 5000ms | Fire element expiry |
-| `element_arcane` | 3 | one-shot | 5000ms | Arcane element expiry |
-| `burn_dot` | 3 | repeating | 1000ms | Fire burn DoT ticks |
-| `poison_cloud_tick` | 3 | repeating | 1000ms | Rogue cloud stacking |
-| `poison_cloud_expire` | 3 | one-shot | 5000ms | End cloud effect |
-| `poison_cloud_cooldown` | 3 | one-shot | 10000ms (reducible) | Cloud ability available again |
+| Timer name              | Plan | Type                               | Duration                                          | Purpose                        |
+| ----------------------- | ---- | ---------------------------------- | ------------------------------------------------- | ------------------------------ |
+| `attack_cooldown`       | 0    | one-shot, re-registered per attack | `1000 / effectiveAttackSpeed`                     | Attack rate limiting           |
+| `poison_tick`           | 0    | repeating                          | 1000ms (modified by frost aura via stat pipeline) | Poison damage ticks            |
+| `boss_countdown`        | 0    | repeating 1000ms                   | Until `bossTimeRemaining <= 0`                    | Boss timer seconds             |
+| `frenzy_{id}`           | 0    | one-shot                           | `tapFrenzyDuration * 1000`                        | Individual frenzy stack expiry |
+| `goblin_dodge`          | 1    | repeating                          | 4000ms (reducible)                                | Goblin dodge charge cycle      |
+| `spore_cloud`           | 1    | repeating                          | 5000ms                                            | Red Mushroom spore release     |
+| `spore_debuff_{id}`     | 1    | one-shot                           | 3000ms                                            | Individual spore stack expiry  |
+| `darkness_check`        | 1    | repeating                          | 1000ms                                            | Blinking Eyes idle detection   |
+| `element_frost`         | 3    | one-shot                           | 5000ms                                            | Frost element expiry           |
+| `element_fire`          | 3    | one-shot                           | 5000ms                                            | Fire element expiry            |
+| `element_arcane`        | 3    | one-shot                           | 5000ms                                            | Arcane element expiry          |
+| `burn_dot`              | 3    | repeating                          | 1000ms                                            | Fire burn DoT ticks            |
+| `poison_cloud_tick`     | 3    | repeating                          | 1000ms                                            | Rogue cloud stacking           |
+| `poison_cloud_expire`   | 3    | one-shot                           | 5000ms                                            | End cloud effect               |
+| `poison_cloud_cooldown` | 3    | one-shot                           | 10000ms (reducible)                               | Cloud ability available again  |
 
 ### What This Replaces
 
@@ -255,6 +268,7 @@ Note: `poisonTickInterval` needs to become a computed stat that the `poison_tick
 **Conflict:** Tracks `lastTapTime` with a "check interval" and uses `setTimeout`. Also, Plan 0's auto-attack system makes "idle" ambiguous — does holding the pointer count as active?
 
 **Resolution:**
+
 - Use timer registry. Register `darkness_check` repeating timer (1000ms) on Blinking Eyes spawn.
 - Define "idle" as `!pointerHeld && frenzyStacks === 0` (not actively engaging). Each darkness tick: if idle, increment idle counter. If idle counter reaches 2, apply a darkness stack (transient modifier in stat pipeline, Layer 3). If not idle, reset idle counter to 0.
 - On enemy death, remove all darkness transient modifiers. Pipeline recomputes — stats restore automatically. No manual reversal needed.
@@ -291,12 +305,12 @@ Note: `poisonTickInterval` needs to become a computed stat that the `poison_tick
 
 **Resolution:** Class base stats include attack speed. Layer 0 (base) of the `attackSpeed` pipeline reads the class-specific base:
 
-| Class | Base Attack Speed |
-|---|---|
-| Adventurer | 0.8/s |
-| Warrior | 0.4/s |
-| Mage | 0.64/s |
-| Rogue | 1.2/s |
+| Class      | Base Attack Speed |
+| ---------- | ----------------- |
+| Adventurer | 0.8/s             |
+| Warrior    | 0.4/s             |
+| Mage       | 0.64/s            |
+| Rogue      | 1.2/s             |
 
 These are part of `CLASS_DEFINITIONS` and feed into Layer 0 when a class is selected.
 
@@ -341,6 +355,7 @@ These are part of `CLASS_DEFINITIONS` and feed into Layer 0 when a class is sele
 **Conflict:** Uses `setInterval` for cloud ticks and `setTimeout` for cooldown.
 
 **Resolution:** Use timer registry:
+
 - `deployPoisonCloud()` registers `poison_cloud_tick` (repeating, 1000ms) for stacking poison
 - Registers `poison_cloud_expire` (one-shot, 5000ms) to remove the tick timer
 - Registers `poison_cloud_cooldown` (one-shot, effective cooldown from stat pipeline) — on expiry, sets `poisonCloudOnCooldown = false`
@@ -359,12 +374,12 @@ These are part of `CLASS_DEFINITIONS` and feed into Layer 0 when a class is sele
 
 ```typescript
 type Upgrade = {
-  id: string;
-  title: string;
-  rarity: Rarity;
-  image: string;
-  modifiers: StatModifier[];
-  onAcquire?: () => void;  // One-time side effect (unlock weapon, unlock ability)
+	id: string;
+	title: string;
+	rarity: Rarity;
+	image: string;
+	modifiers: StatModifier[];
+	onAcquire?: () => void; // One-time side effect (unlock weapon, unlock ability)
 };
 ```
 
@@ -414,8 +429,8 @@ Phase 3: Upgrade Cards + Changelog (existing, adjusted)
 
 ## Summary: What Changes in Plans 1-3
 
-| Plan | Change |
-|---|---|
+| Plan   | Change                                                                                                                                                                                                                                                                                     |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Plan 1 | All enemy mechanic timers use timer registry. All enemy debuffs (spore, frost aura, darkness) become transient modifiers in stat pipeline Layer 3. No manual stat reversal. Remove all `timers.svelte.ts` references. Frost Aura modifies `poisonTickInterval` stat instead of timer file. |
-| Plan 2 | Class bonuses become Layer 0/2 pipeline modifiers instead of `playerStats` mutations. `selectClass()` uses `gameLoop.resume()`. Attack speed per class added to class definitions. |
-| Plan 3 | Remove Warrior cooldown system (use attack speed stat). All Mage element timers and Rogue cloud timers use timer registry. Element effects become transient modifiers. Weapon/ability unlock cards use `onAcquire` callback. Keyboard space already handled by Plan 0. |
+| Plan 2 | Class bonuses become Layer 0/2 pipeline modifiers instead of `playerStats` mutations. `selectClass()` uses `gameLoop.resume()`. Attack speed per class added to class definitions.                                                                                                         |
+| Plan 3 | Remove Warrior cooldown system (use attack speed stat). All Mage element timers and Rogue cloud timers use timer registry. Element effects become transient modifiers. Weapon/ability unlock cards use `onAcquire` callback. Keyboard space already handled by Plan 0.                     |

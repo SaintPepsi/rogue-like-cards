@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { AspectRatio } from 'bits-ui';
+	import type { StatModifier } from '$lib/types';
+	import { getModifierDisplay } from '$lib/data/upgrades';
 
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
@@ -10,21 +12,21 @@
 
 	type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
-	type StatModifier = {
-		icon: string;
-		label: string;
-		value: string;
-	};
-
 	type Props = {
 		title: string;
 		image?: string;
 		rarity?: Rarity;
-		stats?: StatModifier[];
+		modifiers?: StatModifier[];
 	};
 
-	let { title, image = 'https://picsum.photos/400/300', rarity = 'common', stats = [] }: Props =
-		$props();
+	let {
+		title,
+		image = 'https://picsum.photos/400/300',
+		rarity = 'common',
+		modifiers = []
+	}: Props = $props();
+
+	let displayStats = $derived(modifiers.map(getModifierDisplay));
 
 	const rarityColors: Record<Rarity, { glow: string; border: string }> = {
 		common: { glow: 'transparent', border: '#6b7280' },
@@ -58,9 +60,9 @@
 
 	<h2>{title}</h2>
 
-	{#if stats.length > 0}
+	{#if displayStats.length > 0}
 		<ul class="stats">
-			{#each stats as stat, i (i)}
+			{#each displayStats as stat, i (i)}
 				<li>
 					<span class="stat-icon">{stat.icon}</span>
 					<span class="stat-label">{stat.label}</span>

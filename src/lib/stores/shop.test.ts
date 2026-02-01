@@ -24,7 +24,7 @@ describe('createShop', () => {
 	test('starts with zero gold and empty upgrades', () => {
 		const shop = createShop(persistence);
 		expect(shop.persistentGold).toBe(0);
-		expect(shop.purchasedUpgrades.size).toBe(0);
+		expect(shop.purchasedUpgradeIds).toEqual([]);
 		expect(shop.showShop).toBe(false);
 	});
 
@@ -42,8 +42,9 @@ describe('createShop', () => {
 		expect(shop.persistentGold).toBe(80);
 	});
 
-	test('open sets showShop and generates choices', () => {
+	test('open sets showShop and generates choices when gold available', () => {
 		const shop = createShop(persistence);
+		shop.depositGold(10000);
 		const stats = createDefaultStats();
 		shop.open(stats);
 
@@ -51,8 +52,30 @@ describe('createShop', () => {
 		expect(shop.shopChoices.length).toBeGreaterThan(0);
 	});
 
+	test('open with no gold still shows cards', () => {
+		const shop = createShop(persistence);
+		shop.open(createDefaultStats());
+
+		expect(shop.showShop).toBe(true);
+		expect(shop.shopChoices.length).toBe(3);
+	});
+
+	test('open preserves existing choices across visits', () => {
+		const shop = createShop(persistence);
+		shop.depositGold(10000);
+		const stats = createDefaultStats();
+
+		shop.open(stats);
+		const firstChoices = [...shop.shopChoices];
+		shop.close();
+
+		shop.open(stats);
+		expect(shop.shopChoices.map((c) => c.id)).toEqual(firstChoices.map((c) => c.id));
+	});
+
 	test('close hides shop', () => {
 		const shop = createShop(persistence);
+		shop.depositGold(10000);
 		shop.open(createDefaultStats());
 		shop.close();
 
@@ -60,13 +83,19 @@ describe('createShop', () => {
 	});
 
 	test('buy returns false when insufficient gold', () => {
+		vi.useFakeTimers();
 		const shop = createShop(persistence);
+		shop.depositGold(10000);
 		const stats = createDefaultStats();
 		shop.open(stats);
 
+		// Spend all gold
 		const upgrade = shop.shopChoices[0];
+		shop.depositGold(-shop.persistentGold + 1); // leave 1 gold
 		const result = shop.buy(upgrade, stats);
 		expect(result).toBe(false);
+
+		vi.useRealTimers();
 	});
 
 	test('buy succeeds with sufficient gold', () => {
@@ -87,8 +116,110 @@ describe('createShop', () => {
 		vi.useRealTimers();
 	});
 
+	test('buying same card twice increases its count and price', () => {
+		vi.useFakeTimers();
+		const shop = createShop(persistence);
+		shop.depositGold(100000);
+
+		const stats = createDefaultStats();
+		shop.open(stats);
+
+		const upgrade = shop.shopChoices[0];
+		if (upgrade.id === 'execute_cap' || upgrade.id === 'gold_per_kill') return;
+
+		const firstPrice = shop.getPrice(upgrade);
+		shop.buy(upgrade, stats);
+		vi.advanceTimersByTime(500);
+
+		const secondPrice = shop.getPrice(upgrade);
+		expect(secondPrice).toBeGreaterThan(firstPrice);
+		expect(shop.purchasedUpgradeIds.filter((id) => id === upgrade.id)).toHaveLength(1);
+
+		shop.buy(upgrade, stats);
+		vi.advanceTimersByTime(500);
+		expect(shop.purchasedUpgradeIds.filter((id) => id === upgrade.id)).toHaveLength(2);
+
+		vi.useRealTimers();
+	});
+
+	test('generateChoices returns cards regardless of gold', () => {
+		const shop = createShop(persistence);
+		shop.open(createDefaultStats());
+
+		expect(shop.shopChoices.length).toBe(3);
+		expect(shop.persistentGold).toBe(0);
+	});
+
+	test('rerollCost starts at 1', () => {
+		const shop = createShop(persistence);
+		expect(shop.rerollCost).toBe(1);
+	});
+
+	test('reroll regenerates choices and increases cost', () => {
+		const shop = createShop(persistence);
+		shop.depositGold(100);
+		const stats = createDefaultStats();
+		shop.open(stats);
+		shop.reroll(stats);
+		expect(shop.rerollCost).toBe(2);
+		// Choices were regenerated (may or may not differ due to randomness, but function ran)
+		expect(shop.shopChoices.length).toBe(3);
+	});
+
+	test('reroll deducts gold', () => {
+		const shop = createShop(persistence);
+		shop.depositGold(100);
+		const stats = createDefaultStats();
+		shop.open(stats);
+
+		shop.reroll(stats);
+		expect(shop.persistentGold).toBe(99);
+
+		shop.reroll(stats);
+		expect(shop.persistentGold).toBe(97);
+	});
+
+	test('reroll fails with insufficient gold', () => {
+		const shop = createShop(persistence);
+		const stats = createDefaultStats();
+		shop.open(stats);
+		const originalChoiceIds = shop.shopChoices.map((c) => c.id);
+
+		const result = shop.reroll(stats);
+		expect(result).toBe(false);
+		expect(shop.rerollCost).toBe(1);
+		expect(shop.shopChoices.map((c) => c.id)).toEqual(originalChoiceIds);
+	});
+
+	test('rerollCost persists across load', () => {
+		const p = mockPersistence();
+		(p.loadPersistent as ReturnType<typeof vi.fn>).mockReturnValue({
+			gold: 500,
+			purchasedUpgradeCounts: {},
+			executeCapBonus: 0,
+			goldPerKillBonus: 0,
+			rerollCost: 5
+		});
+
+		const shop = createShop(p);
+		shop.load();
+
+		expect(shop.rerollCost).toBe(5);
+	});
+
+	test('fullReset resets rerollCost to 1', () => {
+		const shop = createShop(persistence);
+		shop.depositGold(100);
+		shop.reroll(createDefaultStats());
+		shop.reroll(createDefaultStats());
+
+		shop.fullReset();
+		expect(shop.rerollCost).toBe(1);
+	});
+
 	test('getPrice returns positive number', () => {
 		const shop = createShop(persistence);
+		shop.depositGold(10000);
 		shop.open(createDefaultStats());
 
 		const upgrade = shop.shopChoices[0];
@@ -99,7 +230,7 @@ describe('createShop', () => {
 		const p = mockPersistence();
 		(p.loadPersistent as ReturnType<typeof vi.fn>).mockReturnValue({
 			gold: 500,
-			purchasedUpgradeIds: ['upgrade1'],
+			purchasedUpgradeCounts: { upgrade1: 2 },
 			executeCapBonus: 0.05,
 			goldPerKillBonus: 2
 		});
@@ -108,7 +239,23 @@ describe('createShop', () => {
 		shop.load();
 
 		expect(shop.persistentGold).toBe(500);
-		expect(shop.purchasedUpgrades.has('upgrade1')).toBe(true);
+		expect(shop.purchasedUpgradeIds).toEqual(['upgrade1', 'upgrade1']);
+	});
+
+	test('load restores shop choices from saved IDs', () => {
+		const p = mockPersistence();
+		(p.loadPersistent as ReturnType<typeof vi.fn>).mockReturnValue({
+			gold: 10000,
+			purchasedUpgradeCounts: {},
+			executeCapBonus: 0,
+			goldPerKillBonus: 0,
+			shopChoiceIds: ['execute_cap', 'gold_per_kill']
+		});
+
+		const shop = createShop(p);
+		shop.load();
+
+		expect(shop.shopChoices.map((c) => c.id)).toEqual(['execute_cap', 'gold_per_kill']);
 	});
 
 	test('fullReset clears all persistent state', () => {
@@ -117,18 +264,19 @@ describe('createShop', () => {
 
 		shop.fullReset();
 		expect(shop.persistentGold).toBe(0);
-		expect(shop.purchasedUpgrades.size).toBe(0);
+		expect(shop.purchasedUpgradeIds).toEqual([]);
+		expect(shop.shopChoices).toEqual([]);
 		expect(persistence.clearPersistent).toHaveBeenCalled();
 	});
 
 	test('resetShopUI hides shop without clearing data', () => {
 		const shop = createShop(persistence);
-		shop.depositGold(100);
+		shop.depositGold(10000);
 		shop.open(createDefaultStats());
 
 		shop.resetShopUI();
 		expect(shop.showShop).toBe(false);
-		expect(shop.persistentGold).toBe(100);
+		expect(shop.persistentGold).toBe(10000);
 	});
 
 	test('executeCapLevel starts at 0', () => {
@@ -149,15 +297,5 @@ describe('createShop', () => {
 	test('getGoldPerKillBonus starts at 0', () => {
 		const shop = createShop(persistence);
 		expect(shop.getGoldPerKillBonus()).toBe(0);
-	});
-
-	test('applyPurchasedUpgrades returns updated unlocked set', () => {
-		const shop = createShop(persistence);
-		const stats = createDefaultStats();
-		const unlocked = new Set<string>();
-
-		const result = shop.applyPurchasedUpgrades(stats, unlocked);
-		// With no purchased upgrades, should return same set (possibly empty)
-		expect(result).toBeDefined();
 	});
 });

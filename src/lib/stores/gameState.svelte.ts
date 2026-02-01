@@ -1,44 +1,56 @@
-import type { PlayerStats, Upgrade, Effect, HitInfo } from '$lib/types';
-import { createUIEffects } from './uiEffects.svelte';
-import { createTimers } from './timers.svelte';
-import { createPersistence } from './persistence.svelte';
-import { createEnemy } from './enemy.svelte';
-import { createLeveling } from './leveling.svelte';
-import { createShop } from './shop.svelte';
-import { createDefaultStats } from '$lib/engine/stats';
-import { calculateAttack, calculatePoison } from '$lib/engine/combat';
+import { statRegistry } from '$lib/engine/stats';
+import { createPipelineRunner } from '$lib/engine/systemPipeline';
+import { allSystems } from '$lib/systems/registry';
 import {
 	BASE_BOSS_TIME,
-	getGreedMultiplier,
-	shouldDropGold,
-	getXpReward,
-	getChestGoldReward,
-	getEnemyGoldReward,
-	getBossGoldReward,
 	BOSS_XP_MULTIPLIER,
 	CHEST_XP_MULTIPLIER,
+	getBossGoldReward,
+	getChestGoldReward,
+	getEnemyGoldReward,
+	getGreedMultiplier,
+	getXpReward,
+	shouldDropGold
 } from '$lib/engine/waves';
+import type { Effect, HitInfo, HitType, PlayerStats, Upgrade } from '$lib/types';
+import { createEnemy } from './enemy.svelte';
+import { createFrenzy } from './frenzy.svelte';
+import { createGameLoop } from './gameLoop.svelte';
+import { createLeveling } from './leveling.svelte';
+import { createPersistence } from './persistence.svelte';
+import { createShop } from './shop.svelte';
+import { createStatPipeline } from './statPipeline.svelte';
+import { createUIEffects } from './uiEffects.svelte';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
-	// Player stats
-	let playerStats = $state<PlayerStats>(createDefaultStats());
+
+	// Stat pipeline replaces mutable playerStats
+	const statPipeline = createStatPipeline();
+
+	// Combat system pipeline (execute, crit, damageMultiplier, poison)
+	const pipeline = createPipelineRunner(allSystems);
 
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
 
-	// Poison stacks - each entry is remaining ticks for that stack
-	let poisonStacks = $state<number[]>([]);
-
 	// UI state
 	let showGameOver = $state(false);
+
+	// Reactive poison stack count — pipeline.getSystemState() reads from a plain Map
+	// which Svelte can't track, so we sync this after every pipeline mutation.
+	let poisonStackCount = $state(0);
 
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
-	// Timers (boss countdown + poison tick)
-	const timers = createTimers();
+	// Game loop (rAF + timer registry)
+	const gameLoop = createGameLoop();
+
+	// Frenzy module (tap-frenzy stacks + timer-based decay)
+	// Uses gameLoop.timers so frenzy decay timers are ticked by the game loop's rAF
+	const frenzy = createFrenzy(statPipeline, gameLoop.timers);
 
 	// Enemy / wave / stage management
 	const enemy = createEnemy();
@@ -50,21 +62,58 @@ function createGameState() {
 	const shop = createShop(persistence);
 
 	// Derived values
-	let bossTimerMax = $derived(BASE_BOSS_TIME + playerStats.bonusBossTime);
+	const bossTimerMax = $derived(BASE_BOSS_TIME + statPipeline.get('bonusBossTime'));
+
+	// Helper: build a PlayerStats object from pipeline
+	function getEffectiveStats(): PlayerStats {
+		return {
+			damage: statPipeline.get('damage'),
+			critChance: statPipeline.get('critChance'),
+			critMultiplier: statPipeline.get('critMultiplier'),
+			xpMultiplier: statPipeline.get('xpMultiplier'),
+			damageMultiplier: statPipeline.get('damageMultiplier'),
+			poison: statPipeline.get('poison'),
+			poisonCritChance: statPipeline.get('poisonCritChance'),
+			poisonMaxStacks: statPipeline.get('poisonMaxStacks'),
+			poisonDuration: statPipeline.get('poisonDuration'),
+			multiStrike: statPipeline.get('multiStrike'),
+			overkill: statPipeline.get('overkill') > 0,
+			executeChance: statPipeline.get('executeChance'),
+			bonusBossTime: statPipeline.get('bonusBossTime'),
+			greed: statPipeline.get('greed'),
+			luckyChance: statPipeline.get('luckyChance'),
+			chestChance: statPipeline.get('chestChance'),
+			bossChestChance: statPipeline.get('bossChestChance'),
+			goldMultiplier: statPipeline.get('goldMultiplier'),
+			goldDropChance: statPipeline.get('goldDropChance'),
+			goldPerKill: statPipeline.get('goldPerKill'),
+			attackSpeed: statPipeline.get('attackSpeed'),
+			tapFrenzyBonus: statPipeline.get('tapFrenzyBonus'),
+			tapFrenzyDuration: statPipeline.get('tapFrenzyDuration'),
+			tapFrenzyStackMultiplier: statPipeline.get('tapFrenzyStackMultiplier'),
+			executeCap: shop.getExecuteCapValue()
+		};
+	}
 
 	function upgradeContext() {
 		return {
-			luckyChance: playerStats.luckyChance,
-			executeChance: playerStats.executeChance,
+			luckyChance: statPipeline.get('luckyChance'),
+			executeChance: statPipeline.get('executeChance'),
 			executeCap: shop.getExecuteCapValue(),
-			poison: playerStats.poison
+			poison: statPipeline.get('poison')
 		};
 	}
 
 	function handleBossExpired() {
+		gameLoop.reset();
 		shop.depositGold(gold);
 		showGameOver = true;
 		persistence.clearSession();
+	}
+
+	function giveUp() {
+		if (showGameOver) return;
+		handleBossExpired();
 	}
 
 	// Centralized check: is the game currently paused by a modal?
@@ -72,76 +121,83 @@ function createGameState() {
 		return showGameOver || leveling.hasActiveEvent;
 	}
 
+	function syncPoisonStacks() {
+		const state = pipeline.getSystemState<{ stacks: number[] }>('poison');
+		poisonStackCount = state?.stacks?.length ?? 0;
+	}
+
+	function dealDamage(damage: number, hits: HitInfo[]) {
+		enemy.takeDamage(damage);
+		ui.addHits(hits);
+		if (enemy.isDead()) {
+			killEnemy();
+		}
+	}
+
 	function attack() {
 		if (isModalOpen() || enemy.isDead()) return;
 
-		const result = calculateAttack(playerStats, {
+		const stats = getEffectiveStats();
+		pipeline.refreshSystems(stats);
+
+		const result = pipeline.runAttack(stats, {
 			enemyHealth: enemy.enemyHealth,
 			enemyMaxHealth: enemy.enemyMaxHealth,
 			overkillDamage: enemy.overkillDamage,
-			rng: Math.random,
-			executeCap: shop.getExecuteCapValue(),
-			isBoss: enemy.isBoss
+			isBoss: enemy.isBoss,
+			rng: Math.random
 		});
 
-		// Assign hit IDs (UI concern)
+		// Map pipeline hits to UI HitInfo
 		const newHits: HitInfo[] = result.hits.map((h) => {
-			return { ...h, id: ui.nextHitId() };
+			let uiType: HitType;
+			switch (h.type) {
+				case 'criticalHit':
+					uiType = 'crit';
+					break;
+				case 'executeHit':
+					uiType = 'execute';
+					break;
+				case 'hit':
+					uiType = 'normal';
+					break;
+				default:
+					uiType = h.type as HitType;
+			}
+			return {
+				damage: h.damage,
+				type: uiType,
+				id: ui.nextHitId(),
+				index: h.index
+			};
 		});
 
-		// Apply results to state
 		enemy.setOverkillDamage(result.overkillDamageOut);
-		enemy.takeDamage(result.totalDamage);
-		ui.addHits(newHits);
+		dealDamage(result.totalDamage, newHits);
+		syncPoisonStacks();
+	}
 
-		// Add or refresh poison stacks — one per strike
-		if (playerStats.poison > 0) {
-			const strikes = result.hits.filter((h) => h.type !== 'execute').length;
-			for (let i = 0; i < strikes; i++) {
-				if (poisonStacks.length < playerStats.poisonMaxStacks) {
-					// Below max: add a new stack
-					poisonStacks = [...poisonStacks, playerStats.poisonDuration];
-				} else {
-					// At max: refresh the oldest (lowest remaining) stack
-					const updated = [...poisonStacks];
-					let minIndex = 0;
-					for (let j = 1; j < updated.length; j++) {
-						if (updated[j] < updated[minIndex]) minIndex = j;
-					}
-					updated[minIndex] = playerStats.poisonDuration;
-					poisonStacks = updated;
+	function tickSystems() {
+		if (enemy.isDead() || isModalOpen()) return;
+
+		const stats = getEffectiveStats();
+		const tickResults = pipeline.runTick(stats, { deltaMs: 1000 });
+
+		for (const tick of tickResults) {
+			if (tick.damage <= 0) continue;
+
+			dealDamage(tick.damage, [
+				{
+					damage: tick.damage,
+					type: (tick.hitType ?? 'poison') as HitType,
+					id: ui.nextHitId(),
+					index: 0
 				}
-			}
+			]);
 		}
-
-		if (enemy.isDead()) {
-			killEnemy();
-		}
+		syncPoisonStacks();
 	}
 
-	function applyPoison() {
-		if (playerStats.poison <= 0 || enemy.isDead() || isModalOpen()) return;
-		if (poisonStacks.length === 0) return;
-
-		const result = calculatePoison(playerStats, { rng: Math.random, activeStacks: poisonStacks.length });
-		if (result.damage <= 0) return;
-
-		enemy.takeDamage(result.damage);
-		ui.addHits([{ damage: result.damage, type: result.type, id: ui.nextHitId(), index: 0 }]);
-
-		// Tick down all stacks and remove expired ones
-		poisonStacks = poisonStacks
-			.map((remaining) => remaining - 1)
-			.filter((remaining) => remaining > 0);
-
-		if (enemy.isDead()) {
-			killEnemy();
-		}
-	}
-
-	// Re-entry guard: JS is single-threaded so attack() (click handler) and
-	// applyPoison() (setInterval) can't truly interleave. Kept as a cheap
-	// safety net documenting the invariant.
 	let killingEnemy = false;
 
 	function killEnemy() {
@@ -149,8 +205,16 @@ function createGameState() {
 		killingEnemy = true;
 
 		try {
+			const playerStats = getEffectiveStats();
 			enemy.recordKill();
-			poisonStacks = [];
+			pipeline.runKill({
+				enemyMaxHealth: enemy.enemyMaxHealth,
+				isBoss: enemy.isBoss,
+				isChest: enemy.isChest,
+				isBossChest: enemy.isBossChest,
+				stage: enemy.stage
+			});
+			syncPoisonStacks();
 
 			if (enemy.isChest) {
 				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
@@ -175,13 +239,23 @@ function createGameState() {
 				ui.addGoldDrop(goldReward);
 			}
 
-			const enemyXpMultiplier = enemy.isBoss ? BOSS_XP_MULTIPLIER : enemy.isChest ? CHEST_XP_MULTIPLIER : 1;
+			const enemyXpMultiplier = enemy.isBoss
+				? BOSS_XP_MULTIPLIER
+				: enemy.isChest
+					? CHEST_XP_MULTIPLIER
+					: 1;
 			const greedMult = getGreedMultiplier(playerStats.greed);
-			const xpGain = getXpReward(enemy.enemyMaxHealth, enemy.stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
+			const xpGain = getXpReward(
+				enemy.enemyMaxHealth,
+				enemy.stage,
+				playerStats.xpMultiplier,
+				enemyXpMultiplier,
+				greedMult
+			);
 			leveling.addXp(xpGain);
 
 			if (enemy.isBoss) {
-				timers.stopBossTimer();
+				gameLoop.stopBossTimer();
 				enemy.advanceStage();
 			}
 
@@ -192,7 +266,7 @@ function createGameState() {
 					enemy.spawnBossChest(playerStats.greed);
 				} else {
 					enemy.spawnBoss(playerStats.greed);
-					timers.startBossTimer(bossTimerMax, handleBossExpired);
+					gameLoop.startBossTimer(bossTimerMax);
 				}
 			} else {
 				enemy.spawnNextTarget(playerStats);
@@ -205,57 +279,41 @@ function createGameState() {
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
-		upgrade.apply(playerStats);
+		statPipeline.acquireUpgrade(upgrade.id);
+		if (upgrade.onAcquire) upgrade.onAcquire();
 
 		// Track unlocked upgrades for collection
 		unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
 
-		// Track special effects
-		const hasSpecialEffect = upgrade.stats.some(
-			(s) =>
-				s.label.includes('Crit') ||
-				s.label.includes('XP') ||
-				s.label.includes('Poison') ||
-				s.label.includes('Stacks') ||
-				s.label.includes('Duration') ||
-				s.label.includes('Multi') ||
-				s.label.includes('Execute') ||
-				s.label.includes('Overkill') ||
-				s.label.includes('Timer') ||
-				s.label.includes('Lucky') ||
-				s.label.includes('Chest') ||
-				s.label.includes('Boss Chest') ||
-				s.label.includes('Gold')
-		);
-
-		if (hasSpecialEffect) {
+		// Track special effects — derive from modifiers + statRegistry
+		if (upgrade.modifiers.length > 0) {
 			const effectName = upgrade.title;
 			if (!effects.find((e) => e.name === effectName)) {
 				effects.push({
 					name: effectName,
-					description: upgrade.stats.map((s) => `${s.label} ${s.value}`).join(', ')
+					description: upgrade.modifiers
+						.map((m) => {
+							const entry = statRegistry.find((s) => s.key === m.stat);
+							const fmt = entry ? (entry.formatMod ?? entry.format) : null;
+							return fmt ? `${entry!.label} ${fmt(m.value)}` : `${m.stat} +${m.value}`;
+						})
+						.join(', ')
 				});
 			}
 		}
 
-		const allConsumed = leveling.closeActiveEvent();
-		if (allConsumed) {
-			// All upgrades consumed — resume game
-			timers.startPoisonTick(applyPoison);
-			timers.resumeBossTimer(handleBossExpired);
-		} else {
-			// More queued — auto-open the next one
+		if (!leveling.closeActiveEvent()) {
 			leveling.openNextUpgrade();
+			saveGame();
+			return;
 		}
+		gameLoop.resume();
 		saveGame();
 	}
 
 	function openNextUpgrade() {
-		const event = leveling.openNextUpgrade();
-		if (event) {
-			timers.stopPoisonTick();
-			timers.pauseBossTimer();
-		}
+		if (!leveling.openNextUpgrade()) return;
+		gameLoop.pause();
 	}
 
 	function serializeEvent(event: { type: string; choices: Upgrade[]; gold?: number }) {
@@ -268,7 +326,7 @@ function createGameState() {
 
 	function saveGame() {
 		persistence.saveSession({
-			playerStats: { ...playerStats },
+			playerStats: getEffectiveStats(),
 			effects: [...effects],
 			unlockedUpgradeIds: [...unlockedUpgrades],
 			xp: leveling.xp,
@@ -284,7 +342,8 @@ function createGameState() {
 			isBossChest: enemy.isBossChest,
 			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
-			timestamp: Date.now()
+			timestamp: Date.now(),
+			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined
 		});
 	}
 
@@ -292,17 +351,22 @@ function createGameState() {
 		const data = persistence.loadSession();
 		if (!data) return false;
 
-		// Restore player stats, merging with defaults for forward-compat
-		const savedStats = data.playerStats as Record<string, unknown>;
-		playerStats = { ...createDefaultStats(), ...data.playerStats };
-		// Migrate old executeThreshold → executeChance
-		if ('executeThreshold' in savedStats && !('executeChance' in savedStats)) {
-			const threshold = savedStats.executeThreshold as number;
-			playerStats.executeChance = threshold > 0 ? 0.005 : 0;
+		// Restore stats via pipeline from saved upgrade IDs
+		statPipeline.setAcquiredUpgrades(data.unlockedUpgradeIds);
+		// Also apply shop purchased upgrades
+		const shopIds = shop.purchasedUpgradeIds;
+		if (shopIds.length > 0) {
+			// Combine session upgrades + shop upgrades
+			statPipeline.setAcquiredUpgrades([...data.unlockedUpgradeIds, ...shopIds]);
 		}
-		delete (playerStats as Record<string, unknown>).executeThreshold;
+
 		effects = [...data.effects];
 		unlockedUpgrades = new Set(data.unlockedUpgradeIds);
+		// Also mark shop upgrades as unlocked
+		for (const id of shopIds) {
+			unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+		}
+
 		leveling.restore({
 			xp: data.xp,
 			level: data.level,
@@ -324,29 +388,35 @@ function createGameState() {
 		return true;
 	}
 
-	function applyPurchasedUpgrades() {
-		unlockedUpgrades = shop.applyPurchasedUpgrades(playerStats, unlockedUpgrades);
+	function buildGameLoopCallbacks() {
+		return {
+			onAttack: attack,
+			onSystemTick: tickSystems,
+			onBossExpired: handleBossExpired,
+			getAttackSpeed: () => statPipeline.get('attackSpeed'),
+			getFrenzyCount: () => frenzy.count
+		};
 	}
 
 	function resetGame() {
-		timers.stopAll();
+		gameLoop.reset();
+		frenzy.reset();
+		statPipeline.reset();
+		pipeline.reset();
 
-		playerStats = createDefaultStats();
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
-		poisonStacks = [];
 		ui.reset();
 		leveling.reset();
 		showGameOver = false;
 		shop.resetShopUI();
 		persistence.clearSession();
 
-		// Apply purchased upgrades from shop
-		applyPurchasedUpgrades();
+		applyShopUpgrades();
+		enemy.reset(statPipeline.get('greed'));
 
-		enemy.reset(playerStats.greed);
-		timers.startPoisonTick(applyPoison);
+		gameLoop.start(buildGameLoopCallbacks());
 	}
 
 	function fullReset() {
@@ -354,26 +424,36 @@ function createGameState() {
 		resetGame();
 	}
 
+	function applyShopUpgrades() {
+		const shopIds = shop.purchasedUpgradeIds;
+		if (shopIds.length === 0) return;
+		statPipeline.setAcquiredUpgrades(shopIds);
+		for (const id of shopIds) {
+			unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+		}
+	}
+
 	function init() {
-		// Always load persistent data first
 		shop.load();
 
-		const loaded = loadGame();
-		if (!loaded) {
-			// Apply purchased upgrades for new game
-			applyPurchasedUpgrades();
-			enemy.spawnEnemy(playerStats.greed);
-		} else if (enemy.isBoss) {
-			// Resume boss timer if we were fighting a boss
-			timers.startBossTimer(bossTimerMax, handleBossExpired);
+		if (!loadGame()) {
+			applyShopUpgrades();
+			enemy.spawnEnemy(statPipeline.get('greed'));
+		} else {
+			pipeline.refreshSystems(getEffectiveStats());
+			if (enemy.isBoss) {
+				const data = persistence.loadSession();
+				gameLoop.startBossTimer(data?.bossTimeRemaining ?? bossTimerMax);
+			}
 		}
-		timers.startPoisonTick(applyPoison);
+
+		gameLoop.start(buildGameLoopCallbacks());
 	}
 
 	return {
 		// Getters for state
 		get playerStats() {
-			return playerStats;
+			return getEffectiveStats();
 		},
 		get effects() {
 			return effects;
@@ -400,7 +480,7 @@ function createGameState() {
 			return enemy.isBoss;
 		},
 		get bossTimer() {
-			return timers.bossTimer;
+			return gameLoop.bossTimeRemaining;
 		},
 		get enemyHealth() {
 			return enemy.enemyHealth;
@@ -421,7 +501,7 @@ function createGameState() {
 			return ui.hits;
 		},
 		get poisonStacks() {
-			return poisonStacks;
+			return poisonStackCount;
 		},
 		get gold() {
 			return gold;
@@ -447,9 +527,6 @@ function createGameState() {
 		get persistentGold() {
 			return shop.persistentGold;
 		},
-		get purchasedUpgrades() {
-			return shop.purchasedUpgrades;
-		},
 		get showShop() {
 			return shop.showShop;
 		},
@@ -466,18 +543,33 @@ function createGameState() {
 		get goldPerKillLevel() {
 			return shop.goldPerKillLevel;
 		},
+		get rerollCost() {
+			return shop.rerollCost;
+		},
+		get frenzyStacks() {
+			return frenzy.count;
+		},
 
 		// Actions
-		attack,
+		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
+		// Why: gameLoop.fireAttack() runs for both taps AND auto-attacks. Frenzy
+		// should only stack on player taps. gameState owns the input→mechanic mapping.
+		pointerDown: () => {
+			frenzy.addStack();
+			gameLoop.pointerDown();
+		},
+		pointerUp: () => gameLoop.pointerUp(),
 		selectUpgrade,
 		openNextUpgrade,
 		resetGame,
 		fullReset,
+		giveUp,
 		init,
-		openShop: (stats?: PlayerStats) => shop.open(stats ?? playerStats),
+		openShop: () => shop.open(getEffectiveStats()),
 		closeShop: () => shop.close(),
-		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, playerStats),
-		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade)
+		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
+		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade),
+		rerollShop: () => shop.reroll(getEffectiveStats())
 	};
 }
 

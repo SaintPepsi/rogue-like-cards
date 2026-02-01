@@ -177,18 +177,22 @@ describe('shouldSpawnBossChest', () => {
 
 	test('does not spawn when chest roll fails', () => {
 		let call = 0;
-		expect(shouldSpawnBossChest(0.05, 0.001, () => {
-			call++;
-			return call === 1 ? 0.99 : 0.0001; // chest fails, boss would pass
-		})).toBe(false);
+		expect(
+			shouldSpawnBossChest(0.05, 0.001, () => {
+				call++;
+				return call === 1 ? 0.99 : 0.0001; // chest fails, boss would pass
+			})
+		).toBe(false);
 	});
 
 	test('does not spawn when boss chest roll fails', () => {
 		let call = 0;
-		expect(shouldSpawnBossChest(0.05, 0.001, () => {
-			call++;
-			return call === 1 ? 0.01 : 0.99; // chest passes, boss fails
-		})).toBe(false);
+		expect(
+			shouldSpawnBossChest(0.05, 0.001, () => {
+				call++;
+				return call === 1 ? 0.01 : 0.99; // chest passes, boss fails
+			})
+		).toBe(false);
 	});
 });
 

@@ -5,13 +5,11 @@ import {
 	getXpReward,
 	getEnemyHealth,
 	getBossHealth,
-	getChestGoldReward,
 	getEnemyGoldReward,
 	getBossGoldReward,
 	KILLS_PER_WAVE,
-	BOSS_XP_MULTIPLIER,
+	BOSS_XP_MULTIPLIER
 } from './waves';
-import { getCardPrice } from './shop';
 
 // --- Simulation config ---
 type EconomyConfig = {
@@ -25,28 +23,17 @@ const LEGACY: EconomyConfig = {
 	label: 'Legacy (pre-rebalance)',
 	xpBase: 10,
 	goldDropChance: 0.15,
-	rarityPrices: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 },
+	rarityPrices: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 }
 };
 
 const CURRENT: EconomyConfig = {
 	label: 'Current',
 	xpBase: 25,
-	goldDropChance: 0.10,
-	rarityPrices: { common: 25, uncommon: 50, rare: 100, epic: 175, legendary: 300 },
+	goldDropChance: 0.1,
+	rarityPrices: { common: 25, uncommon: 50, rare: 100, epic: 175, legendary: 300 }
 };
 
 const MAX_STAGE = 30;
-
-// Custom getXpToNextLevel using configurable base
-function xpToNextLevel(level: number, base: number): number {
-	const SOFT_CAP_LEVEL = 100;
-	if (level <= SOFT_CAP_LEVEL) {
-		return Math.floor(base * Math.pow(1.5, level - 1));
-	}
-	const baseMult = Math.pow(1.5, SOFT_CAP_LEVEL - 1);
-	const beyond = level - SOFT_CAP_LEVEL;
-	return Math.floor(base * baseMult * Math.pow(1 + beyond * 0.1, 3));
-}
 
 type StageResult = {
 	stage: number;
@@ -80,8 +67,8 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 			stageGold += goldReward * config.goldDropChance;
 
 			// Check level-ups
-			for (let i = 0; i < 100 && xp >= xpToNextLevel(level, config.xpBase); i++) {
-				xp -= xpToNextLevel(level, config.xpBase);
+			for (let i = 0; i < 100 && xp >= getXpToNextLevel(level, config.xpBase); i++) {
+				xp -= getXpToNextLevel(level, config.xpBase);
 				level++;
 				stageLevelUps++;
 			}
@@ -96,8 +83,8 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 		stageGold += bossGold * config.goldDropChance;
 
 		// Check level-ups after boss
-		for (let i = 0; i < 100 && xp >= xpToNextLevel(level, config.xpBase); i++) {
-			xp -= xpToNextLevel(level, config.xpBase);
+		for (let i = 0; i < 100 && xp >= getXpToNextLevel(level, config.xpBase); i++) {
+			xp -= getXpToNextLevel(level, config.xpBase);
 			level++;
 			stageLevelUps++;
 		}
@@ -111,20 +98,24 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 			cumulativeLevelUps,
 			goldEarned: Math.round(stageGold),
 			cumulativeGold: Math.round(cumulativeGold),
-			xpToNext: xpToNextLevel(level, config.xpBase),
-			level,
+			xpToNext: getXpToNextLevel(level, config.xpBase),
+			level
 		});
 	}
 	return results;
 }
 
-function generateHtml(current: StageResult[], proposed: StageResult[], configs: { current: EconomyConfig; proposed: EconomyConfig }): string {
-	const stages = current.map(r => r.stage);
+function generateHtml(
+	current: StageResult[],
+	proposed: StageResult[],
+	configs: { current: EconomyConfig; proposed: EconomyConfig }
+): string {
+	const stages = current.map((r) => r.stage);
 	const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 
 	// Cards affordable at each stage for each config
 	const cardsAffordable = (results: StageResult[], prices: Record<string, number>) =>
-		rarities.map(r => results.map(s => Math.floor(s.cumulativeGold / prices[r])));
+		rarities.map((r) => results.map((s) => Math.floor(s.cumulativeGold / prices[r])));
 
 	const currentCards = cardsAffordable(current, configs.current.rarityPrices);
 	const proposedCards = cardsAffordable(proposed, configs.proposed.rarityPrices);

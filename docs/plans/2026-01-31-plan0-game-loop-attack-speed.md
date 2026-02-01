@@ -6,11 +6,12 @@
 
 **Architecture:** Bottom-up in five phases — (0) stat pipeline engine + store + card migration, (1) timer registry engine, (2) game loop engine with attack speed helpers, (3) rAF store + gameState migration + pointer input + UI, (4) upgrade cards + changelog.
 
-**Tech Stack:** SvelteKit, Svelte 5 runes, TypeScript, Vitest, Tailwind CSS.
+**Tech Stack:** SvelteKit, Svelte 5 runes, TypeScript, vitest, Tailwind CSS.
 
 **Dependencies:** None. Must be completed before Plans 1-3.
 
 **Design doc:** This plan was designed during brainstorming session 2026-01-31. Key decisions:
+
 - Stats are never mutated. All effective values computed via layered memoised pipeline (monad pattern).
 - All gameplay timing uses a named timer registry ticked by the rAF loop. No `setTimeout`/`setInterval` for game logic.
 - Attack speed = "attacks per second" (Adventurer 0.8, future: Warrior 0.4, Mage 0.64, Rogue 1.2).
@@ -37,7 +38,7 @@ registry.tick(2000);
 
 // Simulate 5 seconds at ~60fps granularity
 for (let i = 0; i < 300; i++) {
-  registry.tick(16.67);
+	registry.tick(16.67);
 }
 ```
 
@@ -68,6 +69,7 @@ for (let i = 0; i < 300; i++) {
 ### Task 0.1: Define Stat Pipeline Types and Engine
 
 **Files:**
+
 - Create: `src/lib/engine/statPipeline.ts`
 - Create: `src/lib/engine/statPipeline.test.ts`
 
@@ -76,10 +78,15 @@ for (let i = 0; i < 300; i++) {
 Create `src/lib/engine/statPipeline.test.ts`:
 
 ```typescript
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect } from 'vitest';
 import {
-	add, multiply, clampMin, conditionalAdd,
-	computeLayered, createLayer, dirtyLayer,
+	add,
+	multiply,
+	clampMin,
+	conditionalAdd,
+	computeLayered,
+	createLayer,
+	dirtyLayer,
 	type PipelineLayer
 } from '$lib/engine/statPipeline';
 
@@ -109,18 +116,15 @@ describe('step functions', () => {
 describe('computeLayered', () => {
 	test('computes through all layers', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),       // 1 + 5 = 6
-			createLayer([multiply(2)]),  // 6 * 2 = 12
-			createLayer([clampMin(0)])   // 12 (no change)
+			createLayer([add(5)]), // 1 + 5 = 6
+			createLayer([multiply(2)]), // 6 * 2 = 12
+			createLayer([clampMin(0)]) // 12 (no change)
 		];
 		expect(computeLayered(1, layers)).toBe(12);
 	});
 
 	test('returns cached result when not dirty and input unchanged', () => {
-		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),
-			createLayer([multiply(2)])
-		];
+		const layers: PipelineLayer[] = [createLayer([add(5)]), createLayer([multiply(2)])];
 
 		// First computation
 		computeLayered(1, layers);
@@ -135,8 +139,8 @@ describe('computeLayered', () => {
 
 	test('recomputes only dirty layers', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),       // Layer 0: permanent
-			createLayer([add(0)]),       // Layer 1: transient (will be modified)
+			createLayer([add(5)]), // Layer 0: permanent
+			createLayer([add(0)]) // Layer 1: transient (will be modified)
 		];
 
 		// First computation: 1 + 5 + 0 = 6
@@ -153,10 +157,7 @@ describe('computeLayered', () => {
 	});
 
 	test('dirtying an earlier layer forces recomputation of later layers', () => {
-		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),
-			createLayer([multiply(2)])
-		];
+		const layers: PipelineLayer[] = [createLayer([add(5)]), createLayer([multiply(2)])];
 
 		// First: (1 + 5) * 2 = 12
 		expect(computeLayered(1, layers)).toBe(12);
@@ -175,7 +176,7 @@ describe('computeLayered', () => {
 
 	test('handles multiple steps in one layer', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(2), add(3), multiply(2)])  // (5 + 2 + 3) * 2 = 20
+			createLayer([add(2), add(3), multiply(2)]) // (5 + 2 + 3) * 2 = 20
 		];
 		expect(computeLayered(5, layers)).toBe(20);
 	});
@@ -184,7 +185,7 @@ describe('computeLayered', () => {
 
 **Step 2: Run tests to verify they fail**
 
-Run: `bun test src/lib/engine/statPipeline.test.ts`
+Run: `bun run test:unit -- --run src/lib/engine/statPipeline.test.ts`
 Expected: FAIL — module not found.
 
 **Step 3: Implement stat pipeline engine**
@@ -196,9 +197,18 @@ Create `src/lib/engine/statPipeline.ts`:
 
 export type StatStep = (value: number) => number;
 
-export const add = (n: number): StatStep => (v) => v + n;
-export const multiply = (n: number): StatStep => (v) => v * n;
-export const clampMin = (min: number): StatStep => (v) => Math.max(min, v);
+export const add =
+	(n: number): StatStep =>
+	(v) =>
+		v + n;
+export const multiply =
+	(n: number): StatStep =>
+	(v) =>
+		v * n;
+export const clampMin =
+	(min: number): StatStep =>
+	(v) =>
+		Math.max(min, v);
 export const conditionalAdd = (n: number, condition: boolean): StatStep =>
 	condition ? (v) => v + n : (v) => v;
 
@@ -247,7 +257,7 @@ export function computeLayered(base: number, layers: PipelineLayer[]): number {
 
 **Step 4: Run tests to verify they pass**
 
-Run: `bun test src/lib/engine/statPipeline.test.ts`
+Run: `bun run test:unit -- --run src/lib/engine/statPipeline.test.ts`
 Expected: PASS
 
 **Step 5: Commit**
@@ -256,14 +266,18 @@ Expected: PASS
 
 ---
 
-### Task 0.2: Define Stat Modifier Type and Upgrade Card Format
+### Task 0.2: Define Stat Modifier Type and Update Upgrade Format
 
 **Files:**
-- Modify: `src/lib/types.ts` (add `StatModifier`, update `Upgrade`)
 
-**Step 1: Add `StatModifier` type to `types.ts`**
+- Modify: `src/lib/types.ts:3-7` (replace display-only `StatModifier` with pipeline `StatModifier`)
+- Modify: `src/lib/types.ts:33-40` (update `Upgrade` type)
 
-Add after the `Rarity` type:
+**Note:** The existing `StatModifier` at line 3 is `{ icon, label, value }` — a display-only type used by upgrade cards for rendering. This is being replaced by a pipeline-oriented `StatModifier` type. Display labels are now derived from `modifiers + statRegistry` (see Task 0.4).
+
+**Step 1: Replace `StatModifier` type in `types.ts:3-7`**
+
+Replace the existing `StatModifier`:
 
 ```typescript
 export type StatModifier = {
@@ -272,7 +286,7 @@ export type StatModifier = {
 };
 ```
 
-**Step 2: Update `Upgrade` type**
+**Step 2: Update `Upgrade` type in `types.ts:33-40`**
 
 Replace the current `Upgrade` type:
 
@@ -288,65 +302,132 @@ export type Upgrade = {
 ```
 
 This removes:
-- `stats: { label: string; value: string }[]` — display derived from `modifiers` + `statRegistry`
+
+- `stats: StatModifier[]` — display derived from `modifiers` + `statRegistry`
 - `apply: (stats: PlayerStats) => void` — replaced by pipeline
 
-**Step 3: Run tests**
+**Step 3: Run type check**
 
-Run: `bun test`
-Expected: FAIL — existing code references `stats` and `apply`. This is expected; Task 0.3 migrates the cards.
+Run: `bun run check`
+Expected: FAIL — existing code references `stats`, `apply`, and old `StatModifier` shape. This is expected; Tasks 0.3–0.4 fix these.
 
 **Step 4: Commit**
 
-`feat: add StatModifier type and update Upgrade to use modifiers`
+`feat: replace display StatModifier with pipeline StatModifier and update Upgrade type`
 
 ---
 
 ### Task 0.3: Migrate All Upgrade Cards to Modifier Format
 
 **Files:**
-- Modify: `src/lib/data/upgrades.ts` (replace `stats`/`apply` with `modifiers` on all cards)
-- Modify: `src/lib/data/upgrades.test.ts`
 
-**Step 1: Migrate each card**
+- Modify: `src/lib/data/upgrades.ts:16-574` (replace `stats`/`apply` with `modifiers` on all 48 cards in `allUpgrades`)
+- Modify: `src/lib/data/upgrades.ts:577-598` (update 2 shop-only cards)
 
-For every card in `allUpgrades`, replace `stats` and `apply` with `modifiers`. Examples:
+This is a mechanical migration. Each card follows the same pattern: read what `apply()` does, convert to `modifiers: [{ stat, value }]`. The existing `apply` function body tells you exactly what modifiers to create.
+
+**Step 1: Migrate damage, crit, XP cards (lines 18-117, 16 cards)**
+
+Pattern for single-stat cards:
 
 ```typescript
-// Damage cards
+// Before:
+{ id: 'damage1', title: 'Sharpen Blade', rarity: 'common', image: swordImg,
+  stats: [{ icon: '⚔️', label: 'Damage', value: '+1' }],
+  apply: (s) => (s.damage += 1) },
+
+// After:
 { id: 'damage1', title: 'Sharpen Blade', rarity: 'common', image: swordImg,
   modifiers: [{ stat: 'damage', value: 1 }] },
-{ id: 'damage2', title: 'Heavy Strike', rarity: 'common', image: swordImg,
-  modifiers: [{ stat: 'damage', value: 3 }] },
-{ id: 'damage3', title: 'Devastating Blow', rarity: 'uncommon', image: swordImg,
-  modifiers: [{ stat: 'damage', value: 5 }] },
-{ id: 'damage4', title: 'Titan Strength', rarity: 'rare', image: swordImg,
-  modifiers: [{ stat: 'damage', value: 10 }] },
-
-// Crit chance
-{ id: 'crit1', title: 'Keen Eye', rarity: 'common', image: critImg,
-  modifiers: [{ stat: 'critChance', value: 0.05 }] },
-
-// Multi-stat cards become multiple modifiers
-{ id: 'combo1', title: 'Berserker', rarity: 'epic', image: swordImg,
-  modifiers: [
-    { stat: 'damage', value: 5 },
-    { stat: 'critChance', value: 0.1 },
-    { stat: 'critMultiplier', value: 0.5 }
-  ] },
-
-// Boolean stats (overkill) use value: 1 as truthy
-{ id: 'overkill1', title: 'Overkill', rarity: 'rare', image: swordImg,
-  modifiers: [{ stat: 'overkill', value: 1 }] },
 ```
 
-Migrate all 50+ cards following this pattern. The existing `apply` function body tells you exactly what modifiers to create.
-
-**Step 2: Update display label generation**
-
-Create a helper that derives display labels from modifiers:
+Pattern for multi-stat cards (e.g. `crit3` at line 68):
 
 ```typescript
+// Before:
+{ id: 'crit3', ..., apply: (s) => { s.critChance += 0.15; s.critMultiplier += 0.5; } }
+
+// After:
+{ id: 'crit3', ..., modifiers: [{ stat: 'critChance', value: 0.15 }, { stat: 'critMultiplier', value: 0.5 }] },
+```
+
+Apply this pattern to: `damage1-4`, `crit1-3`, `critdmg1-2`, `xp1-2`.
+
+**Step 2: Migrate poison cards (lines 120-221, 12 cards)**
+
+Apply to: `poison1-3`, `poisondur1-3`, `poisonstack1-3`, `poisoncrit1-3`.
+
+**Step 3: Migrate combat mechanic cards (lines 224-283, 7 cards)**
+
+Apply to: `multi1-3`, `overkill1`, `execute1-3`.
+
+Boolean stats (overkill) use value `1` as truthy:
+
+```typescript
+{ id: 'overkill1', ..., modifiers: [{ stat: 'overkill', value: 1 }] },
+```
+
+**Step 4: Migrate utility cards (lines 286-461, 16 cards)**
+
+Apply to: `timer1-2`, `greed1-2`, `chest1-3`, `bosschest1-2`, `lucky1-2`, `golddrop1-3`, `dmgmult1-2`.
+
+**Step 5: Migrate combo/legendary cards (lines 464-573, 7 cards)**
+
+Apply to: `combo1-3`, `legendary1-4`.
+
+Multi-stat example:
+
+```typescript
+{ id: 'combo1', title: 'Berserker', rarity: 'epic', image: axeImg,
+  modifiers: [
+    { stat: 'damage', value: 8 },
+    { stat: 'critChance', value: 0.1 }
+  ] },
+```
+
+**Step 6: Update shop-only cards (lines 577-598)**
+
+The shop-only cards (`executeCapUpgrade`, `goldPerKillUpgrade`) have no-op `apply()` functions. Convert them:
+
+```typescript
+export const executeCapUpgrade: Upgrade = {
+	id: 'execute_cap',
+	title: "Executioner's Pact",
+	rarity: 'epic',
+	image: pickaxeImg,
+	modifiers: [] // Applied via executeCapBonus in gameState, not through normal stats
+};
+
+export const goldPerKillUpgrade: Upgrade = {
+	id: 'gold_per_kill',
+	title: "Prospector's Pick",
+	rarity: 'uncommon',
+	image: coinsImg,
+	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
+};
+```
+
+**Step 7: Commit**
+
+`refactor: migrate all upgrade cards from apply()/stats[] to modifiers[]`
+
+---
+
+### Task 0.4: Add Modifier Display Helper and Update Tests
+
+**Files:**
+
+- Modify: `src/lib/data/upgrades.ts` (add `getModifierDisplay` function after line ~600)
+- Modify: `src/lib/data/upgrades.test.ts:1-145` (replace vitest mocks of old `stats` with validation of new `modifiers`)
+
+**Step 1: Add display helper**
+
+Add to `src/lib/data/upgrades.ts` (after the existing helper functions):
+
+```typescript
+import { statRegistry } from '$lib/engine/stats';
+import type { StatModifier } from '$lib/types';
+
 export function getModifierDisplay(mod: StatModifier): string {
 	const entry = statRegistry.find((s) => s.key === mod.stat);
 	if (!entry) return `${mod.stat} +${mod.value}`;
@@ -354,13 +435,15 @@ export function getModifierDisplay(mod: StatModifier): string {
 }
 ```
 
-Update any UI components that read `upgrade.stats` to use `upgrade.modifiers.map(getModifierDisplay)` instead.
+**Step 2: Write validation tests**
 
-**Step 3: Write validation tests**
+Add to `src/lib/data/upgrades.test.ts` (replace or supplement existing tests):
 
 ```typescript
+import { createDefaultStats } from '$lib/engine/stats';
+
 describe('upgrade card modifiers', () => {
-	test('every card has at least one modifier', () => {
+	test('every card has at least one modifier (except shop-only cards)', () => {
 		for (const card of allUpgrades) {
 			expect(card.modifiers.length, `${card.id} has no modifiers`).toBeGreaterThan(0);
 		}
@@ -384,27 +467,27 @@ describe('upgrade card modifiers', () => {
 });
 ```
 
-**Step 4: Run tests**
+**Step 3: Run tests**
 
-Run: `bun test`
-Expected: Some tests may still fail if other code references `apply()` — those are fixed in Task 0.4.
+Run: `bun run test:unit -- --run src/lib/data/upgrades.test.ts`
+Expected: Some tests may still fail if other code references `apply()` — those are fixed in Tasks 0.5–0.6.
 
-**Step 5: Commit**
+**Step 4: Commit**
 
-`refactor: migrate all upgrade cards from apply() to modifiers[]`
+`feat: add modifier display helper and upgrade card validation tests`
 
 ---
 
-### Task 0.4: Create Stat Pipeline Store and Wire into Game State
+### Task 0.5: Create Stat Pipeline Store
 
 **Files:**
+
+- Modify: `src/lib/engine/stats.ts:4-27` (add `BASE_STATS` constant after `createDefaultStats`)
 - Create: `src/lib/stores/statPipeline.svelte.ts`
-- Modify: `src/lib/stores/gameState.svelte.ts`
-- Modify: `src/lib/engine/stats.ts` (add `BASE_STATS` constant)
 
 **Step 1: Add `BASE_STATS` to `stats.ts`**
 
-Export a constant with all baseline stat values (the current `createDefaultStats()` values):
+Add after `createDefaultStats()` (after line 27):
 
 ```typescript
 export const BASE_STATS: Readonly<PlayerStats> = Object.freeze(createDefaultStats());
@@ -416,8 +499,14 @@ Create `src/lib/stores/statPipeline.svelte.ts`:
 
 ```typescript
 import {
-	computeLayered, createLayer, dirtyLayer, add, multiply, clampMin,
-	type PipelineLayer, type StatStep
+	computeLayered,
+	createLayer,
+	dirtyLayer,
+	add,
+	multiply,
+	clampMin,
+	type PipelineLayer,
+	type StatStep
 } from '$lib/engine/statPipeline';
 import { BASE_STATS } from '$lib/engine/stats';
 import { allUpgrades } from '$lib/data/upgrades';
@@ -459,12 +548,7 @@ export function createStatPipeline() {
 	}
 
 	function rebuildLayer(layerIndex: number, modifiers: StatModifier[]): void {
-		const affectedStats = new Set<StatKey>();
-		for (const mod of modifiers) {
-			affectedStats.add(mod.stat);
-		}
-
-		// Clear and rebuild affected stats for this layer
+		// Clear and rebuild all stats for this layer
 		for (const stat of Object.keys(BASE_STATS) as StatKey[]) {
 			const steps: StatStep[] = [];
 			for (const mod of modifiers) {
@@ -576,7 +660,9 @@ export function createStatPipeline() {
 
 	return {
 		get,
-		get acquiredUpgradeIds() { return acquiredUpgradeIds; },
+		get acquiredUpgradeIds() {
+			return acquiredUpgradeIds;
+		},
 		acquireUpgrade,
 		setAcquiredUpgrades,
 		setClassBase,
@@ -591,99 +677,300 @@ export function createStatPipeline() {
 }
 ```
 
-**Step 3: Wire into gameState**
+**Step 3: Run type check**
 
-In `gameState.svelte.ts`:
+Run: `bun run check`
+Expected: Type errors may still exist in gameState (wired in Task 0.6). The store file itself should be error-free.
 
-1. Create pipeline instance: `const statPipeline = createStatPipeline();`
-2. Replace all `playerStats.damage` reads with `statPipeline.get('damage')` (and similarly for all stats)
-3. Replace `upgrade.apply(playerStats)` in `selectUpgrade()` with:
-   ```typescript
-   statPipeline.acquireUpgrade(upgrade.id);
-   if (upgrade.onAcquire) upgrade.onAcquire();
-   ```
-4. Remove `applyPurchasedUpgrades()` — shop upgrades are loaded via `statPipeline.setAcquiredUpgrades()`
-5. Remove the mutable `playerStats` object entirely (or keep as a compatibility shim that delegates to pipeline)
+**Step 4: Commit**
 
-**Step 4: Update persistence**
-
-In `saveGame()`, save `statPipeline.acquiredUpgradeIds` (already saved as `unlockedUpgradeIds`).
-In `loadGame()`, call `statPipeline.setAcquiredUpgrades(data.unlockedUpgradeIds)`.
-
-Computed stat values are NOT saved. They are derived on load.
-
-**Step 5: Update components that display stats**
-
-Any component reading `playerStats.X` now reads `statPipeline.get('X')` (exposed via gameState getters).
-
-**Step 6: Run tests**
-
-Run: `bun test`
-Expected: PASS — all stat reads go through pipeline, all upgrades applied via modifiers.
-
-**Step 7: Commit**
-
-`feat: create stat pipeline store and wire into game state`
+`feat: create stat pipeline store with layered memoised computation`
 
 ---
 
-### Task 0.5: Stat Pipeline Integration Tests
+### Task 0.6: Wire Stat Pipeline into Game State
 
 **Files:**
+
+- Modify: `src/lib/stores/gameState.svelte.ts:1-10` (add pipeline import)
+- Modify: `src/lib/stores/gameState.svelte.ts:22-53` (add pipeline instance, replace mutable playerStats)
+- Modify: `src/lib/stores/gameState.svelte.ts:207-251` (update `selectUpgrade`)
+- Modify: `src/lib/stores/gameState.svelte.ts:269-289` (update `saveGame`)
+- Modify: `src/lib/stores/gameState.svelte.ts:291-329` (update `loadGame`)
+- Modify: `src/lib/stores/gameState.svelte.ts:327-329` (remove `applyPurchasedUpgrades`)
+- Modify: `src/lib/stores/gameState.svelte.ts:331-371` (update `resetGame` and `init`)
+- Modify: `src/lib/stores/gameState.svelte.ts:373-481` (update public return object stat getters)
+- Modify: `src/lib/stores/shop.svelte.ts:68-78` (update `applyPurchasedUpgrades` to use pipeline)
+
+**Step 1: Add pipeline import and instance**
+
+In `gameState.svelte.ts`, add import:
+
+```typescript
+import { createStatPipeline } from './statPipeline.svelte';
+```
+
+Create pipeline instance alongside other sub-stores (after line 50):
+
+```typescript
+const statPipeline = createStatPipeline();
+```
+
+**Step 2: Update `selectUpgrade()` (lines 207-251)**
+
+Replace `upgrade.apply(playerStats)` with pipeline call:
+
+```typescript
+function selectUpgrade(upgrade: Upgrade) {
+	statPipeline.acquireUpgrade(upgrade.id);
+	if (upgrade.onAcquire) upgrade.onAcquire();
+
+	// Track unlocked upgrades for collection
+	unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+
+	// Track special effects — derive from modifiers + statRegistry instead of old stats[]
+	if (upgrade.modifiers.length > 0) {
+		const effectName = upgrade.title;
+		if (!effects.find((e) => e.name === effectName)) {
+			effects.push({
+				name: effectName,
+				description: upgrade.modifiers
+					.map((m) => {
+						const entry = statRegistry.find((s) => s.key === m.stat);
+						return entry ? `${entry.label} ${entry.format(m.value)}` : `${m.stat} +${m.value}`;
+					})
+					.join(', ')
+			});
+		}
+	}
+
+	const allConsumed = leveling.closeActiveEvent();
+	if (allConsumed) {
+		timers.startPoisonTick(applyPoison);
+		timers.resumeBossTimer(handleBossExpired);
+	} else {
+		leveling.openNextUpgrade();
+	}
+	saveGame();
+}
+```
+
+Add import at top:
+
+```typescript
+import { statRegistry } from '$lib/engine/stats';
+```
+
+**Step 3: Replace all `playerStats.X` reads with `statPipeline.get('X')`**
+
+Every place in gameState that reads a stat value (e.g. `playerStats.damage`, `playerStats.poison`, `playerStats.greed`) now reads `statPipeline.get('damage')`, etc. Key locations:
+
+- `upgradeContext()` (line 55): `playerStats.luckyChance` → `statPipeline.get('luckyChance')`, etc.
+- `attack()` (line 78): build a stats object from pipeline for `calculateAttack`
+- `applyPoison()` (line 122): similarly for `calculatePoison`
+- `killEnemy()` (line 147): `playerStats.goldDropChance`, `playerStats.goldMultiplier`, etc.
+- `bossTimerMax` derived (line 53): `playerStats.bonusBossTime` → `statPipeline.get('bonusBossTime')`
+
+For `calculateAttack` and `calculatePoison` which expect a `PlayerStats` object, create a helper:
+
+```typescript
+function getEffectiveStats(): PlayerStats {
+	const stats = {} as PlayerStats;
+	for (const key of Object.keys(BASE_STATS) as (keyof PlayerStats)[]) {
+		(stats as any)[key] = statPipeline.get(key);
+	}
+	return stats;
+}
+```
+
+**Step 4: Update persistence**
+
+In `saveGame()`: save `statPipeline.acquiredUpgradeIds` (already saved as `unlockedUpgradeIds`). Computed stat values are NOT saved — they are derived on load.
+
+In `loadGame()`: replace stat restoration with `statPipeline.setAcquiredUpgrades(data.unlockedUpgradeIds)`. Remove the `playerStats = { ...createDefaultStats(), ...data.playerStats }` line and the `executeThreshold` migration (pipeline computes from IDs).
+
+**Step 5: Update `resetGame()` and `init()`**
+
+`resetGame()`: Replace `playerStats = createDefaultStats()` and `applyPurchasedUpgrades()` with `statPipeline.reset()` then `statPipeline.setAcquiredUpgrades(shop.purchasedUpgrades)`.
+
+`init()`: Replace `applyPurchasedUpgrades()` with `statPipeline.setAcquiredUpgrades(shop.purchasedUpgrades)`. On load, call `statPipeline.setAcquiredUpgrades(data.unlockedUpgradeIds)`.
+
+**Step 6: Remove `applyPurchasedUpgrades()` (line 327-329)**
+
+Delete this function — shop upgrades are loaded via pipeline.
+
+**Step 7: Update public return object stat getters**
+
+Replace `get playerStats()` with individual stat getters delegating to pipeline, or keep a compatibility getter:
+
+```typescript
+get playerStats() {
+	return getEffectiveStats();
+},
+```
+
+**Step 8: Update shop `applyPurchasedUpgrades`**
+
+In `src/lib/stores/shop.svelte.ts:68-78`, the `applyPurchasedUpgrades` function calls `upgrade.apply(stats)`. Since `apply()` no longer exists, this function should be removed or changed to just return the set of purchased upgrade IDs (the pipeline handles application). Update gameState to use `statPipeline.setAcquiredUpgrades()` with purchased IDs instead.
+
+**Step 9: Run tests**
+
+Run: `bun run test:unit -- --run`
+Expected: PASS — all stat reads go through pipeline, all upgrades applied via modifiers.
+
+**Step 10: Commit**
+
+`feat: wire stat pipeline into game state, replace mutable playerStats`
+
+---
+
+### Task 0.7: Stat Pipeline Integration Tests
+
+**Files:**
+
 - Create: `src/lib/stores/statPipeline.test.ts`
 
 Test the store-level integration:
 
 ```typescript
-describe('stat pipeline store', () => {
+import { describe, test, expect } from 'vitest';
+
+// Note: statPipeline.svelte.ts uses $state runes, so tests may need
+// vitest with svelte preprocessing. If direct import fails, test the
+// engine functions directly and verify store wiring via e2e.
+
+import {
+	computeLayered,
+	createLayer,
+	add,
+	multiply,
+	clampMin,
+	dirtyLayer,
+	type PipelineLayer
+} from '$lib/engine/statPipeline';
+import { createDefaultStats } from '$lib/engine/stats';
+import { allUpgrades } from '$lib/data/upgrades';
+import type { StatModifier } from '$lib/types';
+
+// Test pipeline computation with upgrade modifiers (mirrors what the store does)
+describe('stat pipeline store logic', () => {
+	function buildPermanentLayer(upgradeIds: string[]): StatModifier[] {
+		const mods: StatModifier[] = [];
+		for (const id of upgradeIds) {
+			const card = allUpgrades.find((u) => u.id === id);
+			if (card) mods.push(...card.modifiers);
+		}
+		return mods;
+	}
+
 	test('base stats match defaults before any upgrades', () => {
-		const pipeline = createStatPipeline();
-		expect(pipeline.get('damage')).toBe(1);
-		expect(pipeline.get('critChance')).toBe(0);
+		const defaults = createDefaultStats();
+		const layers: PipelineLayer[] = [
+			createLayer([]), // base
+			createLayer([]), // permanent
+			createLayer([]), // class
+			createLayer([]), // transient
+			createLayer([clampMin(0)]) // clamp
+		];
+		expect(computeLayered(defaults.damage as number, layers)).toBe(1);
+		expect(computeLayered(defaults.critChance as number, layers)).toBe(0);
 	});
 
 	test('acquiring upgrade adds to stat', () => {
-		const pipeline = createStatPipeline();
-		pipeline.acquireUpgrade('damage2'); // +3 damage
-		expect(pipeline.get('damage')).toBe(4);
+		const defaults = createDefaultStats();
+		const mods = buildPermanentLayer(['damage2']); // +3 damage
+		const layers: PipelineLayer[] = [
+			createLayer([]),
+			createLayer(mods.filter((m) => m.stat === 'damage').map((m) => add(m.value))),
+			createLayer([]),
+			createLayer([]),
+			createLayer([clampMin(0)])
+		];
+		expect(computeLayered(defaults.damage as number, layers)).toBe(4);
 	});
 
 	test('acquiring same upgrade twice stacks', () => {
-		const pipeline = createStatPipeline();
-		pipeline.acquireUpgrade('damage2');
-		pipeline.acquireUpgrade('damage2');
-		expect(pipeline.get('damage')).toBe(7); // 1 + 3 + 3
+		const defaults = createDefaultStats();
+		const mods = buildPermanentLayer(['damage2', 'damage2']); // +3 +3
+		const layers: PipelineLayer[] = [
+			createLayer([]),
+			createLayer(mods.filter((m) => m.stat === 'damage').map((m) => add(m.value))),
+			createLayer([]),
+			createLayer([]),
+			createLayer([clampMin(0)])
+		];
+		expect(computeLayered(defaults.damage as number, layers)).toBe(7); // 1 + 3 + 3
 	});
 
 	test('transient modifiers affect stat and are removable', () => {
-		const pipeline = createStatPipeline();
-		pipeline.addTransient('frenzy', [{ stat: 'attackSpeed', value: 0.2 }]);
-		const boosted = pipeline.get('attackSpeed');
-		pipeline.removeTransient('frenzy');
-		const base = pipeline.get('attackSpeed');
+		const defaults = createDefaultStats();
+		const transientMods: StatModifier[] = [{ stat: 'damage', value: 5 }];
+		const layersWithTransient: PipelineLayer[] = [
+			createLayer([]),
+			createLayer([]),
+			createLayer([]),
+			createLayer(transientMods.map((m) => add(m.value))),
+			createLayer([clampMin(0)])
+		];
+		const boosted = computeLayered(defaults.damage as number, layersWithTransient);
+
+		const layersWithout: PipelineLayer[] = [
+			createLayer([]),
+			createLayer([]),
+			createLayer([]),
+			createLayer([]),
+			createLayer([clampMin(0)])
+		];
+		const base = computeLayered(defaults.damage as number, layersWithout);
+
 		expect(boosted).toBeGreaterThan(base);
+		expect(boosted).toBe(6); // 1 + 5
+		expect(base).toBe(1);
 	});
 
-	test('clearTransients removes all transient effects', () => {
-		const pipeline = createStatPipeline();
-		pipeline.addTransient('frost_aura', [{ stat: 'damage', value: -2 }]);
-		pipeline.addTransient('darkness', [{ stat: 'poison', value: -1 }]);
-		pipeline.clearTransients();
-		expect(pipeline.get('damage')).toBe(1);
-		expect(pipeline.get('poison')).toBe(0);
+	test('clamp layer prevents negative values', () => {
+		const defaults = createDefaultStats();
+		const layers: PipelineLayer[] = [
+			createLayer([]),
+			createLayer([]),
+			createLayer([]),
+			createLayer([add(-100)]), // Debuff that would make damage negative
+			createLayer([clampMin(0)])
+		];
+		expect(computeLayered(defaults.damage as number, layers)).toBe(0);
 	});
 
-	test('reset clears everything', () => {
-		const pipeline = createStatPipeline();
-		pipeline.acquireUpgrade('damage4');
-		pipeline.addTransient('test', [{ stat: 'damage', value: 5 }]);
-		pipeline.reset();
-		expect(pipeline.get('damage')).toBe(1);
+	test('multi-stat upgrade applies to multiple stats', () => {
+		const defaults = createDefaultStats();
+		const mods = buildPermanentLayer(['combo1']); // Berserker: +8 damage, +10% crit
+		const damageMods = mods.filter((m) => m.stat === 'damage');
+		const critMods = mods.filter((m) => m.stat === 'critChance');
+
+		expect(damageMods.length).toBe(1);
+		expect(critMods.length).toBe(1);
+
+		const damageLayers: PipelineLayer[] = [
+			createLayer([]),
+			createLayer(damageMods.map((m) => add(m.value))),
+			createLayer([]),
+			createLayer([]),
+			createLayer([clampMin(0)])
+		];
+		expect(computeLayered(defaults.damage as number, damageLayers)).toBe(9); // 1 + 8
+
+		const critLayers: PipelineLayer[] = [
+			createLayer([]),
+			createLayer(critMods.map((m) => add(m.value))),
+			createLayer([]),
+			createLayer([]),
+			createLayer([clampMin(0)])
+		];
+		expect(computeLayered(defaults.critChance as number, critLayers)).toBe(0.1); // 0 + 0.1
 	});
 });
 ```
 
-**Run:** `bun test src/lib/stores/statPipeline.test.ts`
+**Run:** `bun run test:unit -- --run src/lib/stores/statPipeline.test.ts`
 
 **Commit:** `test: add stat pipeline store integration tests`
 
@@ -694,6 +981,7 @@ describe('stat pipeline store', () => {
 ### Task 1.1: Create Timer Registry Engine
 
 **Files:**
+
 - Create: `src/lib/engine/timerRegistry.ts`
 - Create: `src/lib/engine/timerRegistry.test.ts`
 
@@ -702,14 +990,19 @@ describe('stat pipeline store', () => {
 Create `src/lib/engine/timerRegistry.test.ts`:
 
 ```typescript
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect } from 'vitest';
 import { createTimerRegistry, type GameTimer } from '$lib/engine/timerRegistry';
 
 describe('timer registry', () => {
 	test('one-shot timer fires on expiry', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.tick(100);
 		expect(fired).toBe(true);
 		expect(registry.has('test')).toBe(false); // auto-removed
@@ -718,7 +1011,12 @@ describe('timer registry', () => {
 	test('one-shot timer does not fire before expiry', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.tick(50);
 		expect(fired).toBe(false);
 		expect(registry.has('test')).toBe(true);
@@ -727,7 +1025,13 @@ describe('timer registry', () => {
 	test('repeating timer fires and resets', () => {
 		const registry = createTimerRegistry();
 		let count = 0;
-		registry.register('tick', { remaining: 1000, onExpire: () => { count++; }, repeat: 1000 });
+		registry.register('tick', {
+			remaining: 1000,
+			onExpire: () => {
+				count++;
+			},
+			repeat: 1000
+		});
 
 		registry.tick(1000);
 		expect(count).toBe(1);
@@ -740,7 +1044,13 @@ describe('timer registry', () => {
 	test('repeating timer carries remainder', () => {
 		const registry = createTimerRegistry();
 		let count = 0;
-		registry.register('tick', { remaining: 1000, onExpire: () => { count++; }, repeat: 1000 });
+		registry.register('tick', {
+			remaining: 1000,
+			onExpire: () => {
+				count++;
+			},
+			repeat: 1000
+		});
 
 		// 2500ms = fires at 1000, 2000, remainder 500
 		registry.tick(2500);
@@ -754,7 +1064,12 @@ describe('timer registry', () => {
 	test('remove cancels a timer', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.remove('test');
 		registry.tick(200);
 		expect(fired).toBe(false);
@@ -762,9 +1077,20 @@ describe('timer registry', () => {
 
 	test('multiple timers tick independently', () => {
 		const registry = createTimerRegistry();
-		let a = 0, b = 0;
-		registry.register('a', { remaining: 100, onExpire: () => { a++; } });
-		registry.register('b', { remaining: 200, onExpire: () => { b++; } });
+		let a = 0,
+			b = 0;
+		registry.register('a', {
+			remaining: 100,
+			onExpire: () => {
+				a++;
+			}
+		});
+		registry.register('b', {
+			remaining: 200,
+			onExpire: () => {
+				b++;
+			}
+		});
 
 		registry.tick(150);
 		expect(a).toBe(1);
@@ -776,9 +1102,20 @@ describe('timer registry', () => {
 
 	test('registering same name replaces existing timer', () => {
 		const registry = createTimerRegistry();
-		let first = 0, second = 0;
-		registry.register('test', { remaining: 100, onExpire: () => { first++; } });
-		registry.register('test', { remaining: 200, onExpire: () => { second++; } });
+		let first = 0,
+			second = 0;
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				first++;
+			}
+		});
+		registry.register('test', {
+			remaining: 200,
+			onExpire: () => {
+				second++;
+			}
+		});
 
 		registry.tick(150);
 		expect(first).toBe(0);
@@ -791,8 +1128,18 @@ describe('timer registry', () => {
 	test('clear removes all timers', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('a', { remaining: 100, onExpire: () => { fired = true; } });
-		registry.register('b', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('a', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
+		registry.register('b', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.clear();
 		registry.tick(200);
 		expect(fired).toBe(false);
@@ -821,7 +1168,7 @@ describe('timer registry', () => {
 
 **Step 2: Run tests to verify they fail**
 
-Run: `bun test src/lib/engine/timerRegistry.test.ts`
+Run: `bun run test:unit -- --run src/lib/engine/timerRegistry.test.ts`
 Expected: FAIL — module not found.
 
 **Step 3: Implement timer registry**
@@ -889,7 +1236,7 @@ export function createTimerRegistry() {
 
 **Step 4: Run tests to verify they pass**
 
-Run: `bun test src/lib/engine/timerRegistry.test.ts`
+Run: `bun run test:unit -- --run src/lib/engine/timerRegistry.test.ts`
 Expected: PASS
 
 **Step 5: Commit**
@@ -901,7 +1248,8 @@ Expected: PASS
 ### Task 1.2: Timer Registry Simulation Tests
 
 **Files:**
-- Modify: `src/lib/engine/timerRegistry.test.ts`
+
+- Modify: `src/lib/engine/timerRegistry.test.ts` (append new describe block)
 
 Add tests that validate complex multi-timer game scenarios using only `tick()`:
 
@@ -912,7 +1260,9 @@ describe('game loop simulation', () => {
 		let poisonTicks = 0;
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { poisonTicks++; },
+			onExpire: () => {
+				poisonTicks++;
+			},
 			repeat: 1000
 		});
 
@@ -961,7 +1311,9 @@ describe('game loop simulation', () => {
 			attacks++;
 			registry.register('attack_cooldown', {
 				remaining: attackInterval,
-				onExpire: () => { fireAttack(); }
+				onExpire: () => {
+					fireAttack();
+				}
 			});
 		}
 
@@ -993,14 +1345,18 @@ describe('game loop simulation', () => {
 			attacks++;
 			registry.register('attack_cooldown', {
 				remaining: 1250,
-				onExpire: () => { fireAttack(); }
+				onExpire: () => {
+					fireAttack();
+				}
 			});
 		}
 
 		// Poison every 1000ms
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { poisonTicks++; },
+			onExpire: () => {
+				poisonTicks++;
+			},
 			repeat: 1000
 		});
 
@@ -1008,7 +1364,9 @@ describe('game loop simulation', () => {
 		registry.register('boss_countdown', {
 			remaining: 1000,
 			repeat: 1000,
-			onExpire: () => { bossSeconds--; }
+			onExpire: () => {
+				bossSeconds--;
+			}
 		});
 
 		fireAttack();
@@ -1016,15 +1374,20 @@ describe('game loop simulation', () => {
 		// Simulate 5 seconds
 		registry.tick(5000);
 
-		expect(attacks).toBe(5);      // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
-		expect(poisonTicks).toBe(5);   // at 1000, 2000, 3000, 4000, 5000
-		expect(bossSeconds).toBe(25);  // 30 - 5
+		expect(attacks).toBe(5); // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
+		expect(poisonTicks).toBe(5); // at 1000, 2000, 3000, 4000, 5000
+		expect(bossSeconds).toBe(25); // 30 - 5
 	});
 
 	test('simulate pausing: timers do not advance when not ticked', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 
 		// "Pause" by simply not calling tick for a while
 		// Then resume by ticking
@@ -1039,7 +1402,7 @@ describe('game loop simulation', () => {
 });
 ```
 
-**Run:** `bun test src/lib/engine/timerRegistry.test.ts`
+**Run:** `bun run test:unit -- --run src/lib/engine/timerRegistry.test.ts`
 
 **Commit:** `test: add game loop simulation tests for timer registry`
 
@@ -1050,10 +1413,12 @@ describe('game loop simulation', () => {
 ### Task 2.1: Add New Stats to PlayerStats
 
 **Files:**
-- Modify: `src/lib/types.ts` (add 3 fields to `PlayerStats`)
-- Modify: `src/lib/engine/stats.ts` (defaults + statRegistry)
 
-**Step 1: Add fields to `PlayerStats` in `types.ts`**
+- Modify: `src/lib/types.ts:30` (add 3 fields after `goldPerKill`)
+- Modify: `src/lib/engine/stats.ts:25` (add defaults after `goldPerKill: 0`)
+- Modify: `src/lib/engine/stats.ts:45-66` (add statRegistry entries)
+
+**Step 1: Add fields to `PlayerStats` in `types.ts:30`**
 
 Add after the `goldPerKill: number;` line:
 
@@ -1063,7 +1428,7 @@ tapFrenzyBonus: number;
 tapFrenzyDuration: number;
 ```
 
-**Step 2: Add defaults in `createDefaultStats()` in `stats.ts`**
+**Step 2: Add defaults in `createDefaultStats()` in `stats.ts:25`**
 
 Add after `goldPerKill: 0`:
 
@@ -1073,11 +1438,11 @@ tapFrenzyBonus: 0.05,
 tapFrenzyDuration: 3
 ```
 
-Update `BASE_STATS` constant accordingly.
+`BASE_STATS` derives from `createDefaultStats()` so it updates automatically.
 
-**Step 3: Add statRegistry entries in `stats.ts`**
+**Step 3: Add statRegistry entries in `stats.ts:65`**
 
-Add after the `greed` entry:
+Add after the `greed` entry (line 65):
 
 ```typescript
 { key: 'attackSpeed', icon: '🗡️', label: 'Attack Speed', format: (v) => `${(v as number).toFixed(1)}/s`, alwaysShow: true },
@@ -1088,7 +1453,7 @@ Do NOT add `tapFrenzyDuration` — internal, not player-facing.
 
 **Step 4: Run tests**
 
-Run: `bun test`
+Run: `bun run test:unit -- --run`
 Expected: PASS.
 
 **Step 5: Commit**
@@ -1100,6 +1465,7 @@ Expected: PASS.
 ### Task 2.2: Create Attack Speed Helper Functions
 
 **Files:**
+
 - Create: `src/lib/engine/gameLoop.ts`
 - Create: `src/lib/engine/gameLoop.test.ts`
 
@@ -1108,7 +1474,7 @@ Expected: PASS.
 Create `src/lib/engine/gameLoop.test.ts`:
 
 ```typescript
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect } from 'vitest';
 import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/gameLoop';
 
 describe('getEffectiveAttackSpeed', () => {
@@ -1151,6 +1517,9 @@ describe('getAttackIntervalMs', () => {
 
 **Step 2: Run tests — FAIL**
 
+Run: `bun run test:unit -- --run src/lib/engine/gameLoop.test.ts`
+Expected: FAIL — module not found.
+
 **Step 3: Implement**
 
 Create `src/lib/engine/gameLoop.ts`:
@@ -1172,6 +1541,9 @@ export function getAttackIntervalMs(attackSpeed: number): number {
 
 **Step 4: Run tests — PASS**
 
+Run: `bun run test:unit -- --run src/lib/engine/gameLoop.test.ts`
+Expected: PASS
+
 **Step 5: Commit**
 
 `feat: add attack speed helper functions with tests`
@@ -1183,6 +1555,7 @@ export function getAttackIntervalMs(attackSpeed: number): number {
 ### Task 3.1: Create Game Loop Store
 
 **Files:**
+
 - Create: `src/lib/stores/gameLoop.svelte.ts`
 
 **Step 1: Create the store**
@@ -1190,10 +1563,7 @@ export function getAttackIntervalMs(attackSpeed: number): number {
 This store wraps the timer registry with `requestAnimationFrame` and Svelte 5 runes. It reads attack speed from the stat pipeline and manages frenzy as transient pipeline modifiers.
 
 ```typescript
-import {
-	getEffectiveAttackSpeed,
-	getAttackIntervalMs
-} from '$lib/engine/gameLoop';
+import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/gameLoop';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
 
 export function createGameLoop() {
@@ -1374,11 +1744,19 @@ export function createGameLoop() {
 
 	return {
 		// Timer registry access (for Plans 1-3 to register enemy/ability timers)
-		get timers() { return timers; },
+		get timers() {
+			return timers;
+		},
 
-		get frenzyStacks() { return frenzyCount; },
-		get paused() { return paused; },
-		get pointerHeld() { return pointerHeld; },
+		get frenzyStacks() {
+			return frenzyCount;
+		},
+		get paused() {
+			return paused;
+		},
+		get pointerHeld() {
+			return pointerHeld;
+		},
 
 		start,
 		stop,
@@ -1393,7 +1771,10 @@ export function createGameLoop() {
 }
 ```
 
-**Step 2: Run tests — PASS**
+**Step 2: Run type check**
+
+Run: `bun run check`
+Expected: PASS (new file, no callers yet).
 
 **Step 3: Commit**
 
@@ -1401,54 +1782,94 @@ export function createGameLoop() {
 
 ---
 
-### Task 3.2: Migrate gameState from Timers to Game Loop
+### Task 3.2: Replace gameState Timer Imports and Calls
 
 **Files:**
-- Modify: `src/lib/stores/gameState.svelte.ts`
-- Modify: `src/lib/stores/persistence.svelte.ts` (add `bossTimeRemaining` to `SessionSaveData`)
+
+- Modify: `src/lib/stores/gameState.svelte.ts:3` (replace timers import)
+- Modify: `src/lib/stores/gameState.svelte.ts:41` (replace timers instance)
+- Modify: `src/lib/stores/gameState.svelte.ts:184` (boss kill → `stopBossTimer`)
+- Modify: `src/lib/stores/gameState.svelte.ts:195` (boss spawn → `startBossTimer`)
+- Modify: `src/lib/stores/gameState.svelte.ts:241-245` (selectUpgrade timer resume → `gameLoop.resume()`)
+- Modify: `src/lib/stores/gameState.svelte.ts:253-258` (openNextUpgrade timer pause → `gameLoop.pause()`)
+- Modify: `src/lib/stores/gameState.svelte.ts:332` (resetGame `timers.stopAll()` → `gameLoop.reset()`)
+- Modify: `src/lib/stores/gameState.svelte.ts:402-403` (bossTimer getter)
+
+**Step 1: Replace import and instance**
+
+```typescript
+// OLD (line 3)
+import { createTimers } from './timers.svelte';
+// NEW
+import { createGameLoop } from './gameLoop.svelte';
+
+// OLD (line 41)
+const timers = createTimers();
+// NEW
+const gameLoop = createGameLoop();
+```
+
+**Step 2: Replace all `timers.xxx` calls**
+
+| Location                             | Old                                                                               | New                                          |
+| ------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------- |
+| `selectUpgrade()` line ~244          | `timers.startPoisonTick(applyPoison); timers.resumeBossTimer(handleBossExpired);` | `gameLoop.resume();`                         |
+| `openNextUpgrade()` line ~256        | `timers.stopPoisonTick(); timers.pauseBossTimer();`                               | `gameLoop.pause();`                          |
+| `killEnemy()` line ~184 (boss dies)  | `timers.stopBossTimer();`                                                         | `gameLoop.stopBossTimer();`                  |
+| `killEnemy()` line ~195 (spawn boss) | `timers.startBossTimer(bossTimerMax, handleBossExpired);`                         | `gameLoop.startBossTimer(bossTimerMax);`     |
+| `resetGame()` line ~332              | `timers.stopAll();`                                                               | `gameLoop.reset();`                          |
+| `resetGame()` line ~349              | `timers.startPoisonTick(applyPoison);`                                            | (removed — game loop `start()` handles this) |
+
+**Step 3: Update bossTimer getter in return object**
+
+```typescript
+// OLD (line ~402)
+get bossTimer() { return timers.bossTimer; },
+// NEW — boss timer is now inside the timer registry, need to derive from getRemaining
+get bossTimer() {
+	return Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000);
+},
+```
+
+**Step 4: Run type check**
+
+Run: `bun run check`
+Expected: Errors about deleted `timers.svelte.ts` (resolved in Task 3.3) and missing `gameLoop.start()` call (added in Task 3.3).
+
+**Step 5: Commit**
+
+`refactor: replace timer calls with game loop in gameState`
+
+---
+
+### Task 3.3: Update init, Persistence, and Delete Old Timers
+
+**Files:**
+
+- Modify: `src/lib/stores/gameState.svelte.ts:357-371` (update `init()`)
+- Modify: `src/lib/stores/gameState.svelte.ts:269-289` (update `saveGame()` with `bossTimeRemaining`)
+- Modify: `src/lib/stores/persistence.svelte.ts:9-27` (add `bossTimeRemaining` to `SessionSaveData`)
+- Modify: `src/lib/stores/gameState.svelte.ts:470-481` (add pointer controls + frenzy to public API)
 - Delete: `src/lib/stores/timers.svelte.ts`
 
 **BUG FIX: Boss timer reset exploit.** Reloading during a boss fight restarts the timer at full duration. Fix: persist remaining boss time.
 
-**Step 1: Add `bossTimeRemaining` to `SessionSaveData`**
+**Step 1: Add `bossTimeRemaining` to `SessionSaveData` (persistence.svelte.ts:26)**
 
-In `persistence.svelte.ts`:
+Add after `timestamp: number;` (line 26):
 
 ```typescript
 bossTimeRemaining?: number;
 ```
 
-**Step 2: Replace imports**
-
-```typescript
-// OLD
-import { createTimers } from './timers.svelte';
-const timers = createTimers();
-
-// NEW
-import { createGameLoop } from './gameLoop.svelte';
-const gameLoop = createGameLoop();
-```
-
-**Step 3: Replace all `timers.xxx` calls**
-
-| Location | Old | New |
-|----------|-----|-----|
-| `selectUpgrade()` | `timers.startPoisonTick(applyPoison); timers.resumeBossTimer(handleBossExpired);` | `gameLoop.resume();` |
-| `openNextUpgrade()` | `timers.stopPoisonTick(); timers.pauseBossTimer();` | `gameLoop.pause();` |
-| `killEnemy()` (boss dies) | `timers.stopBossTimer();` | `gameLoop.stopBossTimer();` |
-| `killEnemy()` (spawn boss) | `timers.startBossTimer(bossTimerMax, handleBossExpired);` | `gameLoop.startBossTimer(bossTimerMax);` |
-| `resetGame()` | `timers.stopAll();` | `gameLoop.reset();` |
-| `init()` (boss resume) | `timers.startBossTimer(bossTimerMax, handleBossExpired);` | `gameLoop.startBossTimer(savedBossTime ?? bossTimerMax);` |
-
-**Step 4: Update `init()`**
+**Step 2: Update `init()` in gameState**
 
 ```typescript
 function init() {
 	shop.load();
 	const loaded = loadGame();
 	if (!loaded) {
-		statPipeline.setAcquiredUpgrades([]);
+		statPipeline.setAcquiredUpgrades(shop.purchasedUpgrades);
 		enemy.spawnEnemy(statPipeline.get('greed'));
 	} else {
 		if (enemy.isBoss) {
@@ -1467,7 +1888,8 @@ function init() {
 			statPipeline.removeTransient('frenzy');
 			if (count > 0) {
 				statPipeline.addTransientStep(
-					'frenzy', 'attackSpeed',
+					'frenzy',
+					'attackSpeed',
 					multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
 				);
 			}
@@ -1479,7 +1901,25 @@ function init() {
 }
 ```
 
-**Step 5: Remove `attack` from public return object, add pointer controls**
+Add import at top:
+
+```typescript
+import { multiply } from '$lib/engine/statPipeline';
+```
+
+**Step 3: Save boss time remaining in `saveGame()`**
+
+Add to the `saveSession()` call:
+
+```typescript
+bossTimeRemaining: gameLoop.timers.has('boss_countdown')
+	? Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000)
+	: undefined;
+```
+
+**Step 4: Remove `attack` from public return, add pointer controls**
+
+Remove `attack` from the actions section. Add:
 
 ```typescript
 pointerDown: () => gameLoop.pointerDown(),
@@ -1494,43 +1934,45 @@ get effectiveAttackSpeed() {
 },
 ```
 
-**Step 6: Save boss time remaining**
-
-In `saveGame()`:
+Add import:
 
 ```typescript
-bossTimeRemaining: gameLoop.timers.has('boss_countdown')
-	? Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000)
-	: undefined
+import { getEffectiveAttackSpeed } from '$lib/engine/gameLoop';
 ```
 
-**Step 7: Delete `src/lib/stores/timers.svelte.ts`**
+**Step 5: Delete `src/lib/stores/timers.svelte.ts`**
 
-**Step 8: Run tests**
+**Step 6: Run tests**
 
-Run: `bun test`
+Run: `bun run test:unit -- --run`
 Fix any references to deleted `timers` or removed `attack()` public API.
 
-**Step 9: Commit**
+**Step 7: Commit**
 
-`refactor: replace setInterval timers with rAF game loop and timer registry, fix boss timer exploit`
+`refactor: complete game loop migration, persist boss timer, delete old timers`
 
 ---
 
-### Task 3.3: Update BattleArea for Pointer Input
+### Task 3.4: Update BattleArea for Pointer Input
 
 **Files:**
-- Modify: `src/lib/components/BattleArea.svelte`
-- Modify: `src/routes/+page.svelte`
 
-**Step 1: Change BattleArea Props**
+- Modify: `src/lib/components/BattleArea.svelte:9-21` (update Props type)
+- Modify: `src/lib/components/BattleArea.svelte:23-35` (update destructured props)
+- Modify: `src/lib/components/BattleArea.svelte:40-48` (replace event handlers)
+- Modify: `src/lib/components/BattleArea.svelte:64` (update hint text)
+- Modify: `src/lib/components/BattleArea.svelte:78-269` (add frenzy indicator + CSS)
+- Modify: `src/routes/+page.svelte:157-169` (update BattleArea props)
 
-Replace `onAttack: () => void` with:
+**Step 1: Change BattleArea Props (lines 9-21)**
+
+Replace `onAttack: () => void` with pointer handlers and frenzy data:
 
 ```typescript
 type Props = {
 	isBoss: boolean;
 	isChest: boolean;
+	isBossChest: boolean;
 	enemyHealth: number;
 	enemyMaxHealth: number;
 	enemiesKilled: number;
@@ -1545,7 +1987,11 @@ type Props = {
 };
 ```
 
-**Step 2: Replace event handlers on `.enemy` div**
+**Step 2: Update destructured props (lines 23-35)**
+
+Replace `onAttack` with `onPointerDown`, `onPointerUp`, `frenzyStacks`, `effectiveAttackSpeed`.
+
+**Step 3: Replace event handlers on `.enemy` div (lines 40-48)**
 
 ```svelte
 <div
@@ -1562,7 +2008,7 @@ type Props = {
 >
 ```
 
-**Step 3: Add `touch-action: none` to `.enemy` CSS**
+**Step 4: Add `touch-action: none` to `.enemy` CSS**
 
 ```css
 .enemy {
@@ -1571,13 +2017,15 @@ type Props = {
 }
 ```
 
-**Step 4: Update hint text**
+**Step 5: Update hint text (line 64)**
 
 ```svelte
 <p class="hint">Tap or hold to attack!</p>
 ```
 
-**Step 5: Add frenzy stack indicator**
+**Step 6: Add frenzy stack indicator**
+
+Add after the hint text:
 
 ```svelte
 {#if frenzyStacks > 0}
@@ -1589,39 +2037,75 @@ type Props = {
 {/if}
 ```
 
-Style with pulse animation (see original plan for CSS).
+Style with pulse animation:
 
-**Step 6: Update `+page.svelte`**
+```css
+.frenzy-indicator {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.85rem;
+	color: #f59e0b;
+	animation: frenzy-pulse 0.3s ease-in-out;
+}
 
-Replace `onAttack={() => gameState.attack()}` with:
-
-```svelte
-onPointerDown={() => gameState.pointerDown()}
-onPointerUp={() => gameState.pointerUp()}
-frenzyStacks={gameState.frenzyStacks}
-effectiveAttackSpeed={gameState.effectiveAttackSpeed}
+@keyframes frenzy-pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.15);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
 ```
 
-**Step 7: Manual test**
+**Step 7: Update `+page.svelte` (lines 157-169)**
+
+Replace `onAttack={gameState.attack}` with:
+
+```svelte
+<BattleArea
+	isBoss={gameState.isBoss}
+	isChest={gameState.isChest}
+	isBossChest={gameState.isBossChest}
+	enemyHealth={gameState.enemyHealth}
+	enemyMaxHealth={gameState.enemyMaxHealth}
+	enemiesKilled={gameState.enemiesKilled}
+	gold={gameState.gold}
+	goldDrops={gameState.goldDrops}
+	hits={gameState.hits}
+	poisonStacks={gameState.poisonStacks.length}
+	onPointerDown={() => gameState.pointerDown()}
+	onPointerUp={() => gameState.pointerUp()}
+	frenzyStacks={gameState.frenzyStacks}
+	effectiveAttackSpeed={gameState.effectiveAttackSpeed}
+/>
+```
+
+**Step 8: Manual test**
 
 Run: `bun run dev`
 Verify: tap, hold, release, frenzy decay, queued tap, boss timer, poison ticks, upgrade pause/resume, boss timer persistence on reload.
 
-**Step 8: Commit**
+**Step 9: Commit**
 
 `feat: replace onclick with pointer input for tap-and-hold attacks`
 
 ---
 
-### Task 3.4: Game Loop Integration Tests
+### Task 3.5: Game Loop Integration Tests
 
 **Files:**
+
 - Create: `src/lib/stores/gameLoop.test.ts`
 
 These tests simulate full game scenarios by wiring together the timer registry, stat pipeline, and game loop logic — all driven by `tick()`. No rAF, no DOM, no async.
 
 ```typescript
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect } from 'vitest';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
 import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/gameLoop';
 
@@ -1679,7 +2163,9 @@ describe('game loop integration', () => {
 		// Poison every 1000ms
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { totalDamageFromPoison += poisonDamage; },
+			onExpire: () => {
+				totalDamageFromPoison += poisonDamage;
+			},
 			repeat: 1000
 		});
 
@@ -1704,7 +2190,9 @@ describe('game loop integration', () => {
 			const name = `frenzy_${frenzyCount}`;
 			registry.register(name, {
 				remaining: frenzyDuration,
-				onExpire: () => { frenzyCount--; }
+				onExpire: () => {
+					frenzyCount--;
+				}
 			});
 		}
 
@@ -1731,7 +2219,9 @@ describe('game loop integration', () => {
 			const name = `frenzy_${frenzyId}`;
 			registry.register(name, {
 				remaining: frenzyDuration,
-				onExpire: () => { frenzyCount--; }
+				onExpire: () => {
+					frenzyCount--;
+				}
 			});
 		}
 
@@ -1805,7 +2295,10 @@ describe('game loop integration', () => {
 		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 5, frenzyBonus))).toBe(1000);
 
 		// 10 stacks: 0.8 * (1 + 10*0.05) = 1.2/s ≈ 833ms
-		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 10, frenzyBonus))).toBeCloseTo(833.33, 0);
+		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 10, frenzyBonus))).toBeCloseTo(
+			833.33,
+			0
+		);
 	});
 
 	test('simulate boss timer with reload persistence', () => {
@@ -1857,7 +2350,7 @@ describe('game loop integration', () => {
 });
 ```
 
-**Run:** `bun test src/lib/stores/gameLoop.test.ts`
+**Run:** `bun run test:unit -- --run src/lib/stores/gameLoop.test.ts`
 Expected: PASS
 
 **Commit:** `test: add game loop integration tests simulating full game scenarios`
@@ -1869,21 +2362,22 @@ Expected: PASS
 ### Task 4.1: Add Attack Speed Upgrade Cards
 
 **Files:**
-- Modify: `src/lib/data/upgrades.ts`
+
+- Modify: `src/lib/data/upgrades.ts:574` (add new cards to `allUpgrades` array before closing bracket)
 
 Add cards using the new `modifiers` format:
 
-| ID | Title | Rarity | Modifiers |
-|----|-------|--------|-----------|
-| `atkspd1` | Swift Strikes | common | `[{ stat: 'attackSpeed', value: 0.1 }]` |
-| `atkspd2` | Rapid Assault | uncommon | `[{ stat: 'attackSpeed', value: 0.2 }]` |
-| `atkspd3` | Blinding Speed | rare | `[{ stat: 'attackSpeed', value: 0.4 }]` |
-| `frenzy1` | Battle Fervor | uncommon | `[{ stat: 'tapFrenzyBonus', value: 0.05 }]` |
-| `frenzy2` | Relentless | rare | `[{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]` |
+| ID        | Title          | Rarity   | Modifiers                                                                        |
+| --------- | -------------- | -------- | -------------------------------------------------------------------------------- |
+| `atkspd1` | Swift Strikes  | common   | `[{ stat: 'attackSpeed', value: 0.1 }]`                                          |
+| `atkspd2` | Rapid Assault  | uncommon | `[{ stat: 'attackSpeed', value: 0.2 }]`                                          |
+| `atkspd3` | Blinding Speed | rare     | `[{ stat: 'attackSpeed', value: 0.4 }]`                                          |
+| `frenzy1` | Battle Fervor  | uncommon | `[{ stat: 'tapFrenzyBonus', value: 0.05 }]`                                      |
+| `frenzy2` | Relentless     | rare     | `[{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]` |
 
-All generic (no `classRestriction`).
+All generic (no `classRestriction`). Use `swordImg` for attack speed, `fireImg` for frenzy.
 
-**Run:** `bun test`
+**Run:** `bun run test:unit -- --run`
 
 **Commit:** `feat: add attack speed and frenzy upgrade cards`
 
@@ -1892,11 +2386,12 @@ All generic (no `classRestriction`).
 ### Task 4.2: Add Changelog Entry
 
 **Files:**
-- Modify: `src/lib/changelog.ts`
+
+- Modify: `src/lib/changelog.ts:16` (add new entry before the existing `0.28.0` entry)
 
 ```typescript
 {
-	version: '0.28.0',
+	version: '0.30.0',
 	date: '2026-01-31',
 	changes: [
 		{ category: 'new', description: 'Added attack speed stat with auto-attack on tap-and-hold' },
@@ -1919,9 +2414,11 @@ All generic (no `classRestriction`).
 Phase 0: Stat Pipeline
 ├─ Task 0.1  Stat pipeline engine (types + computation + tests)
 ├─ Task 0.2  StatModifier type + Upgrade format change
-├─ Task 0.3  Migrate all 50+ cards to modifiers[]
-├─ Task 0.4  Stat pipeline store + wire into gameState
-└─ Task 0.5  Stat pipeline integration tests
+├─ Task 0.3  Migrate all 48 cards to modifiers[]
+├─ Task 0.4  Modifier display helper + validation tests
+├─ Task 0.5  BASE_STATS + stat pipeline store (new file)
+├─ Task 0.6  Wire pipeline into gameState + persistence + components
+└─ Task 0.7  Stat pipeline integration tests
 
 Phase 1: Timer Registry
 ├─ Task 1.1  Timer registry engine (types + tick + tests)
@@ -1933,16 +2430,17 @@ Phase 2: Attack Speed Helpers
 
 Phase 3: rAF Store + Migration + Pointer Input
 ├─ Task 3.1  Game loop store (rAF + timer registry + frenzy)
-├─ Task 3.2  Migrate gameState from timers to game loop
-├─ Task 3.3  BattleArea pointer input + frenzy UI
-└─ Task 3.4  Game loop integration tests (full game scenario simulation)
+├─ Task 3.2  Replace gameState timer imports and calls
+├─ Task 3.3  Update init, persistence, delete old timers
+├─ Task 3.4  BattleArea pointer input + frenzy UI
+└─ Task 3.5  Game loop integration tests (full game scenario simulation)
 
 Phase 4: Upgrade Cards + Changelog
 ├─ Task 4.1  Attack speed cards (modifiers format)
 └─ Task 4.2  Changelog
 ```
 
-**Total tasks: 14**
+**Total tasks: 17**
 
 ---
 
@@ -1960,3 +2458,4 @@ Phase 4: Upgrade Cards + Changelog
 10. **Single queued tap.** `attackQueuedTap` is boolean, not counter.
 11. **Backward compat.** Old saves' `unlockedUpgradeIds` feed directly into `statPipeline.setAcquiredUpgrades()`.
 12. **Timer registry exposed.** `gameLoop.timers` is accessible so Plans 1-3 can register enemy/ability timers without modifying the game loop code.
+13. **StatModifier type replaced.** The old display-only `StatModifier` (`{ icon, label, value }`) is replaced by a pipeline `StatModifier` (`{ stat, value }`). Display is derived from `modifiers + statRegistry`.

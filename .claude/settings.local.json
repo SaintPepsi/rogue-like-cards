@@ -1,15 +1,47 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git branch:*)",
-      "Bash(git checkout:*)",
-      "Bash(git push:*)"
-    ]
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "svelte"
-  ]
+	"permissions": {
+		"allow": [
+			"Bash(git add:*)",
+			"Bash(git commit:*)",
+			"Bash(git branch:*)",
+			"Bash(git checkout:*)",
+			"Bash(git push:*)",
+			"Bash(git init:*)",
+			"Bash(gh repo create:*)",
+			"Bash(gh repo edit:*)",
+			"Bash(bun run test:unit:*)",
+			"Bash(bun run check:*)",
+			"Bash(bun test:*)",
+			"Bash(npm run test:unit:*)",
+			"Bash(npx playwright install:*)",
+			"mcp__ide__getDiagnostics",
+			"Bash(npm run dev:*)",
+			"Bash(bun install:*)",
+			"Bash(bun run test:e2e:*)",
+			"Skill(sancoca-skills:writing-plans)",
+			"Bash(bun:*)",
+			"WebFetch(domain:github.com)",
+			"Skill(superpowers:brainstorming)",
+			"Skill(superpowers:executing-plans)",
+			"Skill(superpowers:using-git-worktrees)",
+			"Bash(git check-ignore:*)",
+			"Bash(echo:*)",
+			"Bash(git worktree:*)",
+			"Skill(superpowers:finishing-a-development-branch)",
+			"Bash(git mv:*)",
+			"Skill(superpowers:writing-skills)",
+			"Bash(npx vitest run)",
+			"Skill(superpowers:systematic-debugging)",
+			"Bash(npx vitest:*)",
+			"Bash(git status:*)",
+			"Skill(superpowers:writing-plans)",
+			"Bash(npx svelte-check:*)",
+			"Bash(gh pr list:*)",
+			"Bash(gh pr view:*)",
+			"Bash(gh pr edit:*)",
+			"Bash(bunx prettier:*)"
+		]
+	},
+	"enableAllProjectMcpServers": true,
+	"enabledMcpjsonServers": ["svelte"]
 }

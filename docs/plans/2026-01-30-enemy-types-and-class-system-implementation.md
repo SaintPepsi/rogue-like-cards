@@ -12,12 +12,12 @@
 
 ## Pillar Overview
 
-| Pillar | What It Delivers | Dependencies |
-|--------|-----------------|--------------|
-| **1. Enemy Types (Data + Spawning)** | 5 enemy definitions, sprite loading, type-aware spawning, enemy name/type in UI | None |
-| **2. Enemy Mechanics (Combat)** | Resistances, weaknesses, unique per-enemy mechanics (Reassemble, Nimble, Spore Cloud, Frost Aura, Creeping Darkness) | Pillar 1 |
-| **3. Class System (Data + Selection)** | Class type, card reclassification, class-filtered upgrade pools, Level 30 selection modal, persistence | Pillar 1 (for enemy context during selection) |
-| **4. Class Abilities (Combat + UI)** | Warrior weapon roulette, Mage elements + mana, Rogue poison cloud, class-specific battle UI | Pillars 1, 2, 3 |
+| Pillar                                 | What It Delivers                                                                                                     | Dependencies                                  |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **1. Enemy Types (Data + Spawning)**   | 5 enemy definitions, sprite loading, type-aware spawning, enemy name/type in UI                                      | None                                          |
+| **2. Enemy Mechanics (Combat)**        | Resistances, weaknesses, unique per-enemy mechanics (Reassemble, Nimble, Spore Cloud, Frost Aura, Creeping Darkness) | Pillar 1                                      |
+| **3. Class System (Data + Selection)** | Class type, card reclassification, class-filtered upgrade pools, Level 30 selection modal, persistence               | Pillar 1 (for enemy context during selection) |
+| **4. Class Abilities (Combat + UI)**   | Warrior weapon roulette, Mage elements + mana, Rogue poison cloud, class-specific battle UI                          | Pillars 1, 2, 3                               |
 
 Each pillar is broken into tasks of 2-5 minutes. Tasks within a pillar are sequential. Pillars 1 and 3 can be built in parallel. Pillar 2 depends on 1. Pillar 4 depends on all others.
 
@@ -28,6 +28,7 @@ Each pillar is broken into tasks of 2-5 minutes. Tasks within a pillar are seque
 ### Task 1.1: Define Enemy Type Data Model
 
 **Files:**
+
 - Create: `src/lib/data/enemies.ts`
 - Modify: `src/lib/types.ts` (add `EnemyType` type)
 - Test: `src/lib/data/enemies.test.ts`
@@ -37,13 +38,23 @@ Each pillar is broken into tasks of 2-5 minutes. Tasks within a pillar are seque
 Add after the `GoldDrop` type at the bottom of `src/lib/types.ts`:
 
 ```typescript
-export type EnemyTypeId = 'skeleton' | 'goblin' | 'red_mushroom' | 'blue_mushroom' | 'blinking_eyes';
+export type EnemyTypeId =
+	| 'skeleton'
+	| 'goblin'
+	| 'red_mushroom'
+	| 'blue_mushroom'
+	| 'blinking_eyes';
 
 export type DamageType = 'physical' | 'bleed' | 'poison' | 'fire' | 'frost' | 'arcane' | 'stun';
 
 export type ResistanceLevel = 'immune' | 'resistant' | 'normal' | 'weak';
 
-export type EnemyMechanicId = 'reassemble' | 'nimble' | 'spore_cloud' | 'frost_aura' | 'creeping_darkness';
+export type EnemyMechanicId =
+	| 'reassemble'
+	| 'nimble'
+	| 'spore_cloud'
+	| 'frost_aura'
+	| 'creeping_darkness';
 
 export type EnemyTypeDefinition = {
 	id: EnemyTypeId;
@@ -143,9 +154,7 @@ export const ENEMY_TYPE_LIST: EnemyTypeId[] = Object.keys(ENEMY_DEFINITIONS) as 
  * Enemies unlock progressively per the design doc schedule.
  */
 export function getAvailableEnemyTypes(stage: number): EnemyTypeId[] {
-	return ENEMY_TYPE_LIST.filter(
-		(id) => ENEMY_DEFINITIONS[id].stageIntroduced <= stage
-	);
+	return ENEMY_TYPE_LIST.filter((id) => ENEMY_DEFINITIONS[id].stageIntroduced <= stage);
 }
 
 /**
@@ -170,10 +179,14 @@ export function getResistance(enemyType: EnemyTypeId, damageType: DamageType): R
  */
 export function getResistanceMultiplier(level: ResistanceLevel): number {
 	switch (level) {
-		case 'immune': return 0;
-		case 'resistant': return 0.5;
-		case 'normal': return 1;
-		case 'weak': return 2;
+		case 'immune':
+			return 0;
+		case 'resistant':
+			return 0.5;
+		case 'normal':
+			return 1;
+		case 'weak':
+			return 2;
 	}
 }
 ```
@@ -318,6 +331,7 @@ git commit -m "feat: add enemy type definitions with resistances and stage unloc
 ### Task 1.2: Integrate Enemy Types into Enemy Store
 
 **Files:**
+
 - Modify: `src/lib/stores/enemy.svelte.ts` (add enemyType tracking)
 - Modify: `src/lib/stores/enemy.test.ts` (update tests)
 
@@ -365,6 +379,7 @@ function spawnBoss(greed: number) {
 **Step 3: Expose enemyType via getters and update restore/reset**
 
 Add to the return object:
+
 ```typescript
 get enemyType() { return enemyType; },
 get enemyName() { return ENEMY_DEFINITIONS[enemyType].name; },
@@ -372,6 +387,7 @@ get enemySprite() { return ENEMY_DEFINITIONS[enemyType].spriteImport; },
 ```
 
 Update `restore()` to accept `enemyType`:
+
 ```typescript
 function restore(data: {
 	// ... existing fields ...
@@ -383,6 +399,7 @@ function restore(data: {
 ```
 
 Update `reset()`:
+
 ```typescript
 function reset(greed: number) {
 	// ... existing reset ...
@@ -430,6 +447,7 @@ git commit -m "feat: integrate enemy types into enemy store with stage-based spa
 ### Task 1.3: Wire Enemy Type into Persistence
 
 **Files:**
+
 - Modify: `src/lib/stores/persistence.svelte.ts` (add `enemyType` to `SessionSaveData`)
 - Modify: `src/lib/stores/gameState.svelte.ts` (save/load `enemyType`)
 
@@ -486,6 +504,7 @@ git commit -m "feat: persist enemy type across save/load"
 ### Task 1.4: Display Enemy Type in Battle UI
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte` (use dynamic sprite, show enemy name)
 - Modify: `src/routes/+page.svelte` (pass new props)
 
@@ -502,6 +521,7 @@ type Props = {
 ```
 
 Remove the static sprite imports at top:
+
 ```typescript
 // Remove these:
 // import enemySprite from '$lib/assets/images/enemy.png';
@@ -512,7 +532,12 @@ import chestSprite from '$lib/assets/images/chest-closed.png';
 Update the destructuring to include new props, and use dynamic `enemySprite` prop in the `<img>`:
 
 ```svelte
-<img class="enemy-sprite" src={isChest ? chestSprite : enemySprite} alt={isChest ? 'Chest' : enemyName} draggable="false" />
+<img
+	class="enemy-sprite"
+	src={isChest ? chestSprite : enemySprite}
+	alt={isChest ? 'Chest' : enemyName}
+	draggable="false"
+/>
 ```
 
 Add enemy name label above or below the enemy:
@@ -583,6 +608,7 @@ git commit -m "feat: display enemy type name and dynamic sprite in battle UI"
 ### Task 2.1: Add Execute Immunity for Blinking Eyes
 
 **Files:**
+
 - Modify: `src/lib/engine/combat.ts` (add `executeImmune` to `AttackContext`)
 - Modify: `src/lib/engine/combat.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (pass flag from enemy type)
@@ -602,10 +628,12 @@ Update `calculateAttack` to check `executeImmune`:
 
 ```typescript
 // Replace existing execute chance calculation:
-const effectiveExecuteChance = (ctx.isBoss || ctx.executeImmune) ? 0
-	: ctx.executeCap != null
-		? Math.min(stats.executeChance, ctx.executeCap)
-		: stats.executeChance;
+const effectiveExecuteChance =
+	ctx.isBoss || ctx.executeImmune
+		? 0
+		: ctx.executeCap != null
+			? Math.min(stats.executeChance, ctx.executeCap)
+			: stats.executeChance;
 ```
 
 **Step 2: Write test**
@@ -665,6 +693,7 @@ git commit -m "feat: add execute immunity for Blinking Eyes enemy type"
 ### Task 2.2: Skeleton Reassemble Mechanic
 
 **Files:**
+
 - Create: `src/lib/engine/enemyMechanics.ts`
 - Create: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/stores/enemy.svelte.ts` (add reassemble state)
@@ -810,6 +839,7 @@ git commit -m "feat: add Skeleton Reassemble mechanic (revive once at 25% HP)"
 ### Task 2.3: Goblin Nimble Mechanic (Dodge)
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (add dodge logic)
 - Modify: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/stores/enemy.svelte.ts` (add dodge state + timer)
@@ -911,6 +941,7 @@ git commit -m "feat: add Goblin Nimble dodge mechanic"
 ### Task 2.4: Red Mushroom Spore Cloud Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (add spore cloud logic)
 - Modify: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (apply attack debuff)
@@ -984,6 +1015,7 @@ git commit -m "feat: add Red Mushroom Spore Cloud mechanic (periodic attack debu
 ### Task 2.5: Blue Mushroom Frost Aura Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (frost aura constants)
 - Modify: `src/lib/stores/timers.svelte.ts` (adjustable poison tick rate)
 - Modify: `src/lib/stores/gameState.svelte.ts` (apply frost aura)
@@ -1035,6 +1067,7 @@ git commit -m "feat: add Blue Mushroom Frost Aura mechanic (slows DoT tick rates
 ### Task 2.6: Blinking Eyes Creeping Darkness Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (creeping darkness logic)
 - Modify: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (idle detection + stat drain)
@@ -1116,6 +1149,7 @@ git commit -m "feat: add Blinking Eyes Creeping Darkness mechanic (stat drain on
 ### Task 3.1: Define Class Data Model
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add ClassId, ClassDefinition)
 - Create: `src/lib/data/classes.ts`
 - Create: `src/lib/data/classes.test.ts`
@@ -1249,6 +1283,7 @@ git commit -m "feat: add class definitions (Adventurer, Warrior, Mage, Rogue)"
 ### Task 3.2: Reclassify Existing Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add `classRestriction` to `Upgrade`)
 - Modify: `src/lib/data/upgrades.ts` (add `classRestriction` to each card)
 - Modify: `src/lib/data/upgrades.test.ts` (validate classifications)
@@ -1274,12 +1309,15 @@ export type Upgrade = {
 Per the design doc classification:
 
 **Generic (no classRestriction needed - leave undefined):**
+
 - damage1-4, xp1-2, timer1-2, all gold/chest cards (golddrop1-3, chest1-3, bosschest1-2), lucky1-2, dmgmult1-2, greed1-2, overkill1, multi1-3, legendary3 (Time Lord)
 
 **Rogue-specific (`classRestriction: 'rogue'`):**
+
 - poison1-3, poisondur1-3, poisonstack1-3, poisoncrit1-3, crit1-3, critdmg1-2, execute1-3, combo2 (Poison Master), combo3 (Plague Doctor), legendary2 (Death Incarnate), legendary4 (Toxic Apocalypse)
 
 **Warrior-specific (`classRestriction: 'warrior'`):**
+
 - combo1 (Berserker), legendary1 (Dragon's Fury)
 
 Add `classRestriction: 'rogue'` or `classRestriction: 'warrior'` to each card as appropriate. Leave generic cards without the field.
@@ -1289,24 +1327,50 @@ Add `classRestriction: 'rogue'` or `classRestriction: 'warrior'` to each card as
 ```typescript
 describe('card classification', () => {
 	test('generic cards have no classRestriction', () => {
-		const genericIds = ['damage1', 'damage2', 'damage3', 'damage4', 'xp1', 'xp2', 'timer1', 'timer2', 'greed1', 'greed2', 'overkill1', 'multi1', 'multi2', 'multi3', 'legendary3'];
+		const genericIds = [
+			'damage1',
+			'damage2',
+			'damage3',
+			'damage4',
+			'xp1',
+			'xp2',
+			'timer1',
+			'timer2',
+			'greed1',
+			'greed2',
+			'overkill1',
+			'multi1',
+			'multi2',
+			'multi3',
+			'legendary3'
+		];
 		for (const id of genericIds) {
-			const card = allUpgrades.find(u => u.id === id);
+			const card = allUpgrades.find((u) => u.id === id);
 			expect(card?.classRestriction).toBeUndefined();
 		}
 	});
 
 	test('poison cards are rogue-restricted', () => {
-		const rogueIds = ['poison1', 'poison2', 'poison3', 'poisondur1', 'poisondur2', 'poisondur3', 'poisonstack1', 'poisonstack2', 'poisonstack3'];
+		const rogueIds = [
+			'poison1',
+			'poison2',
+			'poison3',
+			'poisondur1',
+			'poisondur2',
+			'poisondur3',
+			'poisonstack1',
+			'poisonstack2',
+			'poisonstack3'
+		];
 		for (const id of rogueIds) {
-			const card = allUpgrades.find(u => u.id === id);
+			const card = allUpgrades.find((u) => u.id === id);
 			expect(card?.classRestriction).toBe('rogue');
 		}
 	});
 
 	test('combo1 and legendary1 are warrior-restricted', () => {
-		expect(allUpgrades.find(u => u.id === 'combo1')?.classRestriction).toBe('warrior');
-		expect(allUpgrades.find(u => u.id === 'legendary1')?.classRestriction).toBe('warrior');
+		expect(allUpgrades.find((u) => u.id === 'combo1')?.classRestriction).toBe('warrior');
+		expect(allUpgrades.find((u) => u.id === 'legendary1')?.classRestriction).toBe('warrior');
 	});
 });
 ```
@@ -1328,6 +1392,7 @@ git commit -m "feat: reclassify existing upgrade cards into generic, warrior, an
 ### Task 3.3: Class-Filtered Upgrade Selection
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts` (add class filter to `getRandomUpgrades`)
 - Modify: `src/lib/data/upgrades.test.ts`
 - Modify: `src/lib/stores/leveling.svelte.ts` (pass class to upgrade context)
@@ -1435,6 +1500,7 @@ git commit -m "feat: filter upgrade card pool by player class"
 ### Task 3.4: Add Class State to Game Store
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts` (add class tracking)
 - Modify: `src/lib/stores/persistence.svelte.ts` (persist class choice)
 
@@ -1464,7 +1530,7 @@ function applyClassBonuses(classId: ClassId) {
 			break;
 		case 'rogue':
 			playerStats.critChance += 0.05; // +5% crit
-			playerStats.goldDropChance += 0.10; // +10% gold drop
+			playerStats.goldDropChance += 0.1; // +10% gold drop
 			break;
 	}
 }
@@ -1523,6 +1589,7 @@ git commit -m "feat: add class state tracking with persistence and starting bonu
 ### Task 3.5: Class Selection Modal
 
 **Files:**
+
 - Create: `src/lib/components/ClassSelectionModal.svelte`
 - Modify: `src/routes/+page.svelte` (render modal)
 - Modify: `src/lib/stores/gameState.svelte.ts` (selectClass action)
@@ -1530,6 +1597,7 @@ git commit -m "feat: add class state tracking with persistence and starting bonu
 **Step 1: Create ClassSelectionModal.svelte**
 
 This is the cinematic "Choose Your Path" modal from the design doc. Key features:
+
 - Title: "Choose Your Path" fades in
 - 3 class cards animate in with staggered landing (0.5s apart)
 - Cards show: class name, border color, rotating icon carousel (3 icons cycling)
@@ -1564,10 +1632,13 @@ This is the cinematic "Choose Your Path" modal from the design doc. Key features
 	$effect(() => {
 		if (show) {
 			for (let i = 0; i < 3; i++) {
-				setTimeout(() => {
-					landed[i] = true;
-					landed = [...landed]; // trigger reactivity
-				}, 500 + i * 500);
+				setTimeout(
+					() => {
+						landed[i] = true;
+						landed = [...landed]; // trigger reactivity
+					},
+					500 + i * 500
+				);
 			}
 		}
 	});
@@ -1597,10 +1668,7 @@ The template renders 3 class cards in a row with flip animations, border colors 
 
 ```svelte
 {#if gameState.activeEvent?.type === 'class_selection'}
-	<ClassSelectionModal
-		show={true}
-		onSelect={handleClassSelect}
-	/>
+	<ClassSelectionModal show={true} onSelect={handleClassSelect} />
 {/if}
 ```
 
@@ -1630,6 +1698,7 @@ function selectClass(classId: ClassId) {
 **Step 4: Manual test**
 
 Run: `bun run dev`
+
 - Progress to Level 30 (can temporarily set `CLASS_SELECTION_LEVEL = 2` for testing)
 - Verify modal appears with 3 class cards
 - Verify tap-to-flip, "Pick" button, selection animation
@@ -1646,6 +1715,7 @@ git commit -m "feat: add class selection modal with card flip and staggered land
 ### Task 3.6: Display Class Label on Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/components/UpgradeCard.svelte` (add class badge)
 
 **Step 1: Add class label prop**
@@ -1698,6 +1768,7 @@ git commit -m "feat: display class label on class-restricted upgrade cards"
 ### Task 4.1: Warrior - Weapon Roulette Data Model
 
 **Files:**
+
 - Create: `src/lib/engine/warrior.ts`
 - Create: `src/lib/engine/warrior.test.ts`
 
@@ -1836,6 +1907,7 @@ git commit -m "feat: add Warrior weapon roulette engine with combo payoff calcul
 ### Task 4.2: Warrior - Battle Integration
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts` (warrior attack override)
 - Create: `src/lib/components/WarriorUI.svelte` (weapon display + combo counter)
 - Modify: `src/lib/components/BattleArea.svelte` (render WarriorUI)
@@ -1853,6 +1925,7 @@ let warriorCooldown = $state(false);
 **Step 2: Override attack for warrior**
 
 When `currentClass === 'warrior'`, the attack function:
+
 1. Checks cooldown (1s between taps)
 2. Draws a random weapon
 3. If same as current → increment combo
@@ -1893,6 +1966,7 @@ git commit -m "feat: add Warrior weapon roulette battle integration with combo t
 ### Task 4.3: Mage - Element System Data Model
 
 **Files:**
+
 - Create: `src/lib/engine/mage.ts`
 - Create: `src/lib/engine/mage.test.ts`
 
@@ -1953,7 +2027,7 @@ export const ELEMENT_COMBOS: Record<ElementComboId, ElementCombo> = {
  */
 export function checkElementCombo(activeElements: Set<ElementId>): ElementComboId | null {
 	for (const [comboId, combo] of Object.entries(ELEMENT_COMBOS)) {
-		if (combo.elements.every(e => activeElements.has(e))) {
+		if (combo.elements.every((e) => activeElements.has(e))) {
 			return comboId as ElementComboId;
 		}
 	}
@@ -2024,6 +2098,7 @@ git commit -m "feat: add Mage element system with combos and mana calculations"
 ### Task 4.4: Mage - Mana State and Element Buttons
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add mana/magic to PlayerStats)
 - Modify: `src/lib/engine/stats.ts` (add mana to defaults and registry)
 - Modify: `src/lib/stores/gameState.svelte.ts` (mana state + element casting)
@@ -2070,10 +2145,12 @@ let elementTimers = $state<Map<ElementId, ReturnType<typeof setTimeout>>>(new Ma
 ```
 
 On mage tap:
+
 - Regenerate mana: `mana = Math.min(playerStats.maxMana, mana + playerStats.manaPerTap)`
 - Deal base magic damage to enemy
 
 Element button press:
+
 - Check mana >= cost
 - Deduct mana
 - Apply element to enemy (set timer for duration)
@@ -2090,13 +2167,21 @@ Shows: mana bar, 3 element buttons (Frost/Fire/Arcane), active element indicator
 		<span class="mana-text">{mana}/{maxMana}</span>
 	</div>
 	<div class="element-buttons">
-		<button class="element-btn frost" onclick={() => castElement('frost')} disabled={mana < frostCost}>
+		<button
+			class="element-btn frost"
+			onclick={() => castElement('frost')}
+			disabled={mana < frostCost}
+		>
 			❄️ Frost
 		</button>
 		<button class="element-btn fire" onclick={() => castElement('fire')} disabled={mana < fireCost}>
 			🔥 Fire
 		</button>
-		<button class="element-btn arcane" onclick={() => castElement('arcane')} disabled={mana < arcaneCost}>
+		<button
+			class="element-btn arcane"
+			onclick={() => castElement('arcane')}
+			disabled={mana < arcaneCost}
+		>
 			✨ Arcane
 		</button>
 	</div>
@@ -2119,6 +2204,7 @@ git commit -m "feat: add Mage mana system with element buttons and combo detecti
 ### Task 4.5: Rogue - Poison Cloud Ability
 
 **Files:**
+
 - Create: `src/lib/engine/rogue.ts`
 - Create: `src/lib/engine/rogue.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (poison cloud state)
@@ -2191,9 +2277,12 @@ function deployPoisonCloud() {
 	}, POISON_CLOUD_TICK_INTERVAL_MS);
 
 	// Cooldown timer
-	setTimeout(() => {
-		poisonCloudOnCooldown = false;
-	}, getEffectiveCooldown(POISON_CLOUD_BASE_COOLDOWN_MS, 0));
+	setTimeout(
+		() => {
+			poisonCloudOnCooldown = false;
+		},
+		getEffectiveCooldown(POISON_CLOUD_BASE_COOLDOWN_MS, 0)
+	);
 }
 ```
 
@@ -2233,30 +2322,31 @@ git commit -m "feat: add Rogue Poison Cloud ability with cooldown and carry-over
 ### Task 4.6: Keyboard Shortcuts for Class Abilities
 
 **Files:**
+
 - Modify: `src/routes/+page.svelte` (keyboard event handler)
 
 **Step 1: Add keydown listener**
 
 ```svelte
-<svelte:window onkeydown={handleKeydown} />
-
 <script>
-function handleKeydown(e: KeyboardEvent) {
-	if (gameState.currentClass === 'mage') {
-		if (e.key === 'q' || e.key === 'Q') gameState.castElement('frost');
-		if (e.key === 'w' || e.key === 'W') gameState.castElement('fire');
-		if (e.key === 'e' || e.key === 'E') gameState.castElement('arcane');
+	function handleKeydown(e: KeyboardEvent) {
+		if (gameState.currentClass === 'mage') {
+			if (e.key === 'q' || e.key === 'Q') gameState.castElement('frost');
+			if (e.key === 'w' || e.key === 'W') gameState.castElement('fire');
+			if (e.key === 'e' || e.key === 'E') gameState.castElement('arcane');
+		}
+		if (gameState.currentClass === 'rogue') {
+			if (e.key === 'q' || e.key === 'Q') gameState.deployPoisonCloud();
+		}
+		// Space bar = attack (all classes)
+		if (e.key === ' ') {
+			e.preventDefault();
+			gameState.attack();
+		}
 	}
-	if (gameState.currentClass === 'rogue') {
-		if (e.key === 'q' || e.key === 'Q') gameState.deployPoisonCloud();
-	}
-	// Space bar = attack (all classes)
-	if (e.key === ' ') {
-		e.preventDefault();
-		gameState.attack();
-	}
-}
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 ```
 
 **Step 2: Commit**
@@ -2273,6 +2363,7 @@ git commit -m "feat: add keyboard shortcuts (Q/W/E) for class abilities"
 ### Task 5.1: Add New Mage Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts` (add ~15 mage cards)
 - Modify: `src/lib/data/upgrades.test.ts`
 
@@ -2305,7 +2396,7 @@ All with `classRestriction: 'mage'`.
 
 ```typescript
 test('mage cards all have mage classRestriction', () => {
-	const mageCards = allUpgrades.filter(u => u.classRestriction === 'mage');
+	const mageCards = allUpgrades.filter((u) => u.classRestriction === 'mage');
 	expect(mageCards.length).toBeGreaterThanOrEqual(12);
 });
 ```
@@ -2322,9 +2413,11 @@ git commit -m "feat: add Mage-specific upgrade cards (mana, elements, magic dama
 ### Task 5.2: Add New Warrior Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts`
 
 Add warrior-specific cards:
+
 - Weapon unlock cards (Sword, Axe, Hammer - one-time, adds to roulette pool)
 - Weapon Oil (+all weapon damage)
 - Battle Rhythm (+combo effects)
@@ -2345,9 +2438,11 @@ git commit -m "feat: add Warrior-specific upgrade cards (weapon unlocks, combo b
 ### Task 5.3: Add New Rogue Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts`
 
 Add rogue-specific cards:
+
 - Poison Cloud unlock card (one-time, enables the ability)
 - Poison Cloud cooldown reduction (2 tiers)
 - Poison Cloud stack enhancement (2 tiers)
@@ -2367,6 +2462,7 @@ git commit -m "feat: add Rogue-specific upgrade cards (Poison Cloud unlock, fini
 ### Task 5.4: Resistance-Aware Damage Calculations
 
 **Files:**
+
 - Modify: `src/lib/engine/combat.ts` (add resistance multiplier to damage)
 - Modify: `src/lib/engine/combat.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (pass enemy type to combat)
@@ -2435,9 +2531,11 @@ git commit -m "feat: apply enemy resistance/weakness multipliers to damage calcu
 ### Task 5.5: Enemy Mechanic Visual Indicators
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte`
 
 Add visual indicators for active enemy mechanics:
+
 - Skeleton: bone icon + "Reassemble Ready" badge (if not yet used)
 - Goblin: hop animation on dodge
 - Red Mushroom: spore cloud animation periodically
@@ -2458,6 +2556,7 @@ git commit -m "feat: add visual indicators for enemy mechanics in battle UI"
 ### Task 5.6: Add Changelog Entry
 
 **Files:**
+
 - Modify: `src/lib/changelog.ts`
 
 **Step 1: Add new version entry**
@@ -2493,9 +2592,11 @@ git commit -m "docs: add changelog entry for enemy types and class system"
 ### Task 5.7: Update Save Migration
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts` (handle loading old saves without enemy/class data)
 
 Ensure `loadGame()` gracefully handles saves that don't have:
+
 - `enemyType` (default to `'skeleton'`)
 - `currentClass` (default to `'adventurer'`)
 - `classSelected` (default to `false`)
@@ -2541,6 +2642,7 @@ Pillar 4 (Class Abilities)
 ```
 
 **Parallel execution groups:**
+
 - Group A: Tasks 1.1-1.4 + Tasks 3.1-3.6 (can run in parallel)
 - Group B: Tasks 2.1-2.6 (depends on Group A Pillar 1)
 - Group C: Tasks 4.1-4.6 (depends on Group A both pillars)

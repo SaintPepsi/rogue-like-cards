@@ -1,6 +1,5 @@
 import { describe, test, expect } from 'vitest';
 import { createEnemy } from './enemy.svelte';
-import { createDefaultStats } from '$lib/engine/stats';
 
 describe('createEnemy', () => {
 	test('spawns enemy with correct health', () => {

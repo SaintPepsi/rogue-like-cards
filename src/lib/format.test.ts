@@ -146,10 +146,9 @@ describe('formatNumber', () => {
 	describe('no scientific notation leaks at any scale', () => {
 		// This is the key bug test: previously numbers like 5e54 would display as "5.04e+21Dc"
 		const testScales = [
-			1e3, 1e6, 1e9, 1e12, 1e15, 1e18, 1e21, 1e24, 1e27, 1e30,
-			1e33, 1e36, 1e39, 1e42, 1e45, 1e48, 1e51, 1e54, 1e57, 1e60,
-			1e63, 1e66, 1e69, 1e72, 1e75, 1e78, 1e81, 1e84, 1e87, 1e90,
-			1e93, 1e96, 1e99, 1e102, 1e150, 1e200, 1e250, 1e300, 1e303
+			1e3, 1e6, 1e9, 1e12, 1e15, 1e18, 1e21, 1e24, 1e27, 1e30, 1e33, 1e36, 1e39, 1e42, 1e45, 1e48,
+			1e51, 1e54, 1e57, 1e60, 1e63, 1e66, 1e69, 1e72, 1e75, 1e78, 1e81, 1e84, 1e87, 1e90, 1e93,
+			1e96, 1e99, 1e102, 1e150, 1e200, 1e250, 1e300, 1e303
 		];
 
 		for (const n of testScales) {

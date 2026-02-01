@@ -58,5 +58,4 @@
 	.stat-row.greed {
 		color: #fbbf24;
 	}
-
 </style>

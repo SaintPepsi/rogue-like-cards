@@ -5,6 +5,7 @@
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
+	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
 
 	type Props = {
 		isBoss: boolean;
@@ -17,7 +18,9 @@
 		goldDrops: GoldDrop[];
 		hits: HitInfo[];
 		poisonStacks: number;
-		onAttack: () => void;
+		onPointerDown: () => void;
+		onPointerUp: () => void;
+		frenzyStacks: number;
 	};
 
 	let {
@@ -31,7 +34,9 @@
 		goldDrops,
 		hits,
 		poisonStacks,
-		onAttack
+		onPointerDown,
+		onPointerUp,
+		frenzyStacks
 	}: Props = $props();
 </script>
 
@@ -41,16 +46,34 @@
 			class="enemy"
 			class:boss={isBoss}
 			class:chest={isChest}
-			onclick={onAttack}
-			onkeydown={(e) => e.key === ' ' && onAttack()}
+			onpointerdown={onPointerDown}
+			onpointerup={onPointerUp}
+			onpointerleave={onPointerUp}
+			onkeydown={(e) => {
+				if (e.key === ' ') {
+					onPointerDown();
+					setTimeout(onPointerUp, 100);
+				}
+			}}
 			tabindex="0"
 			role="button"
 		>
-			<img class="enemy-sprite" src={isBossChest ? mimicSprite : isChest ? chestSprite : enemySprite} alt={isBossChest ? 'Mimic' : isChest ? 'Chest' : 'Enemy'} draggable="false" />
+			<img
+				class="enemy-sprite"
+				src={isBossChest ? mimicSprite : isChest ? chestSprite : enemySprite}
+				alt={isBossChest ? 'Mimic' : isChest ? 'Chest' : 'Enemy'}
+				draggable="false"
+			/>
 			{#if poisonStacks > 0}
 				<div class="poison-counter">
 					<span class="poison-icon">☠️</span>
 					<span class="poison-count">{poisonStacks}</span>
+				</div>
+			{/if}
+			{#if frenzyStacks > 0}
+				<div class="frenzy-counter">
+					<div class="frenzy-icon" style:background-image="url({frenzyGlint})"></div>
+					<span class="frenzy-count">{frenzyStacks}</span>
 				</div>
 			{/if}
 			{#each hits as hit (hit.id)}
@@ -61,7 +84,7 @@
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>
 		<span class="health-text">{formatNumber(enemyHealth)}/{formatNumber(enemyMaxHealth)}</span>
-		<p class="hint">Click the enemy to attack!</p>
+		<p class="hint">Tap to attack, hold to auto-attack!</p>
 	</div>
 
 	<div class="battle-stats">
@@ -177,11 +200,14 @@
 	}
 
 	@keyframes chest-glow {
-		0%, 100% {
+		0%,
+		100% {
 			box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
 		}
 		50% {
-			box-shadow: 0 0 35px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.3);
+			box-shadow:
+				0 0 35px rgba(251, 191, 36, 0.8),
+				0 0 50px rgba(251, 191, 36, 0.3);
 		}
 	}
 
@@ -224,11 +250,63 @@
 	}
 
 	@keyframes poison-pulse {
-		0%, 100% {
+		0%,
+		100% {
 			box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 		}
 		50% {
 			box-shadow: 0 0 14px rgba(34, 197, 94, 0.8);
+		}
+	}
+
+	.frenzy-counter {
+		position: absolute;
+		top: -8px;
+		left: -8px;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		background: rgba(251, 146, 60, 0.9);
+		border: 2px solid #ea580c;
+		border-radius: 12px;
+		padding: 2px 8px;
+		font-size: 0.8rem;
+		font-weight: bold;
+		color: white;
+		z-index: 10;
+		box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
+		animation: frenzy-pulse 0.5s ease-in-out infinite;
+	}
+
+	.frenzy-icon {
+		width: 14px;
+		height: 14px;
+		image-rendering: pixelated;
+		background-size: calc(4 * 14px) 14px;
+		background-repeat: no-repeat;
+		animation: frenzy-sprite 0.4s steps(4) infinite;
+	}
+
+	@keyframes frenzy-sprite {
+		from {
+			background-position: 0 0;
+		}
+		to {
+			background-position: -56px 0;
+		}
+	}
+
+	.frenzy-count {
+		font-size: 0.85rem;
+	}
+
+	@keyframes frenzy-pulse {
+		0%,
+		100% {
+			box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
+		}
+		50% {
+			box-shadow: 0 0 14px rgba(251, 146, 60, 0.8);
 		}
 	}
 

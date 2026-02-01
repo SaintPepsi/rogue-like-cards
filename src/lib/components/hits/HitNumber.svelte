@@ -19,7 +19,11 @@
 		crit: CritHit,
 		execute: ExecuteHit,
 		poison: PoisonHit,
-		poisonCrit: PoisonCritHit
+		poisonCrit: PoisonCritHit,
+		// Pipeline type aliases (mapped to UI types in gameState, but needed for type completeness)
+		hit: NormalHit,
+		criticalHit: CritHit,
+		executeHit: ExecuteHit
 	};
 
 	const Component = $derived(components[type]);

@@ -15,6 +15,7 @@
 **Alignment doc:** `docs/plans/2026-01-31-plan-alignment-and-gaps.md`
 
 **Key design decisions from alignment:**
+
 - Warrior has NO separate cooldown system. Slow attack identity comes from `attackSpeed: 0.4` set in Plan 2's class base stat overrides. Weapon draw + combo hooks into the `onAttack` callback.
 - All timed effects (element expiry, burn DoT, poison cloud, cooldowns) use the timer registry via `gameLoop.timers`. No `setTimeout`/`setInterval` for gameplay.
 - Element effects (frost debuff, arcane vulnerability) are transient modifiers in the stat pipeline. Auto-removed when timer expires — no manual reversal.
@@ -27,6 +28,7 @@
 ### Task 1.1: Warrior Engine (Pure Logic)
 
 **Files:**
+
 - Create: `src/lib/engine/warrior.ts`
 - Create: `src/lib/engine/warrior.test.ts`
 
@@ -44,9 +46,24 @@ export type WeaponDefinition = {
 
 export const WEAPON_DEFINITIONS: Record<WeaponId, WeaponDefinition> = {
 	knife: { id: 'knife', name: 'Knife', comboEffect: 'bleed', comboDescription: 'Minor Bleed' },
-	sword: { id: 'sword', name: 'Sword', comboEffect: 'bleed', comboDescription: 'Super Bleed (massive burst scaled by combo count)' },
-	axe: { id: 'axe', name: 'Axe', comboEffect: 'megaCrit', comboDescription: 'Mega Crit (guaranteed crit scaled by combo count)' },
-	hammer: { id: 'hammer', name: 'Hammer', comboEffect: 'stun', comboDescription: 'Shockwave Stun (long stun scaled by combo count)' }
+	sword: {
+		id: 'sword',
+		name: 'Sword',
+		comboEffect: 'bleed',
+		comboDescription: 'Super Bleed (massive burst scaled by combo count)'
+	},
+	axe: {
+		id: 'axe',
+		name: 'Axe',
+		comboEffect: 'megaCrit',
+		comboDescription: 'Mega Crit (guaranteed crit scaled by combo count)'
+	},
+	hammer: {
+		id: 'hammer',
+		name: 'Hammer',
+		comboEffect: 'stun',
+		comboDescription: 'Shockwave Stun (long stun scaled by combo count)'
+	}
 };
 ```
 
@@ -65,11 +82,13 @@ export function calculateComboPayoff(
 ```
 
 Combo payoff scaling:
+
 - Sword (bleed): `baseDamage * comboCount * 1.5`
 - Axe (megaCrit): `baseDamage * comboCount * 2.5`
 - Hammer (stun): `baseDamage * comboCount * 0.5` (lower damage, but stun effect)
 
 **Tests:**
+
 - `drawWeapon` picks from the given pool deterministically with a fixed rng
 - `calculateComboPayoff` returns correct damage and effect for each weapon type
 - Combo count multiplier works (combo 3 = 3x the base scaling)
@@ -83,6 +102,7 @@ Combo payoff scaling:
 ### Task 1.2: Warrior State Integration
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts`
 
 **Step 1:** Add warrior state:
@@ -138,6 +158,7 @@ unlockWeapon,
 ### Task 1.3: Warrior Battle UI
 
 **Files:**
+
 - Create: `src/lib/components/WarriorUI.svelte`
 - Modify: `src/lib/components/BattleArea.svelte`
 
@@ -190,6 +211,7 @@ type Props = {
 ### Task 1.4: Warrior Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts`
 - Modify: `src/lib/data/upgrades.test.ts`
 
@@ -216,19 +238,21 @@ Note: `onAcquire` is called once when the upgrade is selected. These cards have 
 
 **Boost Cards (use `modifiers`):**
 
-| ID | Title | Rarity | Modifiers |
-|----|-------|--------|-----------|
-| `warrior_oil1` | Weapon Oil | common | `[{ stat: 'damage', value: 2 }]` |
-| `warrior_oil2` | Master Oil | uncommon | `[{ stat: 'damage', value: 5 }]` |
-| `warrior_heavy1` | Heavy Swing | common | `[{ stat: 'damage', value: 3 }]` |
-| `warrior_heavy2` | Mighty Blow | rare | `[{ stat: 'damage', value: 8 }]` |
+| ID               | Title       | Rarity   | Modifiers                        |
+| ---------------- | ----------- | -------- | -------------------------------- |
+| `warrior_oil1`   | Weapon Oil  | common   | `[{ stat: 'damage', value: 2 }]` |
+| `warrior_oil2`   | Master Oil  | uncommon | `[{ stat: 'damage', value: 5 }]` |
+| `warrior_heavy1` | Heavy Swing | common   | `[{ stat: 'damage', value: 3 }]` |
+| `warrior_heavy2` | Mighty Blow | rare     | `[{ stat: 'damage', value: 8 }]` |
 
 Note: Combo payoff boost cards (`warrior_rhythm1`, `warrior_rhythm2`) need a `comboPayoffMultiplier` stat added to PlayerStats. Add:
+
 - `comboPayoffMultiplier: number` to PlayerStats (default 1.0)
 - `warrior_rhythm1`: `[{ stat: 'comboPayoffMultiplier', value: 0.25 }]`
 - `warrior_rhythm2`: `[{ stat: 'comboPayoffMultiplier', value: 0.5 }]`
 
 **Legendary:**
+
 - `warrior_legendary`: `modifiers: [{ stat: 'damage', value: 15 }, { stat: 'comboPayoffMultiplier', value: 0.5 }]`, `onAcquire: () => gameState.unlockRandomWeapon()`
 
 **Total new warrior cards: ~10**
@@ -246,6 +270,7 @@ Note: Combo payoff boost cards (`warrior_rhythm1`, `warrior_rhythm2`) need a `co
 ### Task 2.1: Mage Engine (Pure Logic)
 
 **Files:**
+
 - Create: `src/lib/engine/mage.ts`
 - Create: `src/lib/engine/mage.test.ts`
 
@@ -264,25 +289,33 @@ export const ELEMENT_MANA_COSTS: Record<ElementId, number> = {
 export const BASE_MANA_PER_TAP = 1;
 export const ELEMENT_DURATION_MS = 5000;
 
-export const ELEMENT_EFFECTS: Record<ElementId, {
-	id: ElementId;
-	name: string;
-	description: string;
-}>;
+export const ELEMENT_EFFECTS: Record<
+	ElementId,
+	{
+		id: ElementId;
+		name: string;
+		description: string;
+	}
+>;
 
-export const ELEMENT_COMBOS: Record<ElementComboId, {
-	elements: [ElementId, ElementId];
-	name: string;
-	description: string;
-}>;
+export const ELEMENT_COMBOS: Record<
+	ElementComboId,
+	{
+		elements: [ElementId, ElementId];
+		name: string;
+		description: string;
+	}
+>;
 ```
 
 Element effects:
+
 - Frost = enemy takes more damage (debuff, +50% damage taken)
 - Fire = burn DoT (damage per second)
 - Arcane = increased vulnerability (+25% all damage taken)
 
 Combo effects (trigger when two elements are active simultaneously):
+
 - Frost + Arcane = "Shatter Burst" — large burst damage
 - Fire + Arcane = "Empowered Burn" — massively enhanced burn DoT
 - Frost + Fire = "Shatter" — reduce enemy defenses
@@ -296,6 +329,7 @@ export function getManaCost(element: ElementId, costReduction: number): number;
 ```
 
 **Tests:**
+
 - `checkElementCombo`: frost+arcane → `frost_arcane`, fire+arcane → `fire_arcane`, frost+fire → `frost_fire`, single → null, empty → null
 - `getManaPerTap`: base + bonus
 - `getManaCost`: base cost minus reduction, minimum 1
@@ -309,6 +343,7 @@ export function getManaCost(element: ElementId, costReduction: number): number;
 ### Task 2.2: Mage Stats (Magic, Mana)
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add mana/magic to `PlayerStats`)
 - Modify: `src/lib/engine/stats.ts` (defaults + stat registry)
 
@@ -349,6 +384,7 @@ manaCostReduction: 0,
 ### Task 2.3: Mage State Integration
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts`
 
 **Step 1:** Add mage state:
@@ -359,6 +395,7 @@ let activeElements = $state<Set<ElementId>>(new Set());
 ```
 
 **Step 2:** Mage tap behavior (when `currentClass === 'mage'`):
+
 - Regenerate mana: `mana = Math.min(statPipeline.get('maxMana'), mana + getManaPerTap(statPipeline.get('manaPerTap'), 0))`
 - Deal base magic damage to enemy (use `statPipeline.get('magic')`)
 
@@ -388,7 +425,7 @@ function castElement(element: ElementId) {
 		remaining: ELEMENT_DURATION_MS,
 		onExpire: () => {
 			removeElementEffect(element);
-			activeElements = new Set([...activeElements].filter(e => e !== element));
+			activeElements = new Set([...activeElements].filter((e) => e !== element));
 
 			// If fire, also remove burn DoT timer
 			if (element === 'fire') {
@@ -443,8 +480,9 @@ function removeElementEffect(element: ElementId) {
 No manual stat reversal needed — removing the transient from the pipeline recomputes automatically.
 
 **Step 5:** Implement combo triggers:
+
 - `frost_arcane`: instant burst damage (e.g., `statPipeline.get('magic') * 10`)
-- `fire_arcane`: enhanced burn (e.g., burn damage * 3 for remaining duration)
+- `fire_arcane`: enhanced burn (e.g., burn damage \* 3 for remaining duration)
 - `frost_fire`: defense shatter (e.g., enemy takes +100% damage for 5s)
 
 **Step 6:** Clear all element state on enemy death:
@@ -479,6 +517,7 @@ castElement,
 ### Task 2.4: Mage Battle UI
 
 **Files:**
+
 - Create: `src/lib/components/MageUI.svelte`
 - Modify: `src/lib/components/BattleArea.svelte`
 
@@ -537,6 +576,7 @@ type Props = {
 ```
 
 **Styling:**
+
 - Mana bar: blue gradient fill, similar to health bar but blue themed
 - Element buttons: colored per element (frost=cyan, fire=orange, arcane=purple)
 - Active elements: glowing border when element is applied to enemy
@@ -570,36 +610,38 @@ type Props = {
 ### Task 2.5: Mage Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts`
 - Modify: `src/lib/data/upgrades.test.ts`
 
 **New mage-specific cards (all with `classRestriction: 'mage'`, using `modifiers` format):**
 
-| ID | Title | Rarity | Modifiers |
-|----|-------|--------|-----------|
-| `mage_cost1` | Efficient Casting | common | `[{ stat: 'manaCostReduction', value: 2 }]` |
-| `mage_cost2` | Arcane Flow | uncommon | `[{ stat: 'manaCostReduction', value: 4 }]` |
-| `mage_cost3` | Mana Mastery | rare | `[{ stat: 'manaCostReduction', value: 6 }]` |
-| `mage_regen1` | Mana Siphon | common | `[{ stat: 'manaPerTap', value: 1 }]` |
-| `mage_regen2` | Arcane Absorption | uncommon | `[{ stat: 'manaPerTap', value: 2 }]` |
-| `mage_regen3` | Soul Drain | rare | `[{ stat: 'manaPerTap', value: 3 }]` |
-| `mage_pool1` | Mana Well | common | `[{ stat: 'maxMana', value: 20 }]` |
-| `mage_pool2` | Arcane Reservoir | uncommon | `[{ stat: 'maxMana', value: 40 }]` |
-| `mage_magic1` | Arcane Studies | common | `[{ stat: 'magic', value: 1 }]` |
-| `mage_magic2` | Mystic Power | uncommon | `[{ stat: 'magic', value: 3 }]` |
-| `mage_magic3` | Eldritch Might | rare | `[{ stat: 'magic', value: 5 }]` |
-| `mage_legendary` | Archmage | legendary | `[{ stat: 'magic', value: 5 }, { stat: 'maxMana', value: 30 }, { stat: 'manaPerTap', value: 3 }, { stat: 'manaCostReduction', value: 5 }]` |
+| ID               | Title             | Rarity    | Modifiers                                                                                                                                  |
+| ---------------- | ----------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mage_cost1`     | Efficient Casting | common    | `[{ stat: 'manaCostReduction', value: 2 }]`                                                                                                |
+| `mage_cost2`     | Arcane Flow       | uncommon  | `[{ stat: 'manaCostReduction', value: 4 }]`                                                                                                |
+| `mage_cost3`     | Mana Mastery      | rare      | `[{ stat: 'manaCostReduction', value: 6 }]`                                                                                                |
+| `mage_regen1`    | Mana Siphon       | common    | `[{ stat: 'manaPerTap', value: 1 }]`                                                                                                       |
+| `mage_regen2`    | Arcane Absorption | uncommon  | `[{ stat: 'manaPerTap', value: 2 }]`                                                                                                       |
+| `mage_regen3`    | Soul Drain        | rare      | `[{ stat: 'manaPerTap', value: 3 }]`                                                                                                       |
+| `mage_pool1`     | Mana Well         | common    | `[{ stat: 'maxMana', value: 20 }]`                                                                                                         |
+| `mage_pool2`     | Arcane Reservoir  | uncommon  | `[{ stat: 'maxMana', value: 40 }]`                                                                                                         |
+| `mage_magic1`    | Arcane Studies    | common    | `[{ stat: 'magic', value: 1 }]`                                                                                                            |
+| `mage_magic2`    | Mystic Power      | uncommon  | `[{ stat: 'magic', value: 3 }]`                                                                                                            |
+| `mage_magic3`    | Eldritch Might    | rare      | `[{ stat: 'magic', value: 5 }]`                                                                                                            |
+| `mage_legendary` | Archmage          | legendary | `[{ stat: 'magic', value: 5 }, { stat: 'maxMana', value: 30 }, { stat: 'manaPerTap', value: 3 }, { stat: 'manaCostReduction', value: 5 }]` |
 
 Note: Element duration and combo enhancement cards need additional stats added to PlayerStats:
+
 - `elementDurationBonus: number` (default 0, added to `ELEMENT_DURATION_MS`)
 - `comboDamageMultiplier: number` (default 1.0)
 
-| ID | Title | Rarity | Modifiers |
-|----|-------|--------|-----------|
-| `mage_duration1` | Lingering Magic | uncommon | `[{ stat: 'elementDurationBonus', value: 2000 }]` |
-| `mage_duration2` | Eternal Enchant | rare | `[{ stat: 'elementDurationBonus', value: 4000 }]` |
-| `mage_combo1` | Elemental Synergy | rare | `[{ stat: 'comboDamageMultiplier', value: 0.5 }]` |
-| `mage_combo2` | Harmonic Resonance | epic | `[{ stat: 'comboDamageMultiplier', value: 1.0 }]` |
+| ID               | Title              | Rarity   | Modifiers                                         |
+| ---------------- | ------------------ | -------- | ------------------------------------------------- |
+| `mage_duration1` | Lingering Magic    | uncommon | `[{ stat: 'elementDurationBonus', value: 2000 }]` |
+| `mage_duration2` | Eternal Enchant    | rare     | `[{ stat: 'elementDurationBonus', value: 4000 }]` |
+| `mage_combo1`    | Elemental Synergy  | rare     | `[{ stat: 'comboDamageMultiplier', value: 0.5 }]` |
+| `mage_combo2`    | Harmonic Resonance | epic     | `[{ stat: 'comboDamageMultiplier', value: 1.0 }]` |
 
 **Total new mage cards: ~16**
 
@@ -616,6 +658,7 @@ Note: Element duration and combo enhancement cards need additional stats added t
 ### Task 3.1: Rogue Engine (Pure Logic)
 
 **Files:**
+
 - Create: `src/lib/engine/rogue.ts`
 - Create: `src/lib/engine/rogue.test.ts`
 
@@ -633,6 +676,7 @@ export function getEffectiveCooldown(baseCooldown: number, cooldownReduction: nu
 ```
 
 **Tests:**
+
 - Base cooldown is 10s
 - Cooldown reduction works correctly
 - Minimum cooldown is 3s
@@ -646,6 +690,7 @@ export function getEffectiveCooldown(baseCooldown: number, cooldownReduction: nu
 ### Task 3.2: Rogue State Integration
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts`
 
 **Step 1:** Add rogue state:
@@ -748,6 +793,7 @@ Persist `poisonCloudUnlocked` in save data.
 ### Task 3.3: Rogue Battle UI
 
 **Files:**
+
 - Create: `src/lib/components/RogueUI.svelte`
 - Modify: `src/lib/components/BattleArea.svelte`
 
@@ -784,6 +830,7 @@ type Props = {
 ```
 
 **Styling:**
+
 - Poison cloud button: green themed, large enough for mobile tap
 - Active state: glowing green border, particle effect
 - Cooldown state: grayed out, optional cooldown timer countdown
@@ -809,6 +856,7 @@ type Props = {
 ### Task 3.4: Rogue Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts`
 - Modify: `src/lib/data/upgrades.test.ts`
 
@@ -818,22 +866,23 @@ Note: Many rogue cards already exist from Plan 2's reclassification. These are a
 
 **Poison Cloud Cards:**
 
-| ID | Title | Rarity | Modifiers / OnAcquire |
-|----|-------|--------|-----------|
-| `rogue_cloud_unlock` | Poison Cloud | rare | `modifiers: [], onAcquire: () => gameState.unlockPoisonCloud()` |
-| `rogue_cloud_cd1` | Quick Deploy | uncommon | `[{ stat: 'poisonCloudCooldownReduction', value: 2000 }]` |
-| `rogue_cloud_cd2` | Rapid Deployment | rare | `[{ stat: 'poisonCloudCooldownReduction', value: 3000 }]` |
+| ID                   | Title            | Rarity   | Modifiers / OnAcquire                                           |
+| -------------------- | ---------------- | -------- | --------------------------------------------------------------- |
+| `rogue_cloud_unlock` | Poison Cloud     | rare     | `modifiers: [], onAcquire: () => gameState.unlockPoisonCloud()` |
+| `rogue_cloud_cd1`    | Quick Deploy     | uncommon | `[{ stat: 'poisonCloudCooldownReduction', value: 2000 }]`       |
+| `rogue_cloud_cd2`    | Rapid Deployment | rare     | `[{ stat: 'poisonCloudCooldownReduction', value: 3000 }]`       |
 
 Note: `poisonCloudCooldownReduction` needs to be added to PlayerStats (default 0).
 
 **Additional Finisher Cards:**
 
-| ID | Title | Rarity | Modifiers |
-|----|-------|--------|-----------|
-| `rogue_finisher1` | Backstab | rare | `[{ stat: 'executeChance', value: 0.03 }]` |
-| `rogue_finisher2` | Assassinate | epic | `[{ stat: 'executeChance', value: 0.05 }]` |
+| ID                | Title       | Rarity | Modifiers                                  |
+| ----------------- | ----------- | ------ | ------------------------------------------ |
+| `rogue_finisher1` | Backstab    | rare   | `[{ stat: 'executeChance', value: 0.03 }]` |
+| `rogue_finisher2` | Assassinate | epic   | `[{ stat: 'executeChance', value: 0.05 }]` |
 
 **Legendary:**
+
 - `rogue_legendary`: `modifiers: [{ stat: 'poisonCloudCooldownReduction', value: 5000 }], onAcquire: () => gameState.unlockPoisonCloud()`
 
 **Total new rogue cards: ~6**
@@ -851,6 +900,7 @@ Note: `poisonCloudCooldownReduction` needs to be added to PlayerStats (default 0
 ### Task 4.1: Keyboard Shortcuts for Class Abilities
 
 **Files:**
+
 - Modify: `src/routes/+page.svelte`
 
 **Step 1:** Add `<svelte:window onkeydown={handleKeydown} />` handler:
@@ -894,11 +944,13 @@ Detect desktop vs mobile: use `matchMedia('(hover: hover)')` or similar.
 ### Task 4.2: Class Ability UI Layout (Desktop vs Mobile)
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte`
 - Modify: `src/lib/components/MageUI.svelte`
 - Modify: `src/lib/components/RogueUI.svelte`
 
 Per the design doc:
+
 - **Desktop:** Class ability buttons in a fixed action bar at the bottom of the screen (MOBA-style). Keyboard shortcuts Q, W, E.
 - **Mobile:** Class ability buttons directly below the enemy sprite for easy thumb access.
 - **Warrior:** No ability buttons — weapon roulette display and combo counter are passive UI elements near the enemy.
@@ -912,9 +964,11 @@ Use CSS media queries or a responsive container query to position the action bar
 ### Task 4.3: Save Migration for New Fields
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts`
 
 Ensure `loadGame()` handles saves that don't have:
+
 - `warriorWeapons` (default `['knife']`)
 - `mana` (default `0`)
 - `poisonCloudUnlocked` (default `false`)
@@ -931,6 +985,7 @@ All backward-compatible — old saves work without errors because the stat pipel
 ### Task 4.4: Add Changelog Entry
 
 **Files:**
+
 - Modify: `src/lib/changelog.ts`
 
 ```typescript

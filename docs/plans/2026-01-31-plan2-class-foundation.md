@@ -21,6 +21,7 @@
 ### Task 1.1: Define Class Types and Definitions
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add `ClassId`)
 - Create: `src/lib/data/classes.ts`
 - Create: `src/lib/data/classes.test.ts`
@@ -46,8 +47,8 @@ export type ClassDefinition = {
 	playstyle: string;
 	economyPerk: string;
 	startingBonuses: string[];
-	baseStatOverrides: StatModifier[];   // Layer 0: replaces Adventurer base values
-	classModifiers: StatModifier[];       // Layer 2: additive bonuses on top of base
+	baseStatOverrides: StatModifier[]; // Layer 0: replaces Adventurer base values
+	classModifiers: StatModifier[]; // Layer 2: additive bonuses on top of base
 };
 
 export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
@@ -59,7 +60,7 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		playstyle: 'Tap enemies to deal damage. No special abilities.',
 		economyPerk: 'None',
 		startingBonuses: [],
-		baseStatOverrides: [],  // Uses default base stats
+		baseStatOverrides: [], // Uses default base stats
 		classModifiers: []
 	},
 	warrior: {
@@ -71,7 +72,7 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		economyPerk: 'Longer boss timer',
 		startingBonuses: ['Highest base damage', '+10s Boss Timer'],
 		baseStatOverrides: [
-			{ stat: 'attackSpeed', value: -0.4 }  // 0.8 base - 0.4 = 0.4/s (slow heavy hitter)
+			{ stat: 'attackSpeed', value: -0.4 } // 0.8 base - 0.4 = 0.4/s (slow heavy hitter)
 		],
 		classModifiers: [
 			{ stat: 'damage', value: 5 },
@@ -87,7 +88,7 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		economyPerk: 'Bonus XP multiplier',
 		startingBonuses: ['+1 Magic damage', '+50% XP multiplier'],
 		baseStatOverrides: [
-			{ stat: 'attackSpeed', value: -0.16 }  // 0.8 base - 0.16 = 0.64/s (moderate)
+			{ stat: 'attackSpeed', value: -0.16 } // 0.8 base - 0.16 = 0.64/s (moderate)
 		],
 		classModifiers: [
 			{ stat: 'magic', value: 1 },
@@ -103,11 +104,11 @@ export const CLASS_DEFINITIONS: Record<ClassId, ClassDefinition> = {
 		economyPerk: 'Higher base gold drop chance',
 		startingBonuses: ['+5% Crit Chance', '+10% Gold Drop Chance'],
 		baseStatOverrides: [
-			{ stat: 'attackSpeed', value: 0.4 }  // 0.8 base + 0.4 = 1.2/s (fast)
+			{ stat: 'attackSpeed', value: 0.4 } // 0.8 base + 0.4 = 1.2/s (fast)
 		],
 		classModifiers: [
 			{ stat: 'critChance', value: 0.05 },
-			{ stat: 'goldDropChance', value: 0.10 }
+			{ stat: 'goldDropChance', value: 0.1 }
 		]
 	}
 };
@@ -120,6 +121,7 @@ Note: `baseStatOverrides` uses additive modifiers applied to Layer 0 of the stat
 **Step 3: Write tests**
 
 Test:
+
 - 4 class definitions exist (adventurer + 3 selectable)
 - Adventurer has empty `startingBonuses`, `baseStatOverrides`, `classModifiers`
 - All selectable classes have non-empty `borderColor`, `description`, `startingBonuses`
@@ -139,6 +141,7 @@ Test:
 ### Task 2.1: Add `classRestriction` to Upgrade Type
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add `classRestriction` to `Upgrade`)
 
 Add optional field:
@@ -162,12 +165,14 @@ export type Upgrade = {
 ### Task 2.2: Reclassify Existing Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts` (add `classRestriction` to each card)
 - Create or modify: `src/lib/data/upgrades.test.ts`
 
 **Classification per design doc:**
 
 **Generic (leave `classRestriction` undefined) — 26 cards:**
+
 - Damage: `damage1`, `damage2`, `damage3`, `damage4`
 - XP: `xp1`, `xp2`
 - Boss Timer: `timer1`, `timer2`
@@ -180,6 +185,7 @@ export type Upgrade = {
 - Legendary: `legendary3` (Time Lord)
 
 **Rogue (`classRestriction: 'rogue'`) — 21 cards:**
+
 - Poison Damage: `poison1`, `poison2`, `poison3`
 - Poison Duration: `poisondur1`, `poisondur2`, `poisondur3`
 - Poison Stacks: `poisonstack1`, `poisonstack2`, `poisonstack3`
@@ -191,6 +197,7 @@ export type Upgrade = {
 - Legendary: `legendary2` (Death Incarnate), `legendary4` (Toxic Apocalypse)
 
 **Warrior (`classRestriction: 'warrior'`) — 2 cards:**
+
 - Combo: `combo1` (Berserker)
 - Legendary: `legendary1` (Dragon's Fury)
 
@@ -203,39 +210,87 @@ Add the `classRestriction` property to each card entry in `upgrades.ts`.
 ```typescript
 describe('card classification', () => {
 	test('generic cards have no classRestriction', () => {
-		const genericIds = ['damage1', 'damage2', 'damage3', 'damage4', 'xp1', 'xp2',
-			'timer1', 'timer2', 'greed1', 'greed2', 'overkill1', 'multi1', 'multi2',
-			'multi3', 'legendary3', 'golddrop1', 'golddrop2', 'golddrop3',
-			'chest1', 'chest2', 'chest3', 'bosschest1', 'bosschest2',
-			'lucky1', 'lucky2', 'dmgmult1', 'dmgmult2'];
+		const genericIds = [
+			'damage1',
+			'damage2',
+			'damage3',
+			'damage4',
+			'xp1',
+			'xp2',
+			'timer1',
+			'timer2',
+			'greed1',
+			'greed2',
+			'overkill1',
+			'multi1',
+			'multi2',
+			'multi3',
+			'legendary3',
+			'golddrop1',
+			'golddrop2',
+			'golddrop3',
+			'chest1',
+			'chest2',
+			'chest3',
+			'bosschest1',
+			'bosschest2',
+			'lucky1',
+			'lucky2',
+			'dmgmult1',
+			'dmgmult2'
+		];
 		for (const id of genericIds) {
-			const card = allUpgrades.find(u => u.id === id);
+			const card = allUpgrades.find((u) => u.id === id);
 			expect(card?.classRestriction, `${id} should be generic`).toBeUndefined();
 		}
 	});
 
 	test('rogue cards have rogue classRestriction', () => {
-		const rogueIds = ['poison1', 'poison2', 'poison3', 'poisondur1', 'poisondur2',
-			'poisondur3', 'poisonstack1', 'poisonstack2', 'poisonstack3',
-			'poisoncrit1', 'poisoncrit2', 'poisoncrit3', 'crit1', 'crit2', 'crit3',
-			'critdmg1', 'critdmg2', 'execute1', 'execute2', 'execute3',
-			'combo2', 'combo3', 'legendary2', 'legendary4'];
+		const rogueIds = [
+			'poison1',
+			'poison2',
+			'poison3',
+			'poisondur1',
+			'poisondur2',
+			'poisondur3',
+			'poisonstack1',
+			'poisonstack2',
+			'poisonstack3',
+			'poisoncrit1',
+			'poisoncrit2',
+			'poisoncrit3',
+			'crit1',
+			'crit2',
+			'crit3',
+			'critdmg1',
+			'critdmg2',
+			'execute1',
+			'execute2',
+			'execute3',
+			'combo2',
+			'combo3',
+			'legendary2',
+			'legendary4'
+		];
 		for (const id of rogueIds) {
-			const card = allUpgrades.find(u => u.id === id);
+			const card = allUpgrades.find((u) => u.id === id);
 			expect(card?.classRestriction, `${id} should be rogue`).toBe('rogue');
 		}
 	});
 
 	test('warrior cards have warrior classRestriction', () => {
-		expect(allUpgrades.find(u => u.id === 'combo1')?.classRestriction).toBe('warrior');
-		expect(allUpgrades.find(u => u.id === 'legendary1')?.classRestriction).toBe('warrior');
+		expect(allUpgrades.find((u) => u.id === 'combo1')?.classRestriction).toBe('warrior');
+		expect(allUpgrades.find((u) => u.id === 'legendary1')?.classRestriction).toBe('warrior');
 	});
 
 	test('every card is classified', () => {
 		for (const card of allUpgrades) {
 			const restriction = card.classRestriction;
 			expect(
-				restriction === undefined || restriction === 'warrior' || restriction === 'mage' || restriction === 'rogue',
+				restriction === undefined ||
+					restriction === 'warrior' ||
+					restriction === 'mage' ||
+					restriction === 'rogue',
 				`${card.id} has unexpected classRestriction: ${restriction}`
 			).toBe(true);
 		}
@@ -252,6 +307,7 @@ describe('card classification', () => {
 ### Task 2.3: Class-Filtered Upgrade Selection
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts` (add `classId` param to `getRandomUpgrades`)
 - Modify: `src/lib/data/upgrades.test.ts`
 
@@ -319,6 +375,7 @@ test('warrior does not see rogue or mage cards', () => {
 ### Task 3.1: Add Class State to Game Store
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts`
 - Modify: `src/lib/stores/leveling.svelte.ts` (add `'class_selection'` event type)
 
@@ -397,6 +454,7 @@ statPipeline.setClassModifiers([]);
 ### Task 3.2: Persist Class Choice
 
 **Files:**
+
 - Modify: `src/lib/stores/persistence.svelte.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (save/load)
 
@@ -413,7 +471,7 @@ classSelected?: boolean;
 persistence.saveSession({
 	// ... existing fields ...
 	currentClass,
-	classSelected,
+	classSelected
 });
 ```
 
@@ -444,6 +502,7 @@ Backward compat: old saves without these fields default to adventurer/false.
 ### Task 4.1: Create Class Selection Modal
 
 **Files:**
+
 - Create: `src/lib/components/ClassSelectionModal.svelte`
 
 **Design (from design doc):**
@@ -458,6 +517,7 @@ Backward compat: old saves without these fields default to adventurer/false.
 8. Pressing button → selected card grows/glows, other two fade out → callback fires
 
 **Icon carousels per class:**
+
 - Warrior (red): sword.png → axe.png → hammer.png
 - Mage (blue): fire.png → frost emoji → arcane emoji
 - Rogue (green): poison.png → dagger emoji → coffin emoji
@@ -480,6 +540,7 @@ let landed = $state<boolean[]>([false, false, false]);
 ```
 
 **Key behaviors:**
+
 - Staggered landing: `setTimeout` for each card at 500ms, 1000ms, 1500ms after `show` becomes true (cosmetic animation, not gameplay timing — `setTimeout` acceptable here per Plan 0 design decisions)
 - Card flip toggle: `handleCardClick(index)` toggles `flippedIndex`
 - Selection: `handleSelect(classId)` sets `selectedClass`, waits 800ms for animation, then calls `onSelect`
@@ -492,6 +553,7 @@ let landed = $state<boolean[]>([false, false, false]);
 ### Task 4.2: Wire Class Selection into Page
 
 **Files:**
+
 - Modify: `src/routes/+page.svelte`
 
 **Step 1:** Import `ClassSelectionModal`.
@@ -500,14 +562,12 @@ let landed = $state<boolean[]>([false, false, false]);
 
 ```svelte
 {#if gameState.activeEvent?.type === 'class_selection'}
-	<ClassSelectionModal
-		show={true}
-		onSelect={(classId) => gameState.selectClass(classId)}
-	/>
+	<ClassSelectionModal show={true} onSelect={(classId) => gameState.selectClass(classId)} />
 {/if}
 ```
 
 **Step 3:** Manual test: temporarily set `CLASS_SELECTION_LEVEL = 2` to quickly reach the modal. Verify:
+
 - Modal appears at the right level
 - Cards animate in with stagger
 - Tap flips cards
@@ -523,6 +583,7 @@ let landed = $state<boolean[]>([false, false, false]);
 ### Task 4.3: Display Class Label on Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/components/UpgradeCard.svelte`
 - Modify: `src/lib/components/LevelUpModal.svelte` (pass classRestriction prop)
 - Modify: `src/lib/components/ChestLootModal.svelte` (pass classRestriction prop)
@@ -564,6 +625,7 @@ type Props = {
 ### Task 4.4: Add Changelog Entry
 
 **Files:**
+
 - Modify: `src/lib/changelog.ts`
 
 ```typescript
