@@ -3,6 +3,7 @@ import {
 	add,
 	multiply,
 	clampMin,
+	clampMax,
 	conditionalAdd,
 	computeLayered,
 	createLayer,
@@ -22,6 +23,12 @@ describe('step functions', () => {
 	test('clampMin enforces floor', () => {
 		expect(clampMin(0)(-5)).toBe(0);
 		expect(clampMin(0)(5)).toBe(5);
+	});
+
+	test('clampMax enforces ceiling', () => {
+		expect(clampMax(0.25)(0.1)).toBe(0.1);
+		expect(clampMax(0.25)(0.25)).toBe(0.25);
+		expect(clampMax(0.25)(0.5)).toBe(0.25);
 	});
 
 	test('conditionalAdd applies when true', () => {
