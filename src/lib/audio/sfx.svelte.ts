@@ -1,5 +1,6 @@
 import { Howl } from 'howler';
 import type { createAudioManager } from './audioManager.svelte';
+import { createHitThrottle } from './hitThrottle';
 
 // Audio asset imports — Vite resolves to hashed URLs at build time
 import woodHit1Url from '$lib/assets/audio/sfx/wood-hit-1.wav';
@@ -93,9 +94,12 @@ export function createSfx(audioManager: AudioManager) {
 		getHowl(config.src);
 	}
 
+	const throttle = createHitThrottle({ maxHits: 4, windowMs: 100 });
+
 	function play(name: SfxEventName, options?: { rate?: number }) {
 		const config = SFX_REGISTRY[name];
 		if (!config) return;
+		if (!throttle.shouldPlay(name)) return;
 
 		const bus = getBusForEvent(name, config);
 		const busVol = getBusVolume(audioManager, bus);
