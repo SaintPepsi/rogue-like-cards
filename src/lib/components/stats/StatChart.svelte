@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
+	import type { Chart as ChartType } from 'chart.js';
 
 	type ChartDataset = {
 		label: string;
@@ -26,22 +27,10 @@
 	} = $props();
 
 	let canvas: HTMLCanvasElement | undefined = $state();
-	let chartInstance: { destroy: () => void } | undefined;
+	let chartInstance: ChartType | undefined;
+	let chartModule: typeof import('chart.js') | undefined;
 
-	onMount(() => {
-		initChart();
-	});
-
-	onDestroy(() => {
-		chartInstance?.destroy();
-	});
-
-	async function initChart() {
-		const { Chart, registerables } = await import('chart.js');
-		Chart.register(...registerables);
-
-		if (!canvas) return;
-
+	function buildScales(): Record<string, object> {
 		const scales: Record<string, object> = {
 			x: {
 				ticks: { color: 'white' },
@@ -65,28 +54,84 @@
 			};
 		}
 
-		chartInstance = new Chart(canvas, {
+		return scales;
+	}
+
+	function mapDatasets(input: ChartDataset[]) {
+		return input.map((ds) => ({
+			...ds,
+			tension: 0.3,
+			pointRadius: 2,
+			borderWidth: 2,
+			fill: ds.fill ?? false
+		}));
+	}
+
+	$effect(() => {
+		// Read reactive deps: datasets, labels, title, canvas
+		const currentDatasets = datasets;
+		const currentLabels = labels;
+		const currentTitle = title;
+		const currentCanvas = canvas;
+
+		if (!currentCanvas) return;
+
+		// Lazy-load Chart.js once, then create/update
+		if (!chartModule) {
+			import('chart.js').then((mod) => {
+				chartModule = mod;
+				mod.Chart.register(...mod.registerables);
+				createChart(currentCanvas, currentLabels, currentDatasets, currentTitle);
+			});
+			return;
+		}
+
+		if (!chartInstance) {
+			createChart(currentCanvas, currentLabels, currentDatasets, currentTitle);
+			return;
+		}
+
+		// Update existing chart in-place
+		chartInstance.data.labels = currentLabels;
+		chartInstance.data.datasets = mapDatasets(currentDatasets);
+		chartInstance.options.plugins!.title = {
+			display: true,
+			text: currentTitle,
+			color: 'white',
+			font: { size: 14 }
+		};
+		chartInstance.update();
+	});
+
+	function createChart(
+		canvasEl: HTMLCanvasElement,
+		chartLabels: number[],
+		chartDatasets: ChartDataset[],
+		chartTitle: string
+	) {
+		if (!chartModule) return;
+
+		chartInstance?.destroy();
+		chartInstance = new chartModule.Chart(canvasEl, {
 			type: 'line',
 			data: {
-				labels,
-				datasets: datasets.map((ds) => ({
-					...ds,
-					tension: 0.3,
-					pointRadius: 2,
-					borderWidth: 2,
-					fill: ds.fill ?? false
-				}))
+				labels: chartLabels,
+				datasets: mapDatasets(chartDatasets)
 			},
 			options: {
 				responsive: true,
 				plugins: {
-					title: { display: true, text: title, color: 'white', font: { size: 14 } },
+					title: { display: true, text: chartTitle, color: 'white', font: { size: 14 } },
 					legend: { labels: { color: 'white' } }
 				},
-				scales
+				scales: buildScales()
 			}
 		});
 	}
+
+	onDestroy(() => {
+		chartInstance?.destroy();
+	});
 </script>
 
 <div class="chart-container">
