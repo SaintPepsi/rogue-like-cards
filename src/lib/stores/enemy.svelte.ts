@@ -1,4 +1,5 @@
 import type { PlayerStats } from '$lib/types';
+import { sfx } from '$lib/audio';
 import {
 	KILLS_PER_WAVE,
 	getEnemyHealth,
@@ -64,6 +65,7 @@ export function createEnemy() {
 
 	function spawnBoss(greed: number) {
 		spawn({ boss: true, chest: false, bossChest: false }, getBossHealth, greed);
+		sfx.play('enemy:bossSpawn');
 	}
 
 	function spawnChest(greed: number) {

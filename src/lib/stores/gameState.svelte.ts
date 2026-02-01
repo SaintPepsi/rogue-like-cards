@@ -21,6 +21,7 @@ import { createPersistence } from './persistence.svelte';
 import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
+import { sfx } from '$lib/audio';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -107,6 +108,7 @@ function createGameState() {
 	function handleBossExpired() {
 		gameLoop.reset();
 		shop.depositGold(gold);
+		sfx.play('game:over');
 		showGameOver = true;
 		persistence.clearSession();
 	}
@@ -172,6 +174,10 @@ function createGameState() {
 			};
 		});
 
+		for (const hit of newHits) {
+			sfx.play(`hit:${hit.type}` as import('$lib/audio/sfx.svelte').SfxEventName);
+		}
+
 		enemy.setOverkillDamage(result.overkillDamageOut);
 		dealDamage(result.totalDamage, newHits);
 		syncPoisonStacks();
@@ -207,6 +213,7 @@ function createGameState() {
 		try {
 			const playerStats = getEffectiveStats();
 			enemy.recordKill();
+			sfx.play('enemy:death');
 			pipeline.runKill({
 				enemyMaxHealth: enemy.enemyMaxHealth,
 				isBoss: enemy.isBoss,
@@ -217,6 +224,7 @@ function createGameState() {
 			syncPoisonStacks();
 
 			if (enemy.isChest) {
+				sfx.play('chest:break');
 				const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
 				gold += goldReward;
 				const wasBossChest = enemy.isBossChest;
@@ -237,6 +245,7 @@ function createGameState() {
 					: getEnemyGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
 				ui.addGoldDrop(goldReward);
+				sfx.play('gold:drop');
 			}
 
 			const enemyXpMultiplier = enemy.isBoss
@@ -256,6 +265,7 @@ function createGameState() {
 
 			if (enemy.isBoss) {
 				gameLoop.stopBossTimer();
+				sfx.play('enemy:bossDeath');
 				enemy.advanceStage();
 			}
 
@@ -279,6 +289,7 @@ function createGameState() {
 	}
 
 	function selectUpgrade(upgrade: Upgrade) {
+		sfx.play('ui:cardSelect');
 		statPipeline.acquireUpgrade(upgrade.id);
 		if (upgrade.onAcquire) upgrade.onAcquire();
 
@@ -313,6 +324,7 @@ function createGameState() {
 
 	function openNextUpgrade() {
 		if (!leveling.openNextUpgrade()) return;
+		sfx.play('ui:cardFlip');
 		gameLoop.pause();
 	}
 
