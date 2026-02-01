@@ -8,6 +8,7 @@ export interface UpgradeContext {
 	executeChance: number;
 	executeCap: number;
 	poison: number;
+	critChance: number;
 }
 
 export type UpgradeEventType = 'levelup' | 'chest';
@@ -48,7 +49,9 @@ export function createLeveling() {
 				ctx.luckyChance,
 				ctx.executeChance,
 				ctx.executeCap,
-				ctx.poison
+				ctx.poison,
+				'common',
+				ctx.critChance
 			);
 			upgradeQueue = [...upgradeQueue, { type: 'levelup', choices }];
 		}
@@ -69,7 +72,8 @@ export function createLeveling() {
 				ctx.executeChance,
 				ctx.executeCap,
 				ctx.poison,
-				'uncommon'
+				'uncommon',
+				ctx.critChance
 			);
 		}
 		upgradeQueue = [...upgradeQueue, { type: 'chest', choices, gold }];

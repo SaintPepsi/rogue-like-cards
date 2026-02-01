@@ -65,7 +65,7 @@ describe('stat pipeline integration', () => {
 	});
 
 	test('multi-stat upgrade modifies multiple stats', () => {
-		// frenzy_bonus_2 has both tapFrenzyBonus and attackSpeed
+		// frenzy_bonus_2 has both tapFrenzyBonus and attackSpeedBonus
 		const frenzy2 = allUpgrades.find((u) => u.id === 'frenzy_bonus_2')!;
 		expect(frenzy2.modifiers.length).toBe(2);
 
@@ -73,7 +73,7 @@ describe('stat pipeline integration', () => {
 		const frenzyPipeline = buildPipeline();
 
 		const atkSteps = frenzy2.modifiers
-			.filter((m) => m.stat === 'attackSpeed')
+			.filter((m) => m.stat === 'attackSpeedBonus')
 			.map((m) => add(m.value));
 		const frenzySteps = frenzy2.modifiers
 			.filter((m) => m.stat === 'tapFrenzyBonus')
@@ -84,7 +84,9 @@ describe('stat pipeline integration', () => {
 		frenzyPipeline[1] = createLayer(frenzySteps);
 		dirtyLayer(frenzyPipeline, 1);
 
-		expect(computeLayered(BASE_STATS.attackSpeed, atkPipeline)).toBe(BASE_STATS.attackSpeed + 0.2);
+		expect(computeLayered(BASE_STATS.attackSpeedBonus, atkPipeline)).toBe(
+			BASE_STATS.attackSpeedBonus + 0.02
+		);
 		expect(computeLayered(BASE_STATS.tapFrenzyBonus, frenzyPipeline)).toBe(
 			BASE_STATS.tapFrenzyBonus + 0.05
 		);
@@ -115,12 +117,12 @@ describe('stat pipeline integration', () => {
 		expect(result1).toBe(BASE_STATS.damage + 5);
 	});
 
-	test('all attack speed cards have valid attackSpeed modifier', () => {
+	test('all attack speed cards have valid attackSpeedBonus modifier', () => {
 		const atkCards = allUpgrades.filter((u) => u.id.startsWith('attack_speed_'));
-		expect(atkCards.length).toBeGreaterThanOrEqual(3);
+		expect(atkCards.length).toBeGreaterThanOrEqual(5);
 
 		for (const card of atkCards) {
-			const atkMod = card.modifiers.find((m) => m.stat === 'attackSpeed');
+			const atkMod = card.modifiers.find((m) => m.stat === 'attackSpeedBonus');
 			expect(atkMod).toBeDefined();
 			expect(atkMod!.value).toBeGreaterThan(0);
 		}

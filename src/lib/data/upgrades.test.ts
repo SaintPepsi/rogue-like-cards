@@ -533,3 +533,43 @@ describe('frenzy duration cards (split paths)', () => {
 		expect(pct3.modifiers[0].value).toBe(1.0);
 	});
 });
+
+describe('crit system (all tiers + prerequisite)', () => {
+	const critCards = [
+		{ id: 'crit_chance_1', rarity: 'common', value: 0.005 },
+		{ id: 'crit_chance_2', rarity: 'uncommon', value: 0.01 },
+		{ id: 'crit_chance_3', rarity: 'rare', value: 0.025 },
+		{ id: 'crit_chance_4', rarity: 'epic', value: 0.05 },
+		{ id: 'crit_chance_5', rarity: 'legendary', value: 0.1 }
+	];
+
+	for (const { id, rarity, value } of critCards) {
+		test(`${id} is ${rarity} with critChance ${value}`, () => {
+			const card = getUpgradeById(id)!;
+			expect(card).toBeDefined();
+			expect(card.rarity).toBe(rarity);
+			expect(card.modifiers[0].stat).toBe('critChance');
+			expect(card.modifiers[0].value).toBe(value);
+		});
+	}
+
+	test('crit damage cards are excluded when critChance is 0', () => {
+		const results = getRandomUpgrades(100, 0, 0, 0.05, 0, 'common', 0);
+		const critDamageCards = results.filter(
+			(u) =>
+				u.modifiers.some((m) => m.stat === 'critMultiplier') &&
+				!u.modifiers.some((m) => m.stat === 'critChance')
+		);
+		expect(critDamageCards).toHaveLength(0);
+	});
+
+	test('crit damage cards can appear when critChance > 0', () => {
+		// With high lucky to increase epic/uncommon chances, run many picks
+		let foundCritDamage = false;
+		for (let i = 0; i < 50 && !foundCritDamage; i++) {
+			const results = getRandomUpgrades(100, 5, 0, 0.05, 0, 'common', 0.1);
+			foundCritDamage = results.some((u) => u.id === 'crit_damage_1' || u.id === 'crit_damage_2');
+		}
+		expect(foundCritDamage).toBe(true);
+	});
+});

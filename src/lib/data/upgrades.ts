@@ -47,27 +47,44 @@ const _allUpgrades = [
 	},
 
 	// === CRIT CHANCE UPGRADES ===
+	// DECISION: 0.5% increments with 25% hard cap. At 0.5% per common card, reaching
+	// the cap requires ~50 common crit cards — but higher tiers and combos provide
+	// larger chunks, so a crit build can cap in ~10-15 targeted picks.
 	{
 		id: 'crit_chance_1',
 		title: 'Keen Eye',
 		rarity: 'common',
 		image: attackImg,
-		modifiers: [{ stat: 'critChance', value: 0.05 }]
+		modifiers: [{ stat: 'critChance', value: 0.005 }]
 	},
 	{
 		id: 'crit_chance_2',
 		title: "Assassin's Focus",
 		rarity: 'uncommon',
 		image: attackImg,
-		modifiers: [{ stat: 'critChance', value: 0.1 }]
+		modifiers: [{ stat: 'critChance', value: 0.01 }]
 	},
 	{
 		id: 'crit_chance_3',
-		title: 'Death Mark',
+		title: 'Precision Strike',
 		rarity: 'rare',
 		image: attackImg,
+		modifiers: [{ stat: 'critChance', value: 0.025 }]
+	},
+	{
+		id: 'crit_chance_4',
+		title: 'Death Mark',
+		rarity: 'epic',
+		image: attackImg,
+		modifiers: [{ stat: 'critChance', value: 0.05 }]
+	},
+	{
+		id: 'crit_chance_5',
+		title: "Assassin's Creed",
+		rarity: 'legendary',
+		image: attackImg,
 		modifiers: [
-			{ stat: 'critChance', value: 0.15 },
+			{ stat: 'critChance', value: 0.1 },
 			{ stat: 'critMultiplier', value: 0.5 }
 		]
 	},
@@ -777,6 +794,9 @@ const executeUpgradeIds: Set<UpgradeId> = new Set([
 	'execute_5'
 ]);
 
+// Upgrades that require the player to already have crit chance
+const critDependentIds: Set<UpgradeId> = new Set(['crit_damage_1', 'crit_damage_2']);
+
 // Upgrades that require the player to already have base poison
 const poisonDependentIds: Set<UpgradeId> = new Set([
 	'poison_duration_1',
@@ -908,7 +928,8 @@ export function getRandomUpgrades(
 	currentExecuteChance: number = 0,
 	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
 	currentPoison: number = 0,
-	minRarity: string = 'common'
+	minRarity: string = 'common',
+	currentCritChance: number = 0
 ): Upgrade[] {
 	let pool = [...allUpgrades];
 
@@ -927,6 +948,11 @@ export function getRandomUpgrades(
 	// Filter out poison-dependent upgrades if player has no base poison
 	if (currentPoison <= 0) {
 		pool = pool.filter((u) => !poisonDependentIds.has(u.id as UpgradeId));
+	}
+
+	// Filter out crit damage upgrades if player has no crit chance
+	if (currentCritChance <= 0) {
+		pool = pool.filter((u) => !critDependentIds.has(u.id as UpgradeId));
 	}
 
 	return pickByRarity(pool, count, luckyChance);

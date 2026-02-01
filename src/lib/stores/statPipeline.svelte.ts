@@ -4,6 +4,7 @@ import {
 	dirtyLayer,
 	add,
 	clampMin,
+	clampMax,
 	type PipelineLayer,
 	type StatStep
 } from '$lib/engine/statPipeline';
@@ -36,12 +37,18 @@ export function createStatPipeline() {
 	let transientModifiers = $state<SourcedModifier[]>([]);
 	let transientSteps = $state<{ stat: StatKey; step: StatStep; source: string }[]>([]);
 
+	// DECISION: 25% hard cap on crit chance. Crit is multiplicative with crit damage,
+	// so uncapped crit + high crit multiplier leads to guaranteed massive hits.
+	// 25% keeps crit builds viable but not dominant.
+	const CRIT_CHANCE_CAP = 0.25;
+
 	function initPipelines(): Record<StatKey, PipelineLayer[]> {
 		const result = {} as Record<StatKey, PipelineLayer[]>;
 		for (const key of Object.keys(BASE_STATS) as StatKey[]) {
 			result[key] = Array.from({ length: LAYER_COUNT }, () => createLayer([]));
 			result[key][LAYER_CLAMP] = createLayer([clampMin(0)]);
 		}
+		result['critChance'][LAYER_CLAMP] = createLayer([clampMin(0), clampMax(CRIT_CHANCE_CAP)]);
 		return result;
 	}
 

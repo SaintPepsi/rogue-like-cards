@@ -103,7 +103,8 @@ function createGameState() {
 			luckyChance: statPipeline.get('luckyChance'),
 			executeChance: statPipeline.get('executeChance'),
 			executeCap: shop.getExecuteCapValue(),
-			poison: statPipeline.get('poison')
+			poison: statPipeline.get('poison'),
+			critChance: statPipeline.get('critChance')
 		};
 	}
 
