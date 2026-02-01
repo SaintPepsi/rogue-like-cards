@@ -333,7 +333,7 @@ const _allUpgrades = [
 		image: coinsImg,
 		modifiers: [
 			{ stat: 'greed', value: 0.5 },
-			{ stat: 'xpMultiplier', value: 1 }
+			{ stat: 'xpMultiplier', value: 0.1 }
 		]
 	},
 	{
@@ -343,7 +343,7 @@ const _allUpgrades = [
 		image: coinsImg,
 		modifiers: [
 			{ stat: 'greed', value: 1 },
-			{ stat: 'xpMultiplier', value: 2 }
+			{ stat: 'xpMultiplier', value: 0.25 }
 		]
 	},
 
@@ -547,7 +547,7 @@ const _allUpgrades = [
 		image: axeImg,
 		modifiers: [
 			{ stat: 'damage', value: 8 },
-			{ stat: 'critChance', value: 0.1 }
+			{ stat: 'critChance', value: 0.03 }
 		]
 	},
 	{
@@ -590,7 +590,7 @@ const _allUpgrades = [
 		image: chestImg,
 		modifiers: [
 			{ stat: 'damage', value: 15 },
-			{ stat: 'critChance', value: 0.2 },
+			{ stat: 'critChance', value: 0.05 },
 			{ stat: 'critMultiplier', value: 1 }
 		]
 	},
@@ -613,7 +613,7 @@ const _allUpgrades = [
 		modifiers: [
 			{ stat: 'bonusBossTime', value: 20 },
 			{ stat: 'multiStrike', value: 3 },
-			{ stat: 'xpMultiplier', value: 1 }
+			{ stat: 'xpMultiplier', value: 0.25 }
 		]
 	},
 
