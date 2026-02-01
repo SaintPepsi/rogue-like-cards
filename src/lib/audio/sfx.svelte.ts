@@ -35,7 +35,7 @@ interface SfxConfig {
 
 const SFX_REGISTRY = {
 	'hit:normal': { src: woodHit1Url, volume: 0.6 },
-	'hit:crit': { src: batHit4Url, volume: 0.5 },
+	'hit:crit': { src: woodHit1Url, volume: 0.7, rate: 0.7 },
 	'hit:execute': { src: bellCutUrl, volume: 1.0 },
 	'hit:poison': { src: fish1Url, volume: 0.5 },
 	'hit:poisonCrit': { src: bodyHitUrl, volume: 0.7, rate: 1.1 },
