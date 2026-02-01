@@ -7,7 +7,7 @@ import { formatNumber } from '$lib/format';
 //   critMultiplier: 1.5x — standard ARPG crit bonus; higher base would devalue crit-damage cards
 //   chestChance: 5% — roughly 1 chest per wave (5 kills), keeps gold income predictable
 //   bossChestChance: 0.1% — ultra-rare windfall event (~1 per 1000 boss kills), legendary-gated
-//   executeCap: 10% — hard floor prevents execute from trivializing bosses
+//   executeCap: 5% — reduced from 10%; execute is instant kill so even 5% is very strong. Shop upgrades raise the cap.
 //   poisonMaxStacks/Duration: 5/5 — conservative base so poison-build cards feel impactful when stacked
 //   tapFrenzyBonus: 5% per tap — requires rapid tapping to meaningfully boost DPS (~20 taps = double speed)
 //   tapFrenzyDuration: 3s — short window forces active engagement, decays fast if player stops
@@ -39,7 +39,7 @@ export function createDefaultStats(): PlayerStats {
 		tapFrenzyDuration: 3,
 		tapFrenzyDurationBonus: 0,
 		tapFrenzyStackMultiplier: 1,
-		executeCap: 0.1
+		executeCap: 0.05
 	};
 }
 

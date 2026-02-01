@@ -102,7 +102,7 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('filters out execute upgrades when at cap', () => {
-		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3']);
+		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3', 'execute_4', 'execute_5']);
 
 		for (let i = 0; i < 20; i++) {
 			const result = getRandomUpgrades(3, 0, EXECUTE_CHANCE_BASE_CAP, EXECUTE_CHANCE_BASE_CAP, 0);
@@ -113,7 +113,7 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('allows execute upgrades when below cap', () => {
-		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3']);
+		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3', 'execute_4', 'execute_5']);
 
 		let foundExecute = false;
 		for (let i = 0; i < 500; i++) {
@@ -361,4 +361,29 @@ describe('multistrike rarity bump', () => {
 		expect(card.rarity).toBe('legendary');
 		expect(card.modifiers[0].value).toBe(3);
 	});
+});
+
+describe('execute rework', () => {
+	test('EXECUTE_CHANCE_BASE_CAP is 0.05', () => {
+		expect(EXECUTE_CHANCE_BASE_CAP).toBe(0.05);
+	});
+
+	const executeCards = [
+		{ id: 'execute_1', rarity: 'common', value: 0.001 },
+		{ id: 'execute_2', rarity: 'uncommon', value: 0.002 },
+		{ id: 'execute_3', rarity: 'rare', value: 0.005 },
+		{ id: 'execute_4', rarity: 'epic', value: 0.01 },
+		{ id: 'execute_5', rarity: 'legendary', value: 0.025 }
+	];
+
+	for (const { id, rarity, value } of executeCards) {
+		test(`${id} exists with rarity ${rarity} and executeChance ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'executeChance');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
 });

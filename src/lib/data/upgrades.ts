@@ -231,26 +231,42 @@ const _allUpgrades = [
 	// },
 
 	// === EXECUTE ===
+	// DECISION: 5 tiers with lower values, base cap reduced from 10% to 5%.
+	// Execute is the most powerful mechanic (instant kill) so per-card values stay tiny.
 	{
 		id: 'execute_1',
 		title: 'Mercy Kill',
-		rarity: 'uncommon',
+		rarity: 'common',
 		image: pickaxeImg,
-		modifiers: [{ stat: 'executeChance', value: 0.005 }]
+		modifiers: [{ stat: 'executeChance', value: 0.001 }]
 	},
 	{
 		id: 'execute_2',
 		title: 'Culling Blade',
-		rarity: 'rare',
-		image: axeImg,
-		modifiers: [{ stat: 'executeChance', value: 0.01 }]
+		rarity: 'uncommon',
+		image: pickaxeImg,
+		modifiers: [{ stat: 'executeChance', value: 0.002 }]
 	},
 	{
 		id: 'execute_3',
 		title: 'Death Sentence',
+		rarity: 'rare',
+		image: axeImg,
+		modifiers: [{ stat: 'executeChance', value: 0.005 }]
+	},
+	{
+		id: 'execute_4',
+		title: "Reaper's Mark",
 		rarity: 'epic',
 		image: axeImg,
-		modifiers: [{ stat: 'executeChance', value: 0.02 }]
+		modifiers: [{ stat: 'executeChance', value: 0.01 }]
+	},
+	{
+		id: 'execute_5',
+		title: 'Final Judgment',
+		rarity: 'legendary',
+		image: axeImg,
+		modifiers: [{ stat: 'executeChance', value: 0.025 }]
 	},
 
 	// === BOSS TIMER ===
@@ -586,7 +602,9 @@ export const goldPerKillUpgrade: Upgrade = {
 	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
 };
 
-export const EXECUTE_CHANCE_BASE_CAP = 0.1;
+// DECISION: Base cap reduced from 10% to 5%. Execute is instant kill, so even 5% is very strong.
+// Shop upgrades can raise the cap further.
+export const EXECUTE_CHANCE_BASE_CAP = 0.05;
 
 export function getModifierDisplay(mod: StatModifier): {
 	icon: string;
@@ -606,7 +624,13 @@ export function getUpgradeById(id: string): Upgrade | undefined {
 	return upgradeMap.get(id as UpgradeId);
 }
 
-const executeUpgradeIds: Set<UpgradeId> = new Set(['execute_1', 'execute_2', 'execute_3']);
+const executeUpgradeIds: Set<UpgradeId> = new Set([
+	'execute_1',
+	'execute_2',
+	'execute_3',
+	'execute_4',
+	'execute_5'
+]);
 
 // Upgrades that require the player to already have base poison
 const poisonDependentIds: Set<UpgradeId> = new Set([
