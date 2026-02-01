@@ -345,6 +345,32 @@ describe('gaussian lucky system', () => {
 	});
 });
 
+describe('lucky cards (all tiers)', () => {
+	const luckyCards = [
+		{ id: 'lucky_1', rarity: 'common', value: 0.05 },
+		{ id: 'lucky_2', rarity: 'uncommon', value: 0.1 },
+		{ id: 'lucky_3', rarity: 'rare', value: 0.2 },
+		{ id: 'lucky_4', rarity: 'epic', value: 0.5 },
+		{ id: 'lucky_5', rarity: 'legendary', value: 1.0 }
+	];
+
+	test('5 lucky cards exist across all tiers', () => {
+		for (const { id, rarity, value } of luckyCards) {
+			const card = getUpgradeById(id)!;
+			expect(card, `${id} should exist`).toBeDefined();
+			expect(card.rarity).toBe(rarity);
+			expect(card.modifiers[0].stat).toBe('luckyChance');
+			expect(card.modifiers[0].value).toBe(value);
+		}
+	});
+
+	test('values increase with rarity', () => {
+		for (let i = 1; i < luckyCards.length; i++) {
+			expect(luckyCards[i].value).toBeGreaterThan(luckyCards[i - 1].value);
+		}
+	});
+});
+
 describe('multistrike rarity bump', () => {
 	test('multi_strike_1 is rare with +1', () => {
 		const card = getUpgradeById('multi_strike_1')!;

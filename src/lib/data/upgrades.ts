@@ -379,19 +379,43 @@ const _allUpgrades = [
 	},
 
 	// === LUCKY ===
+	// DECISION: 5 tiers with conservative values. Lucky shifts the gaussian focus point
+	// toward higher rarities asymptotically. Even small amounts matter — 0.5 total lucky
+	// moves focus to ~0.8 (still weighted toward common/uncommon but rare starts appearing).
 	{
 		id: 'lucky_1',
 		title: 'Lucky Charm',
+		rarity: 'common',
+		image: chestImg,
+		modifiers: [{ stat: 'luckyChance', value: 0.05 }]
+	},
+	{
+		id: 'lucky_2',
+		title: "Rabbit's Foot",
 		rarity: 'uncommon',
 		image: chestImg,
 		modifiers: [{ stat: 'luckyChance', value: 0.1 }]
 	},
 	{
-		id: 'lucky_2',
+		id: 'lucky_3',
 		title: "Fortune's Favor",
 		rarity: 'rare',
 		image: chestImg,
-		modifiers: [{ stat: 'luckyChance', value: 0.25 }]
+		modifiers: [{ stat: 'luckyChance', value: 0.2 }]
+	},
+	{
+		id: 'lucky_4',
+		title: 'Serendipity',
+		rarity: 'epic',
+		image: chestImg,
+		modifiers: [{ stat: 'luckyChance', value: 0.5 }]
+	},
+	{
+		id: 'lucky_5',
+		title: 'Fate Weaver',
+		rarity: 'legendary',
+		image: chestImg,
+		modifiers: [{ stat: 'luckyChance', value: 1.0 }]
 	},
 
 	// === GOLD DROP CHANCE ===
