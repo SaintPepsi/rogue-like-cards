@@ -2,9 +2,7 @@ import { describe, test, expect } from 'vitest';
 import {
 	createPipelineRunner,
 	type SystemDefinition,
-	type PipelineHit,
-	type AttackContext,
-	type AttackPipelineResult
+	type AttackContext
 } from '$lib/engine/systemPipeline';
 import type { PlayerStats } from '$lib/types';
 import { createDefaultStats } from '$lib/engine/stats';
@@ -13,7 +11,7 @@ import { createDefaultStats } from '$lib/engine/stats';
 
 const noopSystem: SystemDefinition<{}> = {
 	id: 'noop',
-	initialState: () => ({}),
+	initialState: () => ({})
 };
 
 const alwaysCritSystem: SystemDefinition<{}> = {
@@ -21,10 +19,15 @@ const alwaysCritSystem: SystemDefinition<{}> = {
 	priority: 20,
 	initialState: () => ({}),
 	transformsFrom: ['hit'],
-	transformHit: (state, hit, _stats, _rng) => {
+	transformHit: (state, hit) => {
 		return {
 			state,
-			hit: { type: 'criticalHit', damage: (hit as any).damage * 2, index: (hit as any).index, critMultiplier: 2 }
+			hit: {
+				type: 'criticalHit',
+				damage: hit.damage * 2,
+				index: hit.index,
+				critMultiplier: 2
+			}
 		};
 	}
 };
@@ -34,7 +37,7 @@ const neverCritSystem: SystemDefinition<{}> = {
 	priority: 20,
 	initialState: () => ({}),
 	transformsFrom: ['hit'],
-	transformHit: (state, hit, _stats, _rng) => {
+	transformHit: (state, hit) => {
 		return { state, hit }; // Accept but don't change
 	}
 };
@@ -44,10 +47,10 @@ const damageDoubleTransform: SystemDefinition<{}> = {
 	priority: 30,
 	initialState: () => ({}),
 	transformsFrom: ['hit', 'criticalHit'],
-	transformHit: (state, hit, _stats, _rng) => {
+	transformHit: (state, hit) => {
 		return {
 			state,
-			hit: { ...hit, damage: (hit as any).damage * 2 }
+			hit: { ...hit, damage: hit.damage * 2 }
 		};
 	}
 };
@@ -56,7 +59,7 @@ const hitCountReactor: SystemDefinition<{ count: number }> = {
 	id: 'hit-counter',
 	initialState: () => ({ count: 0 }),
 	reactsTo: ['hit', 'criticalHit'],
-	onHit: (state, _hit, _stats) => {
+	onHit: (state) => {
 		return { state: { count: state.count + 1 } };
 	}
 };
@@ -64,9 +67,9 @@ const hitCountReactor: SystemDefinition<{ count: number }> = {
 const conditionalSystem: SystemDefinition<{}> = {
 	id: 'conditional',
 	initialState: () => ({}),
-	isActive: (stats) => (stats as any).conditionMet > 0,
+	isActive: (stats) => (stats as PlayerStats & { conditionMet: number }).conditionMet > 0,
 	reactsTo: ['hit'],
-	onHit: (state, _hit, _stats) => {
+	onHit: (state) => {
 		return { state };
 	}
 };
@@ -75,7 +78,7 @@ const effectEmitter: SystemDefinition<{}> = {
 	id: 'effect-emitter',
 	initialState: () => ({}),
 	reactsTo: ['criticalHit'],
-	onHit: (state, _hit, _stats) => {
+	onHit: (state) => {
 		return {
 			state,
 			effects: [{ target: 'effect-receiver', action: 'addStack', payload: { count: 1 } }]
@@ -88,7 +91,8 @@ const effectReceiver: SystemDefinition<{ stacks: number }> = {
 	initialState: () => ({ stacks: 0 }),
 	handleEffect: (state, action, payload) => {
 		if (action === 'addStack') {
-			return { stacks: state.stacks + (payload.count ?? 1) };
+			const data = payload as { count?: number };
+			return { stacks: state.stacks + (data.count ?? 1) };
 		}
 		return state;
 	}
@@ -101,7 +105,7 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 		overkillDamage: 0,
 		isBoss: false,
 		rng: () => 0.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -109,7 +113,7 @@ function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
 		...createDefaultStats(),
 		damage: 10,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -249,7 +253,7 @@ describe('runAttack — reactors', () => {
 			id: 'crit-reactor',
 			initialState: () => ({ critCount: 0 }),
 			reactsTo: ['criticalHit'],
-			onHit: (state) => ({ state: { critCount: state.critCount + 1 } }),
+			onHit: (state) => ({ state: { critCount: state.critCount + 1 } })
 		};
 		const runner = createPipelineRunner([alwaysCritSystem, critReactor]);
 		const stats = makeStats();
@@ -275,9 +279,9 @@ describe('runAttack — isActive gating', () => {
 		const activeTracker: SystemDefinition<{ hitCount: number }> = {
 			id: 'active-tracker',
 			initialState: () => ({ hitCount: 0 }),
-			isActive: (stats) => (stats as any).trackerEnabled > 0,
+			isActive: (stats) => (stats as PlayerStats & { trackerEnabled: number }).trackerEnabled > 0,
 			reactsTo: ['hit'],
-			onHit: (state) => ({ state: { hitCount: state.hitCount + 1 } }),
+			onHit: (state) => ({ state: { hitCount: state.hitCount + 1 } })
 		};
 		const runner = createPipelineRunner([activeTracker]);
 

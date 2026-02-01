@@ -1,7 +1,12 @@
 import { describe, test, expect } from 'vitest';
 import {
-	add, multiply, clampMin, conditionalAdd,
-	computeLayered, createLayer, dirtyLayer,
+	add,
+	multiply,
+	clampMin,
+	conditionalAdd,
+	computeLayered,
+	createLayer,
+	dirtyLayer,
 	type PipelineLayer
 } from '$lib/engine/statPipeline';
 
@@ -31,18 +36,15 @@ describe('step functions', () => {
 describe('computeLayered', () => {
 	test('computes through all layers', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),       // 1 + 5 = 6
-			createLayer([multiply(2)]),  // 6 * 2 = 12
-			createLayer([clampMin(0)])   // 12 (no change)
+			createLayer([add(5)]), // 1 + 5 = 6
+			createLayer([multiply(2)]), // 6 * 2 = 12
+			createLayer([clampMin(0)]) // 12 (no change)
 		];
 		expect(computeLayered(1, layers)).toBe(12);
 	});
 
 	test('returns cached result when not dirty and input unchanged', () => {
-		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),
-			createLayer([multiply(2)])
-		];
+		const layers: PipelineLayer[] = [createLayer([add(5)]), createLayer([multiply(2)])];
 
 		// First computation
 		expect(computeLayered(1, layers)).toBe(12);
@@ -53,8 +55,8 @@ describe('computeLayered', () => {
 
 	test('recomputes only dirty layers', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),       // Layer 0: permanent
-			createLayer([add(0)]),       // Layer 1: transient (will be modified)
+			createLayer([add(5)]), // Layer 0: permanent
+			createLayer([add(0)]) // Layer 1: transient (will be modified)
 		];
 
 		// First computation: 1 + 5 + 0 = 6
@@ -68,10 +70,7 @@ describe('computeLayered', () => {
 	});
 
 	test('dirtying an earlier layer forces recomputation of later layers', () => {
-		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),
-			createLayer([multiply(2)])
-		];
+		const layers: PipelineLayer[] = [createLayer([add(5)]), createLayer([multiply(2)])];
 
 		// First: (1 + 5) * 2 = 12
 		expect(computeLayered(1, layers)).toBe(12);
@@ -90,7 +89,7 @@ describe('computeLayered', () => {
 
 	test('handles multiple steps in one layer', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(2), add(3), multiply(2)])  // (5 + 2 + 3) * 2 = 20
+			createLayer([add(2), add(3), multiply(2)]) // (5 + 2 + 3) * 2 = 20
 		];
 		expect(computeLayered(5, layers)).toBe(20);
 	});

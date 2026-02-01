@@ -22,7 +22,19 @@
 		onPlayAgain: () => void;
 	};
 
-	let { show, gold, choices, executeCapLevel, goldPerKillLevel, rerollCost, getPrice, onBuy, onReroll, onBack, onPlayAgain }: Props = $props();
+	let {
+		show,
+		gold,
+		choices,
+		executeCapLevel,
+		goldPerKillLevel,
+		rerollCost,
+		getPrice,
+		onBuy,
+		onReroll,
+		onBack,
+		onPlayAgain
+	}: Props = $props();
 
 	const flip = useCardFlip();
 	const cardSelect = useCardSelect();
@@ -36,11 +48,11 @@
 
 	// Pre-effect: runs before DOM update so new cards never flash their front face
 	$effect.pre(() => {
-		const currentIds = choices.map(c => c.id).join(',');
+		const currentIds = choices.map((c) => c.id).join(',');
 		if (show && currentIds && currentIds !== lastChoiceIds) {
 			lastChoiceIds = currentIds;
 			rerollGeneration++;
-			priceSnapshot = choices.map(c => untrack(() => getPrice(c)));
+			priceSnapshot = choices.map((c) => untrack(() => getPrice(c)));
 			cardSelect.cleanup();
 			flip.startFlip(choices.length);
 		}
@@ -73,7 +85,9 @@
 		return upgrade.title;
 	}
 
-	let transitioning = $derived(rerolling || cardSelect.selecting || flip.enabledCards.some((e) => !e));
+	let transitioning = $derived(
+		rerolling || cardSelect.selecting || flip.enabledCards.some((e) => !e)
+	);
 
 	function handleBuy(upgrade: Upgrade, index: number) {
 		if (!flip.enabledCards[index]) return;
@@ -95,7 +109,11 @@
 					{@const price = priceSnapshot[i] ?? 0}
 					{@const canAfford = gold >= price}
 					<Button.Root
-						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting
+							? cardSelect.selectedIndex === i
+								? 'card-selected'
+								: 'card-dismissed'
+							: ''}"
 						disabled={!flip.enabledCards[i] || cardSelect.selecting || !canAfford || rerolling}
 						onclick={() => handleBuy(upgrade, i)}
 					>
@@ -112,7 +130,11 @@
 									image={upgrade.image}
 									modifiers={getModifiers(upgrade)}
 								/>
-								<div class="buy-label" class:affordable={canAfford} class:too-expensive={!canAfford}>
+								<div
+									class="buy-label"
+									class:affordable={canAfford}
+									class:too-expensive={!canAfford}
+								>
 									Buy for {formatNumber(price)}g
 								</div>
 							</div>
@@ -126,7 +148,11 @@
 						{@const price = priceSnapshot[i] ?? 0}
 						{@const canAfford = gold >= price}
 						<Button.Root
-							class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+							class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting
+								? cardSelect.selectedIndex === i
+									? 'card-selected'
+									: 'card-dismissed'
+								: ''}"
 							disabled={!flip.enabledCards[i] || cardSelect.selecting || !canAfford || rerolling}
 							onclick={() => handleBuy(upgrade, i)}
 						>
@@ -143,7 +169,11 @@
 										image={upgrade.image}
 										modifiers={getModifiers(upgrade)}
 									/>
-									<div class="buy-label" class:affordable={canAfford} class:too-expensive={!canAfford}>
+									<div
+										class="buy-label"
+										class:affordable={canAfford}
+										class:too-expensive={!canAfford}
+									>
 										Buy for {formatNumber(price)}g
 									</div>
 								</div>
@@ -164,8 +194,14 @@
 			</div>
 
 			<div class="button-row">
-				<Button.Root class="py-3 px-8 bg-[#374151] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]" onclick={onBack}>Back</Button.Root>
-				<Button.Root class="py-3 px-8 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]" onclick={onPlayAgain}>Play Again</Button.Root>
+				<Button.Root
+					class="py-3 px-8 bg-[#374151] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]"
+					onclick={onBack}>Back</Button.Root
+				>
+				<Button.Root
+					class="py-3 px-8 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]"
+					onclick={onPlayAgain}>Play Again</Button.Root
+				>
 			</div>
 		</div>
 	</div>
@@ -195,9 +231,15 @@
 	}
 
 	@keyframes panel-pulse {
-		0% { transform: scale(1); }
-		43% { transform: scale(0.98); }
-		100% { transform: scale(1); }
+		0% {
+			transform: scale(1);
+		}
+		43% {
+			transform: scale(0.98);
+		}
+		100% {
+			transform: scale(1);
+		}
 	}
 
 	.modal-header {
@@ -247,7 +289,10 @@
 
 	/* Card selection transitions — matches LevelUpModal */
 	:global(.card-wrapper) {
-		transition: transform 300ms ease-out, opacity 300ms ease-out, filter 300ms ease-out;
+		transition:
+			transform 300ms ease-out,
+			opacity 300ms ease-out,
+			filter 300ms ease-out;
 	}
 
 	:global(.card-wrapper.card-selected) {
@@ -352,7 +397,9 @@
 		font-size: 0.95rem;
 		font-weight: bold;
 		cursor: pointer;
-		transition: transform 200ms, box-shadow 200ms;
+		transition:
+			transform 200ms,
+			box-shadow 200ms;
 	}
 
 	:global(.reroll-btn.reroll-affordable) {

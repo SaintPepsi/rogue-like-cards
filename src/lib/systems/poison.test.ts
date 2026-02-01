@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest';
 import { poisonSystem, type PoisonState } from './poison';
-import type { PipelineHit, KillContext } from '$lib/engine/systemPipeline';
+import type { PipelineHit } from '$lib/engine/systemPipeline';
 import type { PlayerStats } from '$lib/types';
 import { createDefaultStats } from '$lib/engine/stats';
 
@@ -13,7 +13,7 @@ function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 		...createDefaultStats(),
 		damage: 10,
 		poison: 2,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -50,8 +50,12 @@ describe('poisonSystem — onHit (reactor)', () => {
 	});
 
 	test('respects max stacks (refresh-shortest policy)', () => {
-		let state: PoisonState = { stacks: [5, 5, 5, 5, 5] }; // at max (5)
-		const result = poisonSystem.onHit!(state, makeHit('hit'), makeStats({ poisonMaxStacks: 5, poisonDuration: 6 }));
+		const state: PoisonState = { stacks: [5, 5, 5, 5, 5] }; // at max (5)
+		const result = poisonSystem.onHit!(
+			state,
+			makeHit('hit'),
+			makeStats({ poisonMaxStacks: 5, poisonDuration: 6 })
+		);
 		expect(result!.state.stacks).toHaveLength(5); // still at max
 		expect(result!.state.stacks).toContain(6); // new stack with refreshed duration
 	});
@@ -75,7 +79,9 @@ describe('poisonSystem — onTick', () => {
 
 	test('deals damage = poison * stackCount', () => {
 		const state: PoisonState = { stacks: [3, 3, 3] };
-		const result = poisonSystem.onTick!(state, makeStats({ poison: 2, damageMultiplier: 1 }), { deltaMs: 1000 });
+		const result = poisonSystem.onTick!(state, makeStats({ poison: 2, damageMultiplier: 1 }), {
+			deltaMs: 1000
+		});
 		expect(result.damage).toBe(6); // 2 * 3 stacks
 		expect(result.hitType).toBe('poison');
 	});
@@ -88,13 +94,20 @@ describe('poisonSystem — onTick', () => {
 
 	test('applies damageMultiplier', () => {
 		const state: PoisonState = { stacks: [3] };
-		const result = poisonSystem.onTick!(state, makeStats({ poison: 4, damageMultiplier: 3 }), { deltaMs: 1000 });
+		const result = poisonSystem.onTick!(state, makeStats({ poison: 4, damageMultiplier: 3 }), {
+			deltaMs: 1000
+		});
 		expect(result.damage).toBe(12); // floor(4 * 3) * 1 stack
 	});
 
 	test('applies poison crit', () => {
 		const state: PoisonState = { stacks: [3] };
-		const stats = makeStats({ poison: 10, poisonCritChance: 1, critMultiplier: 2, damageMultiplier: 1 });
+		const stats = makeStats({
+			poison: 10,
+			poisonCritChance: 1,
+			critMultiplier: 2,
+			damageMultiplier: 1
+		});
 		// Note: onTick doesn't have rng param currently — poison crit needs rng
 		// For now, poison crit is handled by passing rng through stats or context
 		// This test documents the expected behavior
@@ -108,7 +121,13 @@ describe('poisonSystem — onTick', () => {
 describe('poisonSystem — onKill', () => {
 	test('clears all stacks', () => {
 		const state: PoisonState = { stacks: [3, 5, 4] };
-		const result = poisonSystem.onKill!(state, { enemyMaxHealth: 100, isBoss: false, isChest: false, isBossChest: false, stage: 1 });
+		const result = poisonSystem.onKill!(state, {
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			stage: 1
+		});
 		expect(result.stacks).toHaveLength(0);
 	});
 });

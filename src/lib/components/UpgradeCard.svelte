@@ -19,8 +19,12 @@
 		modifiers?: StatModifier[];
 	};
 
-	let { title, image = 'https://picsum.photos/400/300', rarity = 'common', modifiers = [] }: Props =
-		$props();
+	let {
+		title,
+		image = 'https://picsum.photos/400/300',
+		rarity = 'common',
+		modifiers = []
+	}: Props = $props();
 
 	let displayStats = $derived(modifiers.map(getModifierDisplay));
 

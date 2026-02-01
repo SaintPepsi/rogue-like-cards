@@ -4,7 +4,9 @@ import type { PipelineHit } from '$lib/engine/systemPipeline';
 import type { PlayerStats } from '$lib/types';
 import { createDefaultStats } from '$lib/engine/stats';
 
-function makeHit(overrides: Partial<PipelineHit & { damage: number; index: number }> = {}): PipelineHit {
+function makeHit(
+	overrides: Partial<PipelineHit & { damage: number; index: number }> = {}
+): PipelineHit {
 	return { type: 'hit', damage: 10, index: 0, ...overrides } as PipelineHit;
 }
 
@@ -12,7 +14,7 @@ function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
 		...createDefaultStats(),
 		damage: 10,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -36,8 +38,8 @@ describe('critSystem', () => {
 		);
 		expect(result).not.toBeNull();
 		expect(result!.hit.type).toBe('criticalHit');
-		expect((result!.hit as any).damage).toBe(20);
-		expect((result!.hit as any).critMultiplier).toBe(2);
+		expect(result!.hit.damage).toBe(20);
+		expect((result!.hit as PipelineHit<'criticalHit'>).critMultiplier).toBe(2);
 	});
 
 	test('passes through hit unchanged when rng above critChance', () => {
@@ -51,7 +53,7 @@ describe('critSystem', () => {
 		);
 		expect(result).not.toBeNull();
 		expect(result!.hit.type).toBe('hit');
-		expect((result!.hit as any).damage).toBe(10);
+		expect(result!.hit.damage).toBe(10);
 	});
 
 	test('always crits when critChance is 1.0', () => {
@@ -63,7 +65,7 @@ describe('critSystem', () => {
 			() => 0.99
 		);
 		expect(result!.hit.type).toBe('criticalHit');
-		expect((result!.hit as any).damage).toBe(15);
+		expect(result!.hit.damage).toBe(15);
 	});
 
 	test('never crits when critChance is 0', () => {
@@ -85,7 +87,7 @@ describe('critSystem', () => {
 			makeStats({ critChance: 1.0, critMultiplier: 1.5 }),
 			() => 0
 		);
-		expect((result!.hit as any).damage).toBe(10); // floor(7 * 1.5) = 10
+		expect(result!.hit.damage).toBe(10); // floor(7 * 1.5) = 10
 	});
 
 	test('crit damage is at least base damage + 1', () => {
@@ -97,7 +99,7 @@ describe('critSystem', () => {
 			() => 0
 		);
 		// floor(1 * 1.5) = 1, but crit must deal more than base: max(1+1, 1) = 2
-		expect((result!.hit as any).damage).toBe(2);
+		expect(result!.hit.damage).toBe(2);
 	});
 
 	test('preserves hit index', () => {
@@ -108,6 +110,6 @@ describe('critSystem', () => {
 			makeStats({ critChance: 1.0, critMultiplier: 2 }),
 			() => 0
 		);
-		expect((result!.hit as any).index).toBe(2);
+		expect(result!.hit.index).toBe(2);
 	});
 });

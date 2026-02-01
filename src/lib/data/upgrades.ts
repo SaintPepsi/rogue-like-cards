@@ -66,7 +66,10 @@ const _allUpgrades = [
 		title: 'Death Mark',
 		rarity: 'rare',
 		image: attackImg,
-		modifiers: [{ stat: 'critChance', value: 0.15 }, { stat: 'critMultiplier', value: 0.5 }]
+		modifiers: [
+			{ stat: 'critChance', value: 0.15 },
+			{ stat: 'critMultiplier', value: 0.5 }
+		]
 	},
 
 	// === CRIT DAMAGE UPGRADES ===
@@ -270,14 +273,20 @@ const _allUpgrades = [
 		title: 'Greed',
 		rarity: 'uncommon',
 		image: coinsImg,
-		modifiers: [{ stat: 'greed', value: 0.5 }, { stat: 'xpMultiplier', value: 1 }]
+		modifiers: [
+			{ stat: 'greed', value: 0.5 },
+			{ stat: 'xpMultiplier', value: 1 }
+		]
 	},
 	{
 		id: 'greed_2',
 		title: 'Avarice',
 		rarity: 'rare',
 		image: coinsImg,
-		modifiers: [{ stat: 'greed', value: 1 }, { stat: 'xpMultiplier', value: 2 }]
+		modifiers: [
+			{ stat: 'greed', value: 1 },
+			{ stat: 'xpMultiplier', value: 2 }
+		]
 	},
 
 	// === CHEST SPAWN ===
@@ -300,7 +309,10 @@ const _allUpgrades = [
 		title: 'Hoarder',
 		rarity: 'epic',
 		image: chestImg,
-		modifiers: [{ stat: 'chestChance', value: 0.001 }, { stat: 'goldMultiplier', value: 0.5 }]
+		modifiers: [
+			{ stat: 'chestChance', value: 0.001 },
+			{ stat: 'goldMultiplier', value: 0.5 }
+		]
 	},
 
 	// === BOSS CHEST SPAWN (Legendary only) ===
@@ -309,14 +321,20 @@ const _allUpgrades = [
 		title: "Mimic's Blessing",
 		rarity: 'legendary',
 		image: mimicImg,
-		modifiers: [{ stat: 'bossChestChance', value: 0.001 }, { stat: 'chestChance', value: 0.001 }]
+		modifiers: [
+			{ stat: 'bossChestChance', value: 0.001 },
+			{ stat: 'chestChance', value: 0.001 }
+		]
 	},
 	{
 		id: 'boss_chest_2',
 		title: "Dragon's Hoard",
 		rarity: 'legendary',
 		image: chestImg,
-		modifiers: [{ stat: 'bossChestChance', value: 0.001 }, { stat: 'goldMultiplier', value: 1 }]
+		modifiers: [
+			{ stat: 'bossChestChance', value: 0.001 },
+			{ stat: 'goldMultiplier', value: 1 }
+		]
 	},
 
 	// === LUCKY ===
@@ -355,7 +373,10 @@ const _allUpgrades = [
 		title: 'Golden Touch',
 		rarity: 'rare',
 		image: coinsImg,
-		modifiers: [{ stat: 'goldDropChance', value: 0.15 }, { stat: 'goldMultiplier', value: 0.25 }]
+		modifiers: [
+			{ stat: 'goldDropChance', value: 0.15 },
+			{ stat: 'goldMultiplier', value: 0.25 }
+		]
 	},
 
 	// === DAMAGE MULTIPLIER ===
@@ -380,49 +401,76 @@ const _allUpgrades = [
 		title: 'Berserker',
 		rarity: 'epic',
 		image: axeImg,
-		modifiers: [{ stat: 'damage', value: 8 }, { stat: 'critChance', value: 0.1 }]
+		modifiers: [
+			{ stat: 'damage', value: 8 },
+			{ stat: 'critChance', value: 0.1 }
+		]
 	},
 	{
 		id: 'combo_2',
 		title: 'Poison Master',
 		rarity: 'epic',
 		image: poisonImg,
-		modifiers: [{ stat: 'poison', value: 8 }, { stat: 'damage', value: 5 }]
+		modifiers: [
+			{ stat: 'poison', value: 8 },
+			{ stat: 'damage', value: 5 }
+		]
 	},
 	{
 		id: 'combo_3',
 		title: 'Plague Doctor',
 		rarity: 'epic',
 		image: poisonImg,
-		modifiers: [{ stat: 'poison', value: 5 }, { stat: 'poisonMaxStacks', value: 5 }, { stat: 'poisonDuration', value: 3 }]
+		modifiers: [
+			{ stat: 'poison', value: 5 },
+			{ stat: 'poisonMaxStacks', value: 5 },
+			{ stat: 'poisonDuration', value: 3 }
+		]
 	},
 	{
 		id: 'legendary_4',
 		title: 'Toxic Apocalypse',
 		rarity: 'legendary',
 		image: poisonImg,
-		modifiers: [{ stat: 'poison', value: 12 }, { stat: 'poisonMaxStacks', value: 10 }, { stat: 'poisonDuration', value: 5 }, { stat: 'poisonCritChance', value: 0.15 }]
+		modifiers: [
+			{ stat: 'poison', value: 12 },
+			{ stat: 'poisonMaxStacks', value: 10 },
+			{ stat: 'poisonDuration', value: 5 },
+			{ stat: 'poisonCritChance', value: 0.15 }
+		]
 	},
 	{
 		id: 'legendary_1',
 		title: "Dragon's Fury",
 		rarity: 'legendary',
 		image: chestImg,
-		modifiers: [{ stat: 'damage', value: 15 }, { stat: 'critChance', value: 0.2 }, { stat: 'critMultiplier', value: 1 }]
+		modifiers: [
+			{ stat: 'damage', value: 15 },
+			{ stat: 'critChance', value: 0.2 },
+			{ stat: 'critMultiplier', value: 1 }
+		]
 	},
 	{
 		id: 'legendary_2',
 		title: 'Death Incarnate',
 		rarity: 'legendary',
 		image: fireImg,
-		modifiers: [{ stat: 'poison', value: 10 }, { stat: 'executeChance', value: 0.02 }, { stat: 'multiStrike', value: 2 }]
+		modifiers: [
+			{ stat: 'poison', value: 10 },
+			{ stat: 'executeChance', value: 0.02 },
+			{ stat: 'multiStrike', value: 2 }
+		]
 	},
 	{
 		id: 'legendary_3',
 		title: 'Time Lord',
 		rarity: 'legendary',
 		image: timerImg,
-		modifiers: [{ stat: 'bonusBossTime', value: 20 }, { stat: 'multiStrike', value: 3 }, { stat: 'xpMultiplier', value: 1 }]
+		modifiers: [
+			{ stat: 'bonusBossTime', value: 20 },
+			{ stat: 'multiStrike', value: 3 },
+			{ stat: 'xpMultiplier', value: 1 }
+		]
 	},
 
 	// === ATTACK SPEED ===
@@ -461,7 +509,10 @@ const _allUpgrades = [
 		title: 'Berserker Fury',
 		rarity: 'rare',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]
+		modifiers: [
+			{ stat: 'tapFrenzyBonus', value: 0.05 },
+			{ stat: 'attackSpeed', value: 0.2 }
+		]
 	},
 
 	// === FRENZY DURATION ===
@@ -484,7 +535,10 @@ const _allUpgrades = [
 		title: 'Relentless Rage',
 		rarity: 'epic',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyDuration', value: 3 }, { stat: 'tapFrenzyBonus', value: 0.03 }]
+		modifiers: [
+			{ stat: 'tapFrenzyDuration', value: 3 },
+			{ stat: 'tapFrenzyBonus', value: 0.03 }
+		]
 	},
 
 	// === FRENZY BONUS (Epic capstone) ===
@@ -493,7 +547,10 @@ const _allUpgrades = [
 		title: 'Bloodlust',
 		rarity: 'epic',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyBonus', value: 0.08 }, { stat: 'attackSpeed', value: 0.3 }]
+		modifiers: [
+			{ stat: 'tapFrenzyBonus', value: 0.08 },
+			{ stat: 'attackSpeed', value: 0.3 }
+		]
 	},
 
 	// === FRENZY LEGENDARY ===
@@ -529,7 +586,11 @@ export const goldPerKillUpgrade: Upgrade = {
 
 export const EXECUTE_CHANCE_BASE_CAP = 0.1;
 
-export function getModifierDisplay(mod: StatModifier): { icon: string; label: string; value: string } {
+export function getModifierDisplay(mod: StatModifier): {
+	icon: string;
+	label: string;
+	value: string;
+} {
 	const entry = statRegistry.find((s) => s.key === mod.stat);
 	if (!entry) return { icon: '', label: mod.stat, value: `+${mod.value}` };
 	const formatter = entry.formatMod ?? entry.format;
@@ -547,10 +608,17 @@ const executeUpgradeIds: Set<UpgradeId> = new Set(['execute_1', 'execute_2', 'ex
 
 // Upgrades that require the player to already have base poison
 const poisonDependentIds: Set<UpgradeId> = new Set([
-	'poison_duration_1', 'poison_duration_2', 'poison_duration_3',
-	'poison_stacks_1', 'poison_stacks_2', 'poison_stacks_3',
-	'poison_crit_1', 'poison_crit_2', 'poison_crit_3',
-	'combo_3', 'legendary_4'
+	'poison_duration_1',
+	'poison_duration_2',
+	'poison_duration_3',
+	'poison_stacks_1',
+	'poison_stacks_2',
+	'poison_stacks_3',
+	'poison_crit_1',
+	'poison_crit_2',
+	'poison_crit_3',
+	'combo_3',
+	'legendary_4'
 ]);
 
 export function getExecuteCap(executeCapBonus: number): number {
@@ -567,22 +635,22 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 // This gives ~1 legendary per 100 draws and ~1 epic per 33 draws.
 // The 1/3 ratio keeps higher tiers exciting without making them unobtainable.
 const RARITY_TIER_CHANCES: Record<string, number> = {
-	common: 67,    // 67% chance per pick
-	uncommon: 22,  // 22% chance per pick  (~1/3 of common)
-	rare: 7,       //  7% chance per pick  (~1/3 of uncommon)
-	epic: 3,       //  3% chance per pick  (~1/3 of rare)
-	legendary: 1   //  1% chance per pick  (~1/3 of epic)
+	common: 67, // 67% chance per pick
+	uncommon: 22, // 22% chance per pick  (~1/3 of common)
+	rare: 7, //  7% chance per pick  (~1/3 of uncommon)
+	epic: 3, //  3% chance per pick  (~1/3 of rare)
+	legendary: 1 //  1% chance per pick  (~1/3 of epic)
 };
 
 // DECISION: Lucky redistributes 20% points from common into higher tiers.
 // The split (5/7/5/3) favors rare slightly, keeping legendaries special even with full luck.
 // At max lucky (1.0): common drops from 67% to 47%, legendary rises from 1% to 4%.
 const LUCKY_TIER_BONUS: Record<string, number> = {
-	common: -20,    // loses 20% points
-	uncommon: 5,    // gains 5% points
-	rare: 7,        // gains 7% points
-	epic: 5,        // gains 5% points
-	legendary: 3    // gains 3% points
+	common: -20, // loses 20% points
+	uncommon: 5, // gains 5% points
+	rare: 7, // gains 7% points
+	epic: 5, // gains 5% points
+	legendary: 3 // gains 3% points
 };
 
 const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
@@ -663,10 +731,10 @@ export function getRandomUpgrades(
 	let pool = [...allUpgrades];
 
 	// Filter by minimum rarity
-	const minIndex = RARITY_ORDER.indexOf(minRarity as typeof RARITY_ORDER[number]);
+	const minIndex = RARITY_ORDER.indexOf(minRarity as (typeof RARITY_ORDER)[number]);
 	if (minIndex > 0) {
 		const allowed = new Set(RARITY_ORDER.slice(minIndex));
-		pool = pool.filter((u) => allowed.has(u.rarity as typeof RARITY_ORDER[number]));
+		pool = pool.filter((u) => allowed.has(u.rarity as (typeof RARITY_ORDER)[number]));
 	}
 
 	// Filter out execute upgrades if player has hit their current cap

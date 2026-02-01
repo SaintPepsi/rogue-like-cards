@@ -48,20 +48,20 @@ One file per event. Same source file reused across hit types, differentiated by 
 
 ```ts
 const SFX_REGISTRY = {
-  'hit:normal':      { src: '/audio/sfx/wood-hit-1.wav', volume: 0.6 },
-  'hit:crit':        { src: '/audio/sfx/wood-hit-1.wav', volume: 0.8, rate: 1.2 },
-  'hit:execute':     { src: '/audio/sfx/bell-cut.mp3', volume: 1.0 },
-  'hit:poison':      { src: '/audio/sfx/body-hit-with-grunt-3.wav', volume: 0.5 },
-  'hit:poisonCrit':  { src: '/audio/sfx/body-hit-with-grunt-3.wav', volume: 0.7, rate: 1.1 },
-  'enemy:death':     { src: '/audio/sfx/oof-4.wav', volume: 0.7, rate: 0.6 },  // pitched down to sound less human
-  'enemy:bossSpawn': { src: '/audio/sfx/scream-14.wav', volume: 0.9, rate: 0.4 },  // pitched way down
-  'enemy:bossDeath': { src: '/audio/sfx/scream-18.wav', volume: 1.0, rate: 0.4 },  // pitched way down
-  'gold:drop':       { src: '/audio/sfx/coin-jingle-small.wav', volume: 0.4 },
-  'chest:break':     { src: '/audio/sfx/hammer-hits-glass-6.wav', volume: 0.8 },
-  'game:over':       { src: '/audio/sfx/big-distant-thump-6.wav', volume: 1.0 },
-  'ui:cardFlip':     { src: '/audio/sfx/card-draw-3.wav', volume: 0.5 },  // cards rotating/flipping in
-  'ui:cardSelect':   { src: '/audio/sfx/card-draw-2.wav', volume: 0.6 },
-  'hit:miss':        { src: '/audio/sfx/woosh-13.wav', volume: 0.5 },  // future: when miss mechanic is added
+	'hit:normal': { src: '/audio/sfx/wood-hit-1.wav', volume: 0.6 },
+	'hit:crit': { src: '/audio/sfx/wood-hit-1.wav', volume: 0.8, rate: 1.2 },
+	'hit:execute': { src: '/audio/sfx/bell-cut.mp3', volume: 1.0 },
+	'hit:poison': { src: '/audio/sfx/body-hit-with-grunt-3.wav', volume: 0.5 },
+	'hit:poisonCrit': { src: '/audio/sfx/body-hit-with-grunt-3.wav', volume: 0.7, rate: 1.1 },
+	'enemy:death': { src: '/audio/sfx/oof-4.wav', volume: 0.7, rate: 0.6 }, // pitched down to sound less human
+	'enemy:bossSpawn': { src: '/audio/sfx/scream-14.wav', volume: 0.9, rate: 0.4 }, // pitched way down
+	'enemy:bossDeath': { src: '/audio/sfx/scream-18.wav', volume: 1.0, rate: 0.4 }, // pitched way down
+	'gold:drop': { src: '/audio/sfx/coin-jingle-small.wav', volume: 0.4 },
+	'chest:break': { src: '/audio/sfx/hammer-hits-glass-6.wav', volume: 0.8 },
+	'game:over': { src: '/audio/sfx/big-distant-thump-6.wav', volume: 1.0 },
+	'ui:cardFlip': { src: '/audio/sfx/card-draw-3.wav', volume: 0.5 }, // cards rotating/flipping in
+	'ui:cardSelect': { src: '/audio/sfx/card-draw-2.wav', volume: 0.6 },
+	'hit:miss': { src: '/audio/sfx/woosh-13.wav', volume: 0.5 } // future: when miss mechanic is added
 } as const;
 ```
 
@@ -133,7 +133,7 @@ After hit array is generated:
 
 ```ts
 for (const hit of hits) {
-  sfx.play(`hit:${hit.type}`);
+	sfx.play(`hit:${hit.type}`);
 }
 ```
 
@@ -175,22 +175,22 @@ Add to `SettingsModal.svelte`:
 
 ## Audio Assets Needed (v1)
 
-| Event | File | Notes |
-|---|---|---|
-| `hit:normal` | `wood-hit-1.wav` | Base hit sound, reused with pitch/volume variation |
-| `hit:crit` | `wood-hit-1.wav` | Same file, higher pitch (rate: 1.2), louder |
-| `hit:execute` | `bell-cut.mp3` | Sharp execute sound |
-| `hit:poison` | `body-hit-with-grunt-3.wav` | Poison hit |
-| `hit:poisonCrit` | `body-hit-with-grunt-3.wav` | Same file, slightly higher pitch (rate: 1.1), louder |
-| `enemy:death` | `oof-4.wav` | Pitched down (rate: 0.6) to sound less human |
-| `enemy:bossSpawn` | `scream-14.wav` | Pitched way down (rate: 0.4) to sound monstrous |
-| `enemy:bossDeath` | `scream-18.wav` | Pitched way down (rate: 0.4) to sound monstrous |
-| `gold:drop` | `coin-jingle-small.wav` | Gold drop |
-| `chest:break` | `hammer-hits-glass-6.wav` | Chest kill / open sound |
-| `game:over` | `big-distant-thump-6.wav` | Give up / game over sound |
-| `ui:cardFlip` | `card-draw-3.wav` | Cards rotating/flipping into view |
-| `ui:cardSelect` | `card-draw-2.wav` | Card selection in level-up/chest/shop |
-| `hit:miss` | `woosh-13.wav` | Future miss mechanic |
+| Event             | File                        | Notes                                                |
+| ----------------- | --------------------------- | ---------------------------------------------------- |
+| `hit:normal`      | `wood-hit-1.wav`            | Base hit sound, reused with pitch/volume variation   |
+| `hit:crit`        | `wood-hit-1.wav`            | Same file, higher pitch (rate: 1.2), louder          |
+| `hit:execute`     | `bell-cut.mp3`              | Sharp execute sound                                  |
+| `hit:poison`      | `body-hit-with-grunt-3.wav` | Poison hit                                           |
+| `hit:poisonCrit`  | `body-hit-with-grunt-3.wav` | Same file, slightly higher pitch (rate: 1.1), louder |
+| `enemy:death`     | `oof-4.wav`                 | Pitched down (rate: 0.6) to sound less human         |
+| `enemy:bossSpawn` | `scream-14.wav`             | Pitched way down (rate: 0.4) to sound monstrous      |
+| `enemy:bossDeath` | `scream-18.wav`             | Pitched way down (rate: 0.4) to sound monstrous      |
+| `gold:drop`       | `coin-jingle-small.wav`     | Gold drop                                            |
+| `chest:break`     | `hammer-hits-glass-6.wav`   | Chest kill / open sound                              |
+| `game:over`       | `big-distant-thump-6.wav`   | Give up / game over sound                            |
+| `ui:cardFlip`     | `card-draw-3.wav`           | Cards rotating/flipping into view                    |
+| `ui:cardSelect`   | `card-draw-2.wav`           | Card selection in level-up/chest/shop                |
+| `hit:miss`        | `woosh-13.wav`              | Future miss mechanic                                 |
 
 ## Decisions
 

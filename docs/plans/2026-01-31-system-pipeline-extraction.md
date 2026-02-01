@@ -11,6 +11,7 @@
 **Dependencies:** Requires Plan 0 (stat pipeline, timer registry, game loop) — already implemented.
 
 **Design doc:** `docs/plans/2026-01-31-system-pipeline-extraction.md` — brainstormed 2026-01-31. Key decisions:
+
 - Systems are pure functions: `(state, context) → newState | null`
 - Hit types use TypeScript declaration merging for true OCP — adding a hit type never modifies existing files
 - Transforms declare `transformsFrom` types; reactors declare `reactsTo` types. Pipeline builds indexed dispatch maps.
@@ -38,6 +39,7 @@ All systems are pure functions. Tests pass controlled inputs (state, hit, stats,
 **Depends on:** None
 
 **Files:**
+
 - Create: `src/lib/engine/systemPipeline.ts`
 - Create: `src/lib/engine/systemPipeline.test.ts`
 
@@ -59,7 +61,7 @@ import {
 
 const noopSystem: SystemDefinition<{}> = {
 	id: 'noop',
-	initialState: () => ({}),
+	initialState: () => ({})
 };
 
 const alwaysCritSystem: SystemDefinition<{}> = {
@@ -70,7 +72,12 @@ const alwaysCritSystem: SystemDefinition<{}> = {
 	transformHit: (state, hit, _stats, _rng) => {
 		return {
 			state,
-			hit: { type: 'criticalHit', damage: (hit as any).damage * 2, index: (hit as any).index, critMultiplier: 2 }
+			hit: {
+				type: 'criticalHit',
+				damage: (hit as any).damage * 2,
+				index: (hit as any).index,
+				critMultiplier: 2
+			}
 		};
 	}
 };
@@ -147,7 +154,7 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 		overkillDamage: 0,
 		isBoss: false,
 		rng: () => 0.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -160,7 +167,7 @@ function makeStats(overrides: Record<string, number> = {}): Record<string, numbe
 		executeChance: 0,
 		critChance: 0,
 		critMultiplier: 1.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -300,7 +307,7 @@ describe('runAttack — reactors', () => {
 			id: 'crit-reactor',
 			initialState: () => ({ critCount: 0 }),
 			reactsTo: ['criticalHit'],
-			onHit: (state) => ({ state: { critCount: state.critCount + 1 } }),
+			onHit: (state) => ({ state: { critCount: state.critCount + 1 } })
 		};
 		const runner = createPipelineRunner([alwaysCritSystem, critReactor]);
 		const stats = makeStats();
@@ -328,7 +335,7 @@ describe('runAttack — isActive gating', () => {
 			initialState: () => ({ hitCount: 0 }),
 			isActive: (stats) => (stats as any).trackerEnabled > 0,
 			reactsTo: ['hit'],
-			onHit: (state) => ({ state: { hitCount: state.hitCount + 1 } }),
+			onHit: (state) => ({ state: { hitCount: state.hitCount + 1 } })
 		};
 		const runner = createPipelineRunner([activeTracker]);
 
@@ -480,19 +487,32 @@ export interface SystemDefinition<TState = any> {
 
 	// Transforms (ordered by priority, indexed by transformsFrom)
 	transformsFrom?: string[];
-	beforeAttack?: (state: TState, ctx: AttackContext, stats: Record<string, number>)
-		=> { state: TState; skip?: boolean; hits?: PipelineHit[] } | null;
-	transformHit?: (state: TState, hit: PipelineHit, stats: Record<string, number>, rng: Rng)
-		=> { state: TState; hit: PipelineHit } | null;
+	beforeAttack?: (
+		state: TState,
+		ctx: AttackContext,
+		stats: Record<string, number>
+	) => { state: TState; skip?: boolean; hits?: PipelineHit[] } | null;
+	transformHit?: (
+		state: TState,
+		hit: PipelineHit,
+		stats: Record<string, number>,
+		rng: Rng
+	) => { state: TState; hit: PipelineHit } | null;
 
 	// Reactors (unordered, indexed by reactsTo)
 	reactsTo?: string[];
-	onHit?: (state: TState, hit: PipelineHit, stats: Record<string, number>)
-		=> ReactorResult<TState> | null;
+	onHit?: (
+		state: TState,
+		hit: PipelineHit,
+		stats: Record<string, number>
+	) => ReactorResult<TState> | null;
 
 	// Lifecycle
-	onTick?: (state: TState, stats: Record<string, number>, ctx: TickContext)
-		=> { state: TState; damage: number; hitType?: string };
+	onTick?: (
+		state: TState,
+		stats: Record<string, number>,
+		ctx: TickContext
+	) => { state: TState; damage: number; hitType?: string };
 	onKill?: (state: TState, ctx: KillContext) => TState;
 
 	// Cross-system effects
@@ -536,17 +556,17 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		activeKillSystems = [];
 
 		// Filter active systems
-		const active = systems.filter(sys => !sys.isActive || sys.isActive(stats));
+		const active = systems.filter((sys) => !sys.isActive || sys.isActive(stats));
 
 		// Index beforeAttack transforms (sorted by priority)
 		const beforeAttackSystems = active
-			.filter(sys => sys.beforeAttack)
+			.filter((sys) => sys.beforeAttack)
 			.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 		activeBeforeAttack = beforeAttackSystems;
 
 		// Index hit transforms by transformsFrom type (sorted by priority)
 		const transforms = active
-			.filter(sys => sys.transformHit && sys.transformsFrom)
+			.filter((sys) => sys.transformHit && sys.transformsFrom)
 			.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 
 		for (const sys of transforms) {
@@ -558,7 +578,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 
 		// Index reactors by reactsTo type
-		const reactors = active.filter(sys => sys.onHit && sys.reactsTo);
+		const reactors = active.filter((sys) => sys.onHit && sys.reactsTo);
 		for (const sys of reactors) {
 			for (const type of sys.reactsTo!) {
 				const existing = reactorIndex.get(type) ?? [];
@@ -568,8 +588,8 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 
 		// Tick and kill systems
-		activeTickSystems = active.filter(sys => sys.onTick);
-		activeKillSystems = active.filter(sys => sys.onKill);
+		activeTickSystems = active.filter((sys) => sys.onTick);
+		activeKillSystems = active.filter((sys) => sys.onKill);
 	}
 
 	function runAttack(stats: Record<string, number>, ctx: AttackContext): AttackPipelineResult {
@@ -684,7 +704,11 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		for (const effect of effects) {
 			const targetSys = systemsById.get(effect.target);
 			if (targetSys?.handleEffect) {
-				const newState = targetSys.handleEffect(states.get(targetSys.id), effect.action, effect.payload);
+				const newState = targetSys.handleEffect(
+					states.get(targetSys.id),
+					effect.action,
+					effect.payload
+				);
 				states.set(targetSys.id, newState);
 			}
 		}
@@ -697,7 +721,10 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 	}
 
-	function runTick(stats: Record<string, number>, ctx: TickContext): { systemId: string; damage: number; hitType?: string }[] {
+	function runTick(
+		stats: Record<string, number>,
+		ctx: TickContext
+	): { systemId: string; damage: number; hitType?: string }[] {
 		const results: { systemId: string; damage: number; hitType?: string }[] = [];
 		for (const sys of activeTickSystems) {
 			const result = sys.onTick!(states.get(sys.id), stats, ctx);
@@ -725,7 +752,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		runKill,
 		runTick,
 		getSystemState,
-		reset,
+		reset
 	};
 }
 ```
@@ -746,6 +773,7 @@ Expected: PASS
 **Depends on:** Task 1
 
 **Files:**
+
 - Create: `src/lib/systems/execute.ts`
 - Create: `src/lib/systems/execute.test.ts`
 
@@ -765,7 +793,7 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 		overkillDamage: 0,
 		isBoss: false,
 		rng: () => 0.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -784,11 +812,10 @@ describe('executeSystem', () => {
 
 	test('does not trigger on bosses', () => {
 		const state = executeSystem.initialState();
-		const result = executeSystem.beforeAttack!(
-			state,
-			makeCtx({ isBoss: true, enemyHealth: 50 }),
-			{ executeChance: 1.0, executeCap: 1.0 }
-		);
+		const result = executeSystem.beforeAttack!(state, makeCtx({ isBoss: true, enemyHealth: 50 }), {
+			executeChance: 1.0,
+			executeCap: 1.0
+		});
 		expect(result).not.toBeNull();
 		expect(result!.skip).toBe(false);
 	});
@@ -870,9 +897,10 @@ export const executeSystem: SystemDefinition<{}> = {
 	beforeAttack: (state, ctx, stats) => {
 		if (ctx.isBoss) return { state, skip: false };
 
-		const effectiveChance = stats.executeCap != null
-			? Math.min(stats.executeChance, stats.executeCap)
-			: stats.executeChance;
+		const effectiveChance =
+			stats.executeCap != null
+				? Math.min(stats.executeChance, stats.executeCap)
+				: stats.executeChance;
 
 		if (effectiveChance <= 0) return { state, skip: false };
 		if (ctx.rng() >= effectiveChance) return { state, skip: false };
@@ -880,13 +908,15 @@ export const executeSystem: SystemDefinition<{}> = {
 		return {
 			state,
 			skip: true,
-			hits: [{
-				type: 'executeHit' as any,
-				damage: ctx.enemyHealth,
-				index: 0,
-			} as PipelineHit],
+			hits: [
+				{
+					type: 'executeHit' as any,
+					damage: ctx.enemyHealth,
+					index: 0
+				} as PipelineHit
+			]
 		};
-	},
+	}
 };
 ```
 
@@ -906,6 +936,7 @@ Expected: PASS
 **Depends on:** Task 1
 
 **Files:**
+
 - Create: `src/lib/systems/crit.ts`
 - Create: `src/lib/systems/crit.test.ts`
 
@@ -918,7 +949,9 @@ import { describe, test, expect } from 'vitest';
 import { critSystem } from './crit';
 import type { PipelineHit } from '$lib/engine/systemPipeline';
 
-function makeHit(overrides: Partial<PipelineHit & { damage: number; index: number }> = {}): PipelineHit {
+function makeHit(
+	overrides: Partial<PipelineHit & { damage: number; index: number }> = {}
+): PipelineHit {
 	return { type: 'hit', damage: 10, index: 0, ...overrides } as PipelineHit;
 }
 
@@ -1042,10 +1075,10 @@ export const critSystem: SystemDefinition<{}> = {
 				type: 'criticalHit' as any,
 				damage: Math.floor(h.damage * stats.critMultiplier),
 				index: h.index,
-				critMultiplier: stats.critMultiplier,
-			} as PipelineHit,
+				critMultiplier: stats.critMultiplier
+			} as PipelineHit
 		};
-	},
+	}
 };
 ```
 
@@ -1065,6 +1098,7 @@ Expected: PASS
 **Depends on:** Task 1
 
 **Files:**
+
 - Create: `src/lib/systems/damageMultiplier.ts`
 - Create: `src/lib/systems/damageMultiplier.test.ts`
 
@@ -1162,10 +1196,10 @@ export const damageMultiplierSystem: SystemDefinition<{}> = {
 			state,
 			hit: {
 				...hit,
-				damage: Math.floor(h.damage * (stats.damageMultiplier ?? 1)),
-			} as PipelineHit,
+				damage: Math.floor(h.damage * (stats.damageMultiplier ?? 1))
+			} as PipelineHit
 		};
-	},
+	}
 };
 ```
 
@@ -1185,6 +1219,7 @@ Expected: PASS
 **Depends on:** None
 
 **Files:**
+
 - Create: `src/lib/engine/stackManager.ts`
 - Create: `src/lib/engine/stackManager.test.ts`
 
@@ -1314,9 +1349,7 @@ export function createStackManager(opts: StackManagerOptions) {
 	}
 
 	function tick(stacks: number[]): number[] {
-		return stacks
-			.map((remaining) => remaining - 1)
-			.filter((remaining) => remaining > 0);
+		return stacks.map((remaining) => remaining - 1).filter((remaining) => remaining > 0);
 	}
 
 	function clear(): number[] {
@@ -1343,6 +1376,7 @@ Expected: PASS
 **Depends on:** Task 1, Task 5
 
 **Files:**
+
 - Create: `src/lib/systems/poison.ts`
 - Create: `src/lib/systems/poison.test.ts`
 
@@ -1367,7 +1401,7 @@ function makeStats(overrides: Record<string, number> = {}): Record<string, numbe
 		poisonCritChance: 0,
 		critMultiplier: 1.5,
 		damageMultiplier: 1,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -1405,7 +1439,11 @@ describe('poisonSystem — onHit (reactor)', () => {
 
 	test('respects max stacks (refresh-shortest policy)', () => {
 		let state: PoisonState = { stacks: [5, 5, 5, 5, 5] }; // at max (5)
-		const result = poisonSystem.onHit!(state, makeHit('hit'), makeStats({ poisonMaxStacks: 5, poisonDuration: 6 }));
+		const result = poisonSystem.onHit!(
+			state,
+			makeHit('hit'),
+			makeStats({ poisonMaxStacks: 5, poisonDuration: 6 })
+		);
 		expect(result!.state.stacks).toHaveLength(5); // still at max
 		expect(result!.state.stacks).toContain(6); // new stack with refreshed duration
 	});
@@ -1429,7 +1467,9 @@ describe('poisonSystem — onTick', () => {
 
 	test('deals damage = poison * stackCount', () => {
 		const state: PoisonState = { stacks: [3, 3, 3] };
-		const result = poisonSystem.onTick!(state, makeStats({ poison: 2, damageMultiplier: 1 }), { deltaMs: 1000 });
+		const result = poisonSystem.onTick!(state, makeStats({ poison: 2, damageMultiplier: 1 }), {
+			deltaMs: 1000
+		});
 		expect(result.damage).toBe(6); // 2 * 3 stacks
 		expect(result.hitType).toBe('poison');
 	});
@@ -1442,13 +1482,20 @@ describe('poisonSystem — onTick', () => {
 
 	test('applies damageMultiplier', () => {
 		const state: PoisonState = { stacks: [3] };
-		const result = poisonSystem.onTick!(state, makeStats({ poison: 4, damageMultiplier: 3 }), { deltaMs: 1000 });
+		const result = poisonSystem.onTick!(state, makeStats({ poison: 4, damageMultiplier: 3 }), {
+			deltaMs: 1000
+		});
 		expect(result.damage).toBe(12); // floor(4 * 3) * 1 stack
 	});
 
 	test('applies poison crit', () => {
 		const state: PoisonState = { stacks: [3] };
-		const stats = makeStats({ poison: 10, poisonCritChance: 1, critMultiplier: 2, damageMultiplier: 1 });
+		const stats = makeStats({
+			poison: 10,
+			poisonCritChance: 1,
+			critMultiplier: 2,
+			damageMultiplier: 1
+		});
 		// Note: onTick doesn't have rng param currently — poison crit needs rng
 		// For now, poison crit is handled by passing rng through stats or context
 		// This test documents the expected behavior
@@ -1462,7 +1509,13 @@ describe('poisonSystem — onTick', () => {
 describe('poisonSystem — onKill', () => {
 	test('clears all stacks', () => {
 		const state: PoisonState = { stacks: [3, 5, 4] };
-		const result = poisonSystem.onKill!(state, { enemyMaxHealth: 100, isBoss: false, isChest: false, isBossChest: false, stage: 1 });
+		const result = poisonSystem.onKill!(state, {
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			stage: 1
+		});
 		expect(result.stacks).toHaveLength(0);
 	});
 });
@@ -1492,7 +1545,12 @@ Expected: FAIL
 Create `src/lib/systems/poison.ts`:
 
 ```typescript
-import type { SystemDefinition, PipelineHit, KillContext, TickContext } from '$lib/engine/systemPipeline';
+import type {
+	SystemDefinition,
+	PipelineHit,
+	KillContext,
+	TickContext
+} from '$lib/engine/systemPipeline';
 import { createStackManager } from '$lib/engine/stackManager';
 
 // Extend HitTypeMap for poison hit types
@@ -1520,7 +1578,7 @@ export const poisonSystem: SystemDefinition<PoisonState> = {
 		const duration = stats.poisonDuration ?? 5;
 		const mgr = createStackManager({ max: maxStacks, refreshPolicy: 'refresh-shortest' });
 		return {
-			state: { stacks: mgr.add(state.stacks, duration) },
+			state: { stacks: mgr.add(state.stacks, duration) }
 		};
 	},
 
@@ -1533,7 +1591,7 @@ export const poisonSystem: SystemDefinition<PoisonState> = {
 		return {
 			state: { stacks: stackMgr.tick(state.stacks) },
 			damage,
-			hitType: 'poison',
+			hitType: 'poison'
 		};
 	},
 
@@ -1550,7 +1608,7 @@ export const poisonSystem: SystemDefinition<PoisonState> = {
 			return { stacks };
 		}
 		return state;
-	},
+	}
 };
 ```
 
@@ -1570,6 +1628,7 @@ Expected: PASS
 **Depends on:** Task 2, Task 3, Task 4, Task 6
 
 **Files:**
+
 - Create: `src/lib/engine/systemPipeline.integration.test.ts`
 
 ### Step 1: Write tests
@@ -1591,7 +1650,7 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 		overkillDamage: 0,
 		isBoss: false,
 		rng: () => 0.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -1608,7 +1667,7 @@ function makeStats(overrides: Record<string, number> = {}): Record<string, numbe
 		poisonDuration: 5,
 		poisonMaxStacks: 5,
 		poisonCritChance: 0,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -1626,7 +1685,12 @@ describe('full pipeline: execute + crit + damageMultiplier', () => {
 
 	test('crit + damageMultiplier compound correctly', () => {
 		const runner = createPipelineRunner([critSystem, damageMultiplierSystem]);
-		const stats = makeStats({ damage: 10, critChance: 1.0, critMultiplier: 2, damageMultiplier: 3 });
+		const stats = makeStats({
+			damage: 10,
+			critChance: 1.0,
+			critMultiplier: 2,
+			damageMultiplier: 3
+		});
 		runner.refreshSystems(stats);
 
 		const result = runner.runAttack(stats, makeCtx({ rng: () => 0 }));
@@ -1699,7 +1763,13 @@ describe('full pipeline: kill clears poison', () => {
 		expect(runner.getSystemState<PoisonState>('poison').stacks.length).toBeGreaterThan(0);
 
 		// Kill
-		runner.runKill({ enemyMaxHealth: 100, isBoss: false, isChest: false, isBossChest: false, stage: 1 });
+		runner.runKill({
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			stage: 1
+		});
 		expect(runner.getSystemState<PoisonState>('poison').stacks).toHaveLength(0);
 	});
 });
@@ -1732,7 +1802,7 @@ describe('full pipeline: complete encounter simulation', () => {
 			critMultiplier: 2,
 			damageMultiplier: 1,
 			poison: 2,
-			multiStrike: 1,
+			multiStrike: 1
 		});
 		runner.refreshSystems(stats);
 
@@ -1752,7 +1822,13 @@ describe('full pipeline: complete encounter simulation', () => {
 		expect(tick1[0].damage).toBe(4); // 2 * 2 stacks
 
 		// Kill
-		runner.runKill({ enemyMaxHealth: 100, isBoss: false, isChest: false, isBossChest: false, stage: 1 });
+		runner.runKill({
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			stage: 1
+		});
 		expect(runner.getSystemState<PoisonState>('poison').stacks).toHaveLength(0);
 	});
 });
@@ -1774,6 +1850,7 @@ Expected: PASS
 **Depends on:** Task 2, Task 3, Task 4, Task 6, Task 7
 
 **Files:**
+
 - Create: `src/lib/systems/registry.ts` (central system registration)
 - Modify: `src/lib/stores/gameState.svelte.ts` (replace calculateAttack, inline poison, killEnemy with pipeline)
 - Modify: `src/lib/stores/gameLoop.svelte.ts` (remove hardcoded poison tick callback)
@@ -1798,7 +1875,7 @@ export const allSystems: SystemDefinition[] = [
 	executeSystem,
 	critSystem,
 	damageMultiplierSystem,
-	poisonSystem,
+	poisonSystem
 ];
 ```
 
@@ -1809,7 +1886,15 @@ The current `HitType` is `'normal' | 'crit' | 'execute' | 'poison' | 'poisonCrit
 In `src/lib/types.ts`, replace the HitType line:
 
 ```typescript
-export type HitType = 'normal' | 'crit' | 'execute' | 'poison' | 'poisonCrit' | 'hit' | 'criticalHit' | 'executeHit';
+export type HitType =
+	| 'normal'
+	| 'crit'
+	| 'execute'
+	| 'poison'
+	| 'poisonCrit'
+	| 'hit'
+	| 'criticalHit'
+	| 'executeHit';
 ```
 
 ### Step 3: Update gameState.svelte.ts
@@ -1819,7 +1904,10 @@ This replaces the monolithic `attack()`, inline poison, and part of `killEnemy()
 **Add imports:**
 
 ```typescript
-import { createPipelineRunner, type AttackContext as PipelineAttackContext } from '$lib/engine/systemPipeline';
+import {
+	createPipelineRunner,
+	type AttackContext as PipelineAttackContext
+} from '$lib/engine/systemPipeline';
 import { allSystems } from '$lib/systems/registry';
 ```
 
@@ -1858,7 +1946,7 @@ function attack() {
 		enemyMaxHealth: enemy.enemyMaxHealth,
 		overkillDamage: enemy.overkillDamage,
 		isBoss: enemy.isBoss,
-		rng: Math.random,
+		rng: Math.random
 	});
 
 	// Map pipeline hits to UI HitInfo
@@ -1866,16 +1954,23 @@ function attack() {
 		const pipeHit = h as any;
 		let uiType: HitType;
 		switch (h.type) {
-			case 'criticalHit': uiType = 'crit'; break;
-			case 'executeHit': uiType = 'execute'; break;
-			case 'hit': uiType = 'normal'; break;
-			default: uiType = h.type as HitType;
+			case 'criticalHit':
+				uiType = 'crit';
+				break;
+			case 'executeHit':
+				uiType = 'execute';
+				break;
+			case 'hit':
+				uiType = 'normal';
+				break;
+			default:
+				uiType = h.type as HitType;
 		}
 		return {
 			damage: pipeHit.damage ?? 0,
 			type: uiType,
 			id: ui.nextHitId(),
-			index: pipeHit.index ?? 0,
+			index: pipeHit.index ?? 0
 		};
 	});
 
@@ -1902,12 +1997,14 @@ function applyPoison() {
 		if (tick.damage <= 0) continue;
 
 		enemy.takeDamage(tick.damage);
-		ui.addHits([{
-			damage: tick.damage,
-			type: (tick.hitType ?? 'poison') as HitType,
-			id: ui.nextHitId(),
-			index: 0,
-		}]);
+		ui.addHits([
+			{
+				damage: tick.damage,
+				type: (tick.hitType ?? 'poison') as HitType,
+				id: ui.nextHitId(),
+				index: 0
+			}
+		]);
 	}
 
 	if (enemy.isDead()) {
@@ -1926,7 +2023,7 @@ pipeline.runKill({
 	isBoss: enemy.isBoss,
 	isChest: enemy.isChest,
 	isBossChest: enemy.isBossChest,
-	stage: enemy.stage,
+	stage: enemy.stage
 });
 ```
 
@@ -1973,6 +2070,7 @@ Expected: PASS — update any tests that reference old `calculateAttack` directl
 
 Run: `bun run dev`
 Verify:
+
 - Normal attacks work (tap and hold)
 - Crits display correctly
 - Execute triggers on non-bosses

@@ -49,7 +49,11 @@
 			<div class="upgrade-choices desktop-grid">
 				{#each choices as upgrade, i (upgrade.id)}
 					<Button.Root
-						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting
+							? cardSelect.selectedIndex === i
+								? 'card-selected'
+								: 'card-dismissed'
+							: ''}"
 						disabled={!flip.enabledCards[i] || cardSelect.selecting}
 						onclick={() => handleSelect(upgrade, i)}
 					>
@@ -74,7 +78,11 @@
 			<CardCarousel count={choices.length}>
 				{#each choices as upgrade, i (upgrade.id)}
 					<Button.Root
-						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting ? (cardSelect.selectedIndex === i ? 'card-selected' : 'card-dismissed') : ''}"
+						class="group bg-transparent border-none p-0 cursor-pointer [perspective:800px] disabled:cursor-default card-wrapper {cardSelect.selecting
+							? cardSelect.selectedIndex === i
+								? 'card-selected'
+								: 'card-dismissed'
+							: ''}"
 						disabled={!flip.enabledCards[i] || cardSelect.selecting}
 						onclick={() => handleSelect(upgrade, i)}
 					>
@@ -141,9 +149,15 @@
 	}
 
 	@keyframes panel-pulse {
-		0% { transform: scale(1); }
-		43% { transform: scale(0.98); }
-		100% { transform: scale(1); }
+		0% {
+			transform: scale(1);
+		}
+		43% {
+			transform: scale(0.98);
+		}
+		100% {
+			transform: scale(1);
+		}
 	}
 
 	.pending-badge {
@@ -160,8 +174,13 @@
 	}
 
 	@keyframes pulse-badge {
-		0%, 100% { transform: scale(1); }
-		50% { transform: scale(1.05); }
+		0%,
+		100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.05);
+		}
 	}
 
 	.modal-header {
@@ -193,7 +212,10 @@
 
 	/* Card selection transitions */
 	:global(.card-wrapper) {
-		transition: transform 300ms ease-out, opacity 300ms ease-out, filter 300ms ease-out;
+		transition:
+			transform 300ms ease-out,
+			opacity 300ms ease-out,
+			filter 300ms ease-out;
 	}
 
 	:global(.card-wrapper.card-selected) {

@@ -30,9 +30,7 @@ describe('stat pipeline integration', () => {
 		const pipeline = buildPipeline();
 		// Simulate acquiring damage1 (damage +1)
 		const damage1 = allUpgrades.find((u) => u.id === 'damage_1')!;
-		const steps = damage1.modifiers
-			.filter((m) => m.stat === 'damage')
-			.map((m) => add(m.value));
+		const steps = damage1.modifiers.filter((m) => m.stat === 'damage').map((m) => add(m.value));
 		pipeline[1] = createLayer(steps);
 		dirtyLayer(pipeline, 1);
 
@@ -86,9 +84,7 @@ describe('stat pipeline integration', () => {
 		frenzyPipeline[1] = createLayer(frenzySteps);
 		dirtyLayer(frenzyPipeline, 1);
 
-		expect(computeLayered(BASE_STATS.attackSpeed, atkPipeline)).toBe(
-			BASE_STATS.attackSpeed + 0.2
-		);
+		expect(computeLayered(BASE_STATS.attackSpeed, atkPipeline)).toBe(BASE_STATS.attackSpeed + 0.2);
 		expect(computeLayered(BASE_STATS.tapFrenzyBonus, frenzyPipeline)).toBe(
 			BASE_STATS.tapFrenzyBonus + 0.05
 		);

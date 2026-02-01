@@ -7,7 +7,7 @@ export type StackManagerOptions = {
 
 export function createStackManager(opts: StackManagerOptions) {
 	function add(stacks: number[], duration: number, count = 1): number[] {
-		let result = [...stacks];
+		const result = [...stacks];
 
 		for (let i = 0; i < count; i++) {
 			if (result.length < opts.max) {
@@ -29,9 +29,7 @@ export function createStackManager(opts: StackManagerOptions) {
 	}
 
 	function tick(stacks: number[]): number[] {
-		return stacks
-			.map((remaining) => remaining - 1)
-			.filter((remaining) => remaining > 0);
+		return stacks.map((remaining) => remaining - 1).filter((remaining) => remaining > 0);
 	}
 
 	function clear(): number[] {

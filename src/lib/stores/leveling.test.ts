@@ -1,4 +1,4 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { createLeveling } from './leveling.svelte';
 import type { UpgradeContext } from './leveling.svelte';
 import type { SavedUpgradeEvent } from './persistence.svelte';
@@ -179,7 +179,7 @@ describe('createLeveling', () => {
 		expect(event1).not.toBeNull();
 		expect(event1!.type).toBe('levelup');
 		expect(event1!.choices).toHaveLength(3);
-		expect(event1!.choices.map(c => c.id)).toEqual(['damage_1', 'crit_chance_1', 'xp_1']);
+		expect(event1!.choices.map((c) => c.id)).toEqual(['damage_1', 'crit_chance_1', 'xp_1']);
 
 		lev.closeActiveEvent();
 
@@ -203,7 +203,7 @@ describe('createLeveling', () => {
 		expect(lev.hasActiveEvent).toBe(true);
 		expect(lev.activeEvent!.type).toBe('levelup');
 		expect(lev.upgradeChoices).toHaveLength(3);
-		expect(lev.upgradeChoices.map(c => c.id)).toEqual(['damage_1', 'crit_chance_1', 'xp_1']);
+		expect(lev.upgradeChoices.map((c) => c.id)).toEqual(['damage_1', 'crit_chance_1', 'xp_1']);
 	});
 
 	test('restore skips events with invalid upgrade IDs', () => {
@@ -218,7 +218,7 @@ describe('createLeveling', () => {
 		// First event should be filtered out (all IDs invalid), only second remains
 		expect(lev.pendingUpgrades).toBe(1);
 		const event = lev.openNextUpgrade();
-		expect(event!.choices.map(c => c.id)).toEqual(['damage_1', 'crit_chance_1', 'xp_1']);
+		expect(event!.choices.map((c) => c.id)).toEqual(['damage_1', 'crit_chance_1', 'xp_1']);
 	});
 
 	test('restore with empty upgradeQueue and no activeEvent leaves clean state', () => {

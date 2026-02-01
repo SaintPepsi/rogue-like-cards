@@ -7,14 +7,18 @@ export interface HitTypeMap {
 }
 
 export type HitType = keyof HitTypeMap & string;
-export type PipelineHit<T extends HitType = HitType> = { type: T; damage: number; index: number } & HitTypeMap[T];
+export type PipelineHit<T extends HitType = HitType> = {
+	type: T;
+	damage: number;
+	index: number;
+} & HitTypeMap[T];
 
 // --- Effect for cross-system communication ---
 
 export type PipelineEffect = {
 	target: string;
 	action: string;
-	payload: any; // Intentionally untyped for extensibility — each effect handler validates its own payload shape
+	payload: unknown; // Intentionally untyped for extensibility — each effect handler validates its own payload shape
 };
 
 // --- Contexts ---
@@ -50,6 +54,7 @@ export type ReactorResult<TState> = {
 
 // --- System definition ---
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- any is required as default for contravariant TState (function params). Specific systems use concrete types; the pipeline runner erases via Map<string, unknown>.
 export interface SystemDefinition<TState = any> {
 	id: string;
 	initialState: () => TState;
@@ -58,23 +63,32 @@ export interface SystemDefinition<TState = any> {
 
 	// Transforms (ordered by priority, indexed by transformsFrom)
 	transformsFrom?: string[];
-	beforeAttack?: (state: TState, ctx: AttackContext, stats: PlayerStats)
-		=> { state: TState; skip?: boolean; hits?: PipelineHit[] } | null;
-	transformHit?: (state: TState, hit: PipelineHit, stats: PlayerStats, rng: Rng)
-		=> { state: TState; hit: PipelineHit } | null;
+	beforeAttack?: (
+		state: TState,
+		ctx: AttackContext,
+		stats: PlayerStats
+	) => { state: TState; skip?: boolean; hits?: PipelineHit[] } | null;
+	transformHit?: (
+		state: TState,
+		hit: PipelineHit,
+		stats: PlayerStats,
+		rng: Rng
+	) => { state: TState; hit: PipelineHit } | null;
 
 	// Reactors (unordered, indexed by reactsTo)
 	reactsTo?: string[];
-	onHit?: (state: TState, hit: PipelineHit, stats: PlayerStats)
-		=> ReactorResult<TState> | null;
+	onHit?: (state: TState, hit: PipelineHit, stats: PlayerStats) => ReactorResult<TState> | null;
 
 	// Lifecycle
-	onTick?: (state: TState, stats: PlayerStats, ctx: TickContext)
-		=> { state: TState; damage: number; hitType?: string };
+	onTick?: (
+		state: TState,
+		stats: PlayerStats,
+		ctx: TickContext
+	) => { state: TState; damage: number; hitType?: string };
 	onKill?: (state: TState, ctx: KillContext) => TState;
 
 	// Cross-system effects
-	handleEffect?: (state: TState, action: string, payload: any) => TState;
+	handleEffect?: (state: TState, action: string, payload: unknown) => TState;
 }
 
 // --- Attack pipeline result ---
@@ -90,7 +104,7 @@ export type AttackPipelineResult = {
 
 export function createPipelineRunner(systems: SystemDefinition[]) {
 	// Per-system state
-	const states = new Map<string, any>();
+	const states = new Map<string, unknown>();
 	const systemsById = new Map<string, SystemDefinition>();
 
 	// Indexed dispatch (rebuilt on refreshSystems)
@@ -114,17 +128,17 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		activeKillSystems = [];
 
 		// Filter active systems
-		const active = systems.filter(sys => !sys.isActive || sys.isActive(stats));
+		const active = systems.filter((sys) => !sys.isActive || sys.isActive(stats));
 
 		// Index beforeAttack transforms (sorted by priority)
 		const beforeAttackSystems = active
-			.filter(sys => sys.beforeAttack)
+			.filter((sys) => sys.beforeAttack)
 			.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 		activeBeforeAttack = beforeAttackSystems;
 
 		// Index hit transforms by transformsFrom type (sorted by priority)
 		const transforms = active
-			.filter(sys => sys.transformHit && sys.transformsFrom)
+			.filter((sys) => sys.transformHit && sys.transformsFrom)
 			.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 
 		for (const sys of transforms) {
@@ -136,7 +150,7 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 
 		// Index reactors by reactsTo type
-		const reactors = active.filter(sys => sys.onHit && sys.reactsTo);
+		const reactors = active.filter((sys) => sys.onHit && sys.reactsTo);
 		for (const sys of reactors) {
 			for (const type of sys.reactsTo!) {
 				const existing = reactorIndex.get(type) ?? [];
@@ -146,8 +160,8 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 
 		// Tick and kill systems
-		activeTickSystems = active.filter(sys => sys.onTick);
-		activeKillSystems = active.filter(sys => sys.onKill);
+		activeTickSystems = active.filter((sys) => sys.onTick);
+		activeKillSystems = active.filter((sys) => sys.onKill);
 	}
 
 	function runAttack(stats: PlayerStats, ctx: AttackContext): AttackPipelineResult {
@@ -250,7 +264,11 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		for (const effect of effects) {
 			const targetSys = systemsById.get(effect.target);
 			if (targetSys?.handleEffect) {
-				const newState = targetSys.handleEffect(states.get(targetSys.id), effect.action, effect.payload);
+				const newState = targetSys.handleEffect(
+					states.get(targetSys.id),
+					effect.action,
+					effect.payload
+				);
 				states.set(targetSys.id, newState);
 			}
 		}
@@ -263,7 +281,10 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		}
 	}
 
-	function runTick(stats: PlayerStats, ctx: TickContext): { systemId: string; damage: number; hitType?: string }[] {
+	function runTick(
+		stats: PlayerStats,
+		ctx: TickContext
+	): { systemId: string; damage: number; hitType?: string }[] {
 		const results: { systemId: string; damage: number; hitType?: string }[] = [];
 		for (const sys of activeTickSystems) {
 			const result = sys.onTick!(states.get(sys.id), stats, ctx);
@@ -291,6 +312,6 @@ export function createPipelineRunner(systems: SystemDefinition[]) {
 		runKill,
 		runTick,
 		getSystemState,
-		reset,
+		reset
 	};
 }

@@ -26,7 +26,7 @@ export function createTimerRegistry() {
 	function tick(deltaMs: number): void {
 		// Process in rounds to handle one-shot timers that re-register themselves
 		// Safety bound: prevents infinite cascading timer re-registrations. In practice, 2-3 rounds suffice.
-		let maxRounds = 50;
+		const maxRounds = 50;
 		let isFirstRound = true;
 
 		for (let round = 0; round < maxRounds; round++) {
@@ -46,7 +46,7 @@ export function createTimerRegistry() {
 
 				// Process expirations
 				// Safety bound: prevents runaway iteration within a single round
-			let maxIterations = 100;
+				const maxIterations = 100;
 				for (let i = 0; i < maxIterations && timer.remaining <= 0; i++) {
 					const overflow = -timer.remaining;
 					timer.onExpire();

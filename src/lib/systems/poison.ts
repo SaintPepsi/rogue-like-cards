@@ -1,4 +1,4 @@
-import type { SystemDefinition, PipelineHit, KillContext, TickContext } from '$lib/engine/systemPipeline';
+import type { SystemDefinition } from '$lib/engine/systemPipeline';
 import { createStackManager } from '$lib/engine/stackManager';
 
 // Extend HitTypeMap for poison hit types
@@ -28,11 +28,11 @@ export const poisonSystem: SystemDefinition<PoisonState> = {
 		const duration = stats.poisonDuration ?? 5;
 		const mgr = createStackManager({ max: maxStacks, refreshPolicy: 'refresh-shortest' });
 		return {
-			state: { stacks: mgr.add(state.stacks, duration) },
+			state: { stacks: mgr.add(state.stacks, duration) }
 		};
 	},
 
-	onTick: (state, stats, _ctx) => {
+	onTick: (state, stats) => {
 		if (state.stacks.length === 0) return { state, damage: 0 };
 
 		const perStack = Math.floor(stats.poison * (stats.damageMultiplier ?? 1));
@@ -41,21 +41,22 @@ export const poisonSystem: SystemDefinition<PoisonState> = {
 		return {
 			state: { stacks: stackMgr.tick(state.stacks) },
 			damage,
-			hitType: 'poison',
+			hitType: 'poison'
 		};
 	},
 
-	onKill: (_state, _ctx) => ({ stacks: [] }),
+	onKill: () => ({ stacks: [] }),
 
 	handleEffect: (state, action, payload) => {
 		if (action !== 'addStacks') return state;
 
-		const duration = payload.duration ?? 5;
-		const count = payload.count ?? 1;
+		const data = payload as { duration?: number; count?: number };
+		const duration = data.duration ?? 5;
+		const count = data.count ?? 1;
 		let stacks = [...state.stacks];
 		for (let i = 0; i < count; i++) {
 			stacks = stackMgr.add(stacks, duration);
 		}
 		return { stacks };
-	},
+	}
 };

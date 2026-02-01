@@ -8,7 +8,7 @@ function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
 		...createDefaultStats(),
 		damage: 10,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -35,7 +35,7 @@ describe('damageMultiplierSystem', () => {
 			makeStats({ damageMultiplier: 2 }),
 			() => 0
 		);
-		expect((result!.hit as any).damage).toBe(20);
+		expect(result!.hit.damage).toBe(20);
 	});
 
 	test('multiplies damage on criticalHit', () => {
@@ -46,7 +46,7 @@ describe('damageMultiplierSystem', () => {
 			makeStats({ damageMultiplier: 3 }),
 			() => 0
 		);
-		expect((result!.hit as any).damage).toBe(45);
+		expect(result!.hit.damage).toBe(45);
 	});
 
 	test('floors result', () => {
@@ -57,7 +57,7 @@ describe('damageMultiplierSystem', () => {
 			makeStats({ damageMultiplier: 1.5 }),
 			() => 0
 		);
-		expect((result!.hit as any).damage).toBe(10); // floor(7 * 1.5)
+		expect(result!.hit.damage).toBe(10); // floor(7 * 1.5)
 	});
 
 	test('does not change with multiplier of 1', () => {
@@ -68,6 +68,6 @@ describe('damageMultiplierSystem', () => {
 			makeStats({ damageMultiplier: 1 }),
 			() => 0
 		);
-		expect((result!.hit as any).damage).toBe(10);
+		expect(result!.hit.damage).toBe(10);
 	});
 });

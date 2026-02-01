@@ -23,7 +23,7 @@
 		// Pipeline type aliases (mapped to UI types in gameState, but needed for type completeness)
 		hit: NormalHit,
 		criticalHit: CritHit,
-		executeHit: ExecuteHit,
+		executeHit: ExecuteHit
 	};
 
 	const Component = $derived(components[type]);

@@ -17,7 +17,7 @@
 
 interface PipelineHit {
 	type: string;
-	[key: string]: any;
+	[key: string]: unknown;
 }
 
 type Rng = () => number;
@@ -42,7 +42,7 @@ interface TickContext {
 interface SystemEffect {
 	target: string;
 	action: string;
-	payload: any;
+	payload: unknown;
 }
 
 interface ReactorResult<TState> {
@@ -50,7 +50,7 @@ interface ReactorResult<TState> {
 	effects?: SystemEffect[];
 }
 
-interface SystemDefinition<TState = any> {
+interface SystemDefinition<TState = unknown> {
 	id: string;
 	initialState: () => TState;
 	priority?: number;
@@ -84,12 +84,12 @@ interface SystemDefinition<TState = any> {
 	) => { state: TState; damage: number; hitType?: string };
 
 	onKill?: (state: TState, ctx: KillContext) => TState;
-	handleEffect?: (state: TState, action: string, payload: any) => TState;
+	handleEffect?: (state: TState, action: string, payload: unknown) => TState;
 }
 
 function createPipeline() {
 	const systems: SystemDefinition[] = [];
-	const states = new Map<string, any>();
+	const states = new Map<string, unknown>();
 
 	// Transforms sorted by priority at registration time
 	let transformsByPriority: SystemDefinition[] = [];
@@ -237,9 +237,7 @@ function createStackManager(config: StackManagerConfig) {
 						for (let j = 1; j < result.length; j++) {
 							if (result[j].remaining < result[minIdx].remaining) minIdx = j;
 						}
-						result = result.map((s, idx) =>
-							idx === minIdx ? { remaining: duration } : s
-						);
+						result = result.map((s, idx) => (idx === minIdx ? { remaining: duration } : s));
 					} else if (config.refreshPolicy === 'add-new') {
 						result = [...result.slice(1), { remaining: duration }];
 					}
@@ -250,9 +248,7 @@ function createStackManager(config: StackManagerConfig) {
 			return result;
 		},
 		tick(stacks: Stack[]): Stack[] {
-			return stacks
-				.map((s) => ({ remaining: s.remaining - 1 }))
-				.filter((s) => s.remaining > 0);
+			return stacks.map((s) => ({ remaining: s.remaining - 1 })).filter((s) => s.remaining > 0);
 		},
 		clear(): Stack[] {
 			return [];
@@ -378,9 +374,10 @@ const poisonSystem: SystemDefinition<PoisonState> = {
 
 	handleEffect: (state, action, payload) => {
 		if (action === 'addStacks') {
+			const data = payload as { duration?: number; count?: number };
 			return {
 				...state,
-				stacks: poisonStackMgr.add(state.stacks, payload.duration ?? 5, payload.count ?? 1)
+				stacks: poisonStackMgr.add(state.stacks, data.duration ?? 5, data.count ?? 1)
 			};
 		}
 		return state;
@@ -436,8 +433,8 @@ const venomousCritsSystem: SystemDefinition<{}> = {
 // ============================================================================
 
 const pipeline = createPipeline();
-pipeline.register(blockSystem);    // priority 10
-pipeline.register(critSystem);     // priority 20
+pipeline.register(blockSystem); // priority 10
+pipeline.register(critSystem); // priority 20
 pipeline.register(executeSystem);
 pipeline.register(poisonSystem);
 pipeline.register(thornsSystem);
@@ -516,14 +513,8 @@ console.log('A blocked hit never reaches crit. Swap numbers to change.');
 // --- Test 6: Tick ---
 console.log('\n--- TEST 6: Tick ---');
 pipeline.runKill({ wasBoss: false, stage: 1 }, stats);
-pipeline.runAttack(
-	{ enemyHealth: 100, enemyMaxHealth: 100, isBoss: false, rng: () => 0.8 },
-	stats
-);
-pipeline.runAttack(
-	{ enemyHealth: 90, enemyMaxHealth: 100, isBoss: false, rng: () => 0.8 },
-	stats
-);
+pipeline.runAttack({ enemyHealth: 100, enemyMaxHealth: 100, isBoss: false, rng: () => 0.8 }, stats);
+pipeline.runAttack({ enemyHealth: 90, enemyMaxHealth: 100, isBoss: false, rng: () => 0.8 }, stats);
 console.log('Before tick:', pipeline.getState<PoisonState>('poison'));
 const tickResults = pipeline.runTick(stats, { enemyHealth: 80, rng: () => 0.5 });
 console.log('Tick results:', tickResults);

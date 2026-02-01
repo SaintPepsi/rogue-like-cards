@@ -14,7 +14,7 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 		overkillDamage: 0,
 		isBoss: false,
 		rng: () => 0.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -22,7 +22,7 @@ function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
 		...createDefaultStats(),
 		damage: 10,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -40,7 +40,12 @@ describe('full pipeline: execute + crit + damageMultiplier', () => {
 
 	test('crit + damageMultiplier compound correctly', () => {
 		const runner = createPipelineRunner([critSystem, damageMultiplierSystem]);
-		const stats = makeStats({ damage: 10, critChance: 1.0, critMultiplier: 2, damageMultiplier: 3 });
+		const stats = makeStats({
+			damage: 10,
+			critChance: 1.0,
+			critMultiplier: 2,
+			damageMultiplier: 3
+		});
 		runner.refreshSystems(stats);
 
 		const result = runner.runAttack(stats, makeCtx({ rng: () => 0 }));
@@ -113,7 +118,13 @@ describe('full pipeline: kill clears poison', () => {
 		expect(runner.getSystemState<PoisonState>('poison').stacks.length).toBeGreaterThan(0);
 
 		// Kill
-		runner.runKill({ enemyMaxHealth: 100, isBoss: false, isChest: false, isBossChest: false, stage: 1 });
+		runner.runKill({
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			stage: 1
+		});
 		expect(runner.getSystemState<PoisonState>('poison').stacks).toHaveLength(0);
 	});
 });
@@ -146,7 +157,7 @@ describe('full pipeline: complete encounter simulation', () => {
 			critMultiplier: 2,
 			damageMultiplier: 1,
 			poison: 2,
-			multiStrike: 1,
+			multiStrike: 1
 		});
 		runner.refreshSystems(stats);
 
@@ -166,7 +177,13 @@ describe('full pipeline: complete encounter simulation', () => {
 		expect(tick1[0].damage).toBe(4); // 2 * 2 stacks
 
 		// Kill
-		runner.runKill({ enemyMaxHealth: 100, isBoss: false, isChest: false, isBossChest: false, stage: 1 });
+		runner.runKill({
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			stage: 1
+		});
 		expect(runner.getSystemState<PoisonState>('poison').stacks).toHaveLength(0);
 	});
 });

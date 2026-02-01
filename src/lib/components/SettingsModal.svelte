@@ -33,14 +33,32 @@
 </script>
 
 {#if show}
-	<div class="modal-overlay" onclick={handleClose} onkeydown={(e) => e.key === 'Escape' && handleClose()} role="button" tabindex="0">
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}} role="dialog">
+	<div
+		class="modal-overlay"
+		onclick={handleClose}
+		onkeydown={(e) => e.key === 'Escape' && handleClose()}
+		role="button"
+		tabindex="0"
+	>
+		<div
+			class="modal"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="dialog"
+			tabindex="-1"
+		>
 			<div class="modal-header">
 				<h2>Settings</h2>
-				<Button.Root class="bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white" onclick={handleClose}>&times;</Button.Root>
+				<Button.Root
+					class="bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white"
+					onclick={handleClose}>&times;</Button.Root
+				>
 			</div>
 			<div class="modal-content">
-				<Button.Root class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-white/[0.08] rounded-[10px] text-white/90 cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-white/10" onclick={handleChangelog}>
+				<Button.Root
+					class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-white/[0.08] rounded-[10px] text-white/90 cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-white/10"
+					onclick={handleChangelog}
+				>
 					<span class="settings-icon">📋</span>
 					<span class="settings-label">Changelog</span>
 					<span class="settings-arrow">›</span>
@@ -48,7 +66,10 @@
 
 				<div class="settings-divider"></div>
 
-				<Button.Root class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-[rgba(239,68,68,0.15)] rounded-[10px] text-[#f87171] cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-[rgba(239,68,68,0.1)]" onclick={handleReset}>
+				<Button.Root
+					class="flex items-center gap-3 w-full py-3.5 px-4 bg-white/5 border border-[rgba(239,68,68,0.15)] rounded-[10px] text-[#f87171] cursor-pointer text-[0.95rem] text-left transition-[background] duration-150 hover:bg-[rgba(239,68,68,0.1)]"
+					onclick={handleReset}
+				>
 					<span class="settings-icon">🗑️</span>
 					<span class="settings-label">
 						{#if showResetConfirm}

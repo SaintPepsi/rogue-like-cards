@@ -9,7 +9,7 @@
 	let { damage, index }: Props = $props();
 
 	// Execute shows centered for more impact
-	const animationDelay = index * 0.05;
+	const animationDelay = $derived(index * 0.05);
 </script>
 
 <div

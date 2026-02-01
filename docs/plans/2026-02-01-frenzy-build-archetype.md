@@ -27,29 +27,29 @@ Add to `stats.ts`:
 
 ### Existing (unchanged)
 
-| ID | Title | Rarity | Modifiers |
-|---|---|---|---|
-| `frenzy1` | Battle Rage | uncommon | `tapFrenzyBonus +0.05` |
-| `frenzy2` | Berserker Fury | rare | `tapFrenzyBonus +0.05`, `attackSpeed +0.2` |
+| ID        | Title          | Rarity   | Modifiers                                  |
+| --------- | -------------- | -------- | ------------------------------------------ |
+| `frenzy1` | Battle Rage    | uncommon | `tapFrenzyBonus +0.05`                     |
+| `frenzy2` | Berserker Fury | rare     | `tapFrenzyBonus +0.05`, `attackSpeed +0.2` |
 
 ### New — Duration axis
 
-| ID | Title | Rarity | Modifiers | Fantasy |
-|---|---|---|---|---|
-| `frenzydur1` | Adrenaline Rush | uncommon | `tapFrenzyDuration +1` | Stacks linger a bit longer |
-| `frenzydur2` | Sustained Fury | rare | `tapFrenzyDuration +2` | Much easier to maintain high stacks |
-| `frenzydur3` | Relentless Rage | epic | `tapFrenzyDuration +3`, `tapFrenzyBonus +0.03` | Epic capstone — long-lasting stacks with a bonus-per-stack kicker |
+| ID           | Title           | Rarity   | Modifiers                                      | Fantasy                                                           |
+| ------------ | --------------- | -------- | ---------------------------------------------- | ----------------------------------------------------------------- |
+| `frenzydur1` | Adrenaline Rush | uncommon | `tapFrenzyDuration +1`                         | Stacks linger a bit longer                                        |
+| `frenzydur2` | Sustained Fury  | rare     | `tapFrenzyDuration +2`                         | Much easier to maintain high stacks                               |
+| `frenzydur3` | Relentless Rage | epic     | `tapFrenzyDuration +3`, `tapFrenzyBonus +0.03` | Epic capstone — long-lasting stacks with a bonus-per-stack kicker |
 
 ### New — Bonus axis
 
-| ID | Title | Rarity | Modifiers | Fantasy |
-|---|---|---|---|---|
-| `frenzy3` | Bloodlust | epic | `tapFrenzyBonus +0.08`, `attackSpeed +0.3` | Epic capstone — raw frenzy power |
+| ID        | Title     | Rarity | Modifiers                                  | Fantasy                          |
+| --------- | --------- | ------ | ------------------------------------------ | -------------------------------- |
+| `frenzy3` | Bloodlust | epic   | `tapFrenzyBonus +0.08`, `attackSpeed +0.3` | Epic capstone — raw frenzy power |
 
 ### New — Legendary capstone
 
-| ID | Title | Rarity | Modifiers | Fantasy |
-|---|---|---|---|---|
+| ID                 | Title         | Rarity    | Modifiers                     | Fantasy                 |
+| ------------------ | ------------- | --------- | ----------------------------- | ----------------------- |
 | `frenzylegendary1` | GOTTA GO FAST | legendary | `tapFrenzyStackMultiplier +2` | Each tap adds 3x stacks |
 
 ### Full build summary

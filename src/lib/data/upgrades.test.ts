@@ -1,4 +1,5 @@
 import { describe, test, expect, vi } from 'vitest';
+import type { PlayerStats } from '$lib/types';
 
 // Mock image imports so upgrades.ts can load in node environment
 vi.mock('$lib/assets/images/cards/sword.png', () => ({ default: '' }));
@@ -13,7 +14,13 @@ vi.mock('$lib/assets/images/cards/coins.png', () => ({ default: '' }));
 vi.mock('$lib/assets/images/cards/hammer.png', () => ({ default: '' }));
 vi.mock('$lib/assets/images/cards/pickaxe.png', () => ({ default: '' }));
 
-const { getRandomUpgrades, getUpgradeById, allUpgrades, EXECUTE_CHANCE_BASE_CAP, getModifierDisplay } = await import('./upgrades');
+const {
+	getRandomUpgrades,
+	getUpgradeById,
+	allUpgrades,
+	EXECUTE_CHANCE_BASE_CAP,
+	getModifierDisplay
+} = await import('./upgrades');
 const { createDefaultStats } = await import('$lib/engine/stats');
 
 describe('getUpgradeById', () => {
@@ -47,10 +54,17 @@ describe('getRandomUpgrades', () => {
 
 	test('filters out poison-dependent upgrades when player has no poison', () => {
 		const poisonDependentIds = new Set([
-			'poison_duration_1', 'poison_duration_2', 'poison_duration_3',
-			'poison_stacks_1', 'poison_stacks_2', 'poison_stacks_3',
-			'poison_crit_1', 'poison_crit_2', 'poison_crit_3',
-			'combo_3', 'legendary_4'
+			'poison_duration_1',
+			'poison_duration_2',
+			'poison_duration_3',
+			'poison_stacks_1',
+			'poison_stacks_2',
+			'poison_stacks_3',
+			'poison_crit_1',
+			'poison_crit_2',
+			'poison_crit_3',
+			'combo_3',
+			'legendary_4'
 		]);
 
 		for (let i = 0; i < 20; i++) {
@@ -63,10 +77,17 @@ describe('getRandomUpgrades', () => {
 
 	test('allows poison-dependent upgrades when player has poison', () => {
 		const poisonDependentIds = new Set([
-			'poison_duration_1', 'poison_duration_2', 'poison_duration_3',
-			'poison_stacks_1', 'poison_stacks_2', 'poison_stacks_3',
-			'poison_crit_1', 'poison_crit_2', 'poison_crit_3',
-			'combo_3', 'legendary_4'
+			'poison_duration_1',
+			'poison_duration_2',
+			'poison_duration_3',
+			'poison_stacks_1',
+			'poison_stacks_2',
+			'poison_stacks_3',
+			'poison_crit_1',
+			'poison_crit_2',
+			'poison_crit_3',
+			'combo_3',
+			'legendary_4'
 		]);
 
 		let foundPoisonDependent = false;
@@ -114,7 +135,13 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('rare+ cards can appear with zero lucky chance', () => {
-		const rarityCounts: Record<string, number> = { common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0 };
+		const rarityCounts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
 
 		for (let i = 0; i < 1000; i++) {
 			const result = getRandomUpgrades(3, 0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
@@ -134,10 +161,14 @@ describe('getRandomUpgrades', () => {
 
 		for (let i = 0; i < 2000; i++) {
 			const noLuck = getRandomUpgrades(3, 0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
-			rareCountNoLuck += noLuck.filter((u) => u.rarity === 'rare' || u.rarity === 'epic' || u.rarity === 'legendary').length;
+			rareCountNoLuck += noLuck.filter(
+				(u) => u.rarity === 'rare' || u.rarity === 'epic' || u.rarity === 'legendary'
+			).length;
 
 			const highLuck = getRandomUpgrades(3, 1.0, 0, EXECUTE_CHANCE_BASE_CAP, 5);
-			rareCountHighLuck += highLuck.filter((u) => u.rarity === 'rare' || u.rarity === 'epic' || u.rarity === 'legendary').length;
+			rareCountHighLuck += highLuck.filter(
+				(u) => u.rarity === 'rare' || u.rarity === 'epic' || u.rarity === 'legendary'
+			).length;
 		}
 
 		// With max lucky chance, rare+ cards should appear more often
@@ -163,8 +194,14 @@ describe('upgrade card modifiers', () => {
 
 	test('no card has apply() or stats[] property', () => {
 		for (const card of allUpgrades) {
-			expect((card as any).apply, `${card.id} still has apply()`).toBeUndefined();
-			expect((card as any).stats, `${card.id} still has stats[]`).toBeUndefined();
+			expect(
+				(card as Record<string, unknown>).apply,
+				`${card.id} still has apply()`
+			).toBeUndefined();
+			expect(
+				(card as Record<string, unknown>).stats,
+				`${card.id} still has stats[]`
+			).toBeUndefined();
 		}
 	});
 
@@ -176,14 +213,22 @@ describe('upgrade card modifiers', () => {
 	});
 
 	test('getModifierDisplay handles unknown stats gracefully', () => {
-		const display = getModifierDisplay({ stat: 'unknownStat' as any, value: 3 });
+		const display = getModifierDisplay({ stat: 'unknownStat' as keyof PlayerStats, value: 3 });
 		expect(display.label).toBe('unknownStat');
 		expect(display.value).toBe('+3');
 	});
 });
 
 describe('frenzy upgrade cards', () => {
-	const frenzyIds = ['frenzy_bonus_1', 'frenzy_bonus_2', 'frenzy_bonus_3', 'frenzy_duration_1', 'frenzy_duration_2', 'frenzy_duration_3', 'frenzy_legendary_1'];
+	const frenzyIds = [
+		'frenzy_bonus_1',
+		'frenzy_bonus_2',
+		'frenzy_bonus_3',
+		'frenzy_duration_1',
+		'frenzy_duration_2',
+		'frenzy_duration_3',
+		'frenzy_legendary_1'
+	];
 
 	test('all frenzy cards exist', () => {
 		for (const id of frenzyIds) {
@@ -201,7 +246,7 @@ describe('frenzy upgrade cards', () => {
 
 	test('GOTTA GO FAST modifies tapFrenzyStackMultiplier', () => {
 		const card = getUpgradeById('frenzy_legendary_1')!;
-		const stackMod = card.modifiers.find(m => m.stat === 'tapFrenzyStackMultiplier');
+		const stackMod = card.modifiers.find((m) => m.stat === 'tapFrenzyStackMultiplier');
 		expect(stackMod).toBeDefined();
 		expect(stackMod!.value).toBe(2);
 	});
@@ -209,8 +254,14 @@ describe('frenzy upgrade cards', () => {
 	test('frenzy cards are always available (no filtering)', () => {
 		let foundFrenzyNew = false;
 		for (let i = 0; i < 500; i++) {
-			const result = getRandomUpgrades(10, 1.0, EXECUTE_CHANCE_BASE_CAP, EXECUTE_CHANCE_BASE_CAP, 0);
-			if (result.some(u => frenzyIds.includes(u.id))) {
+			const result = getRandomUpgrades(
+				10,
+				1.0,
+				EXECUTE_CHANCE_BASE_CAP,
+				EXECUTE_CHANCE_BASE_CAP,
+				0
+			);
+			if (result.some((u) => frenzyIds.includes(u.id))) {
 				foundFrenzyNew = true;
 				break;
 			}

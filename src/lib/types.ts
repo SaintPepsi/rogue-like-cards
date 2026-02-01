@@ -52,7 +52,15 @@ export type Effect = {
 	description: string;
 };
 
-export type HitType = 'normal' | 'crit' | 'execute' | 'poison' | 'poisonCrit' | 'hit' | 'criticalHit' | 'executeHit';
+export type HitType =
+	| 'normal'
+	| 'crit'
+	| 'execute'
+	| 'poison'
+	| 'poisonCrit'
+	| 'hit'
+	| 'criticalHit'
+	| 'executeHit';
 
 export type HitInfo = {
 	damage: number;

@@ -14,7 +14,7 @@ The pipeline defines one minimal contract:
 // This is ALL the pipeline knows about hits.
 // It lives in the pipeline module. It never changes.
 interface PipelineHit {
-  type: string;
+	type: string;
 }
 ```
 
@@ -23,23 +23,23 @@ Each system defines its own hit types that satisfy this contract. The pipeline n
 ```ts
 // Defined in crit.ts
 interface CriticalHit extends PipelineHit {
-  type: 'criticalHit';
-  damage: number;
-  index: number;
-  critMultiplier: number;
+	type: 'criticalHit';
+	damage: number;
+	index: number;
+	critMultiplier: number;
 }
 
 // Defined in block.ts
 interface BlockedHit extends PipelineHit {
-  type: 'blockedHit';
-  originalDamage: number;
-  index: number;
+	type: 'blockedHit';
+	originalDamage: number;
+	index: number;
 }
 
 // Defined in execute.ts
 interface ExecuteHit extends PipelineHit {
-  type: 'executeHit';
-  damage: number;
+	type: 'executeHit';
+	damage: number;
 }
 ```
 
@@ -65,6 +65,7 @@ onHit: (state, hit, stats) => {
 ```
 
 Why this over `reactsTo` / `transformsTypes` arrays:
+
 - **Accept/decline logic lives with the system's logic**, not in a separate declaration that can drift out of sync.
 - **No shared constants or imports** between systems. No coupling.
 - **The pipeline is maximally dumb** — it calls, checks for null, moves on.
@@ -85,6 +86,7 @@ The pipeline sorts transforms by priority once at registration and runs them in 
 **Reordering is a game design change, not a code change.** Want crits to pierce blocks? Swap crit to priority 5 so it runs before block. Block then sees a `'criticalHit'` and decides whether to block it. The architecture doesn't care — it just runs lowest to highest.
 
 Current ordering rationale:
+
 - Dodge first: dodged hits never reach anything else
 - Block before crit: blocked hits aren't crits (default behavior)
 - Crit before armor: armor reduces crit-boosted damage
@@ -105,11 +107,11 @@ Pipeline logic:
 
 ```ts
 for (const sys of transformsSortedByPriority) {
-  const result = sys.transformHit(states.get(sys.id), current, stats, rng);
-  if (result !== null) {
-    states.set(sys.id, result.state);
-    current = result.hit;
-  }
+	const result = sys.transformHit(states.get(sys.id), current, stats, rng);
+	if (result !== null) {
+		states.set(sys.id, result.state);
+		current = result.hit;
+	}
 }
 ```
 
@@ -121,12 +123,12 @@ Pipeline logic:
 
 ```ts
 for (const sys of reactors) {
-  if (!sys.onHit) continue;
-  const result = sys.onHit(states.get(sys.id), hit, stats);
-  if (result !== null) {
-    states.set(sys.id, result.state);
-    if (result.effects) allEffects.push(...result.effects);
-  }
+	if (!sys.onHit) continue;
+	const result = sys.onHit(states.get(sys.id), hit, stats);
+	if (result !== null) {
+		states.set(sys.id, result.state);
+		if (result.effects) allEffects.push(...result.effects);
+	}
 }
 ```
 
@@ -149,18 +151,18 @@ Attack:
 
 ```ts
 const executeSystem = {
-  id: 'execute',
-  initialState: () => ({}),
+	id: 'execute',
+	initialState: () => ({}),
 
-  beforeAttack: (state, ctx, stats) => {
-    if (ctx.isBoss) return { state, skip: false };
-    if (ctx.rng() >= stats.executeChance) return { state, skip: false };
-    return {
-      state,
-      skip: true,
-      hits: [{ type: 'executeHit', damage: ctx.enemyHealth }],
-    };
-  },
+	beforeAttack: (state, ctx, stats) => {
+		if (ctx.isBoss) return { state, skip: false };
+		if (ctx.rng() >= stats.executeChance) return { state, skip: false };
+		return {
+			state,
+			skip: true,
+			hits: [{ type: 'executeHit', damage: ctx.enemyHealth }]
+		};
+	}
 };
 ```
 
@@ -170,36 +172,49 @@ A system is a set of pure functions + initial state. No mutation, no `this`, no 
 
 ```ts
 interface PipelineHit {
-  type: string;
+	type: string;
 }
 
 interface SystemDefinition<TState = any> {
-  id: string;
-  initialState: () => TState;
-  priority?: number; // transform ordering (lower = earlier). Reactors ignore this.
-  isActive?: (stats: Record<string, number>) => boolean;
+	id: string;
+	initialState: () => TState;
+	priority?: number; // transform ordering (lower = earlier). Reactors ignore this.
+	isActive?: (stats: Record<string, number>) => boolean;
 
-  // Transforms — return result to accept, null to decline
-  beforeAttack?: (state: TState, ctx: AttackContext, stats: Record<string, number>)
-    => { state: TState; skip?: boolean; hits?: PipelineHit[] };
-  transformHit?: (state: TState, hit: PipelineHit, stats: Record<string, number>, rng: Rng)
-    => { state: TState; hit: PipelineHit } | null;
+	// Transforms — return result to accept, null to decline
+	beforeAttack?: (
+		state: TState,
+		ctx: AttackContext,
+		stats: Record<string, number>
+	) => { state: TState; skip?: boolean; hits?: PipelineHit[] };
+	transformHit?: (
+		state: TState,
+		hit: PipelineHit,
+		stats: Record<string, number>,
+		rng: Rng
+	) => { state: TState; hit: PipelineHit } | null;
 
-  // Reactors — return result to accept, null to decline
-  onHit?: (state: TState, hit: PipelineHit, stats: Record<string, number>)
-    => ReactorResult<TState> | null;
+	// Reactors — return result to accept, null to decline
+	onHit?: (
+		state: TState,
+		hit: PipelineHit,
+		stats: Record<string, number>
+	) => ReactorResult<TState> | null;
 
-  // Lifecycle
-  onTick?: (state: TState, stats: Record<string, number>, ctx: TickContext)
-    => { state: TState; damage: number; hitType?: string };
-  onKill?: (state: TState, ctx: KillContext) => TState;
+	// Lifecycle
+	onTick?: (
+		state: TState,
+		stats: Record<string, number>,
+		ctx: TickContext
+	) => { state: TState; damage: number; hitType?: string };
+	onKill?: (state: TState, ctx: KillContext) => TState;
 
-  // Cross-system effects
-  handleEffect?: (state: TState, action: string, payload: any) => TState;
+	// Cross-system effects
+	handleEffect?: (state: TState, action: string, payload: any) => TState;
 
-  // Serialization
-  serialize?: (state: TState) => unknown;
-  deserialize?: (data: unknown) => TState;
+	// Serialization
+	serialize?: (state: TState) => unknown;
+	deserialize?: (data: unknown) => TState;
 }
 ```
 
@@ -208,30 +223,30 @@ interface SystemDefinition<TState = any> {
 ```ts
 // crit.ts
 interface CriticalHit extends PipelineHit {
-  type: 'criticalHit';
-  damage: number;
-  index: number;
-  critMultiplier: number;
+	type: 'criticalHit';
+	damage: number;
+	index: number;
+	critMultiplier: number;
 }
 
 const critSystem: SystemDefinition<{}> = {
-  id: 'crit',
-  priority: 20,
-  initialState: () => ({}),
+	id: 'crit',
+	priority: 20,
+	initialState: () => ({}),
 
-  transformHit: (state, hit, stats, rng) => {
-    if (hit.type !== 'hit') return null;
-    if (rng() >= stats.critChance) return { state, hit };
-    return {
-      state,
-      hit: {
-        type: 'criticalHit',
-        damage: Math.floor(hit.damage * stats.critMultiplier),
-        index: hit.index,
-        critMultiplier: stats.critMultiplier,
-      },
-    };
-  },
+	transformHit: (state, hit, stats, rng) => {
+		if (hit.type !== 'hit') return null;
+		if (rng() >= stats.critChance) return { state, hit };
+		return {
+			state,
+			hit: {
+				type: 'criticalHit',
+				damage: Math.floor(hit.damage * stats.critMultiplier),
+				index: hit.index,
+				critMultiplier: stats.critMultiplier
+			}
+		};
+	}
 };
 ```
 
@@ -240,51 +255,54 @@ const critSystem: SystemDefinition<{}> = {
 const poisonStackMgr = createStackManager({ max: 5, refreshPolicy: 'refresh-shortest' });
 
 const poisonSystem: SystemDefinition<{ stacks: Stack[] }> = {
-  id: 'poison',
-  initialState: () => ({ stacks: [] }),
-  isActive: (stats) => stats.poison > 0,
+	id: 'poison',
+	initialState: () => ({ stacks: [] }),
+	isActive: (stats) => stats.poison > 0,
 
-  onHit: (state, hit, stats) => {
-    if (hit.type !== 'hit' && hit.type !== 'criticalHit') return null;
-    return {
-      state: { ...state, stacks: poisonStackMgr.add(state.stacks, stats.poisonDuration) },
-    };
-  },
+	onHit: (state, hit, stats) => {
+		if (hit.type !== 'hit' && hit.type !== 'criticalHit') return null;
+		return {
+			state: { ...state, stacks: poisonStackMgr.add(state.stacks, stats.poisonDuration) }
+		};
+	},
 
-  onTick: (state, stats) => {
-    if (state.stacks.length === 0) return { state, damage: 0 };
-    const perStack = Math.floor(stats.poison * (stats.damageMultiplier ?? 1));
-    return {
-      state: { ...state, stacks: poisonStackMgr.tick(state.stacks) },
-      damage: perStack * state.stacks.length,
-      hitType: 'poison',
-    };
-  },
+	onTick: (state, stats) => {
+		if (state.stacks.length === 0) return { state, damage: 0 };
+		const perStack = Math.floor(stats.poison * (stats.damageMultiplier ?? 1));
+		return {
+			state: { ...state, stacks: poisonStackMgr.tick(state.stacks) },
+			damage: perStack * state.stacks.length,
+			hitType: 'poison'
+		};
+	},
 
-  onKill: () => ({ stacks: [] }),
+	onKill: () => ({ stacks: [] }),
 
-  handleEffect: (state, action, payload) => {
-    if (action === 'addStacks') {
-      return { ...state, stacks: poisonStackMgr.add(state.stacks, payload.duration ?? 5, payload.count ?? 1) };
-    }
-    return state;
-  },
+	handleEffect: (state, action, payload) => {
+		if (action === 'addStacks') {
+			return {
+				...state,
+				stacks: poisonStackMgr.add(state.stacks, payload.duration ?? 5, payload.count ?? 1)
+			};
+		}
+		return state;
+	}
 };
 ```
 
 ```ts
 // thorns.ts — only accepts 'blockedHit'
 const thornsSystem: SystemDefinition<{ reflectDamage: number }> = {
-  id: 'thorns',
-  initialState: () => ({ reflectDamage: 0 }),
-  isActive: (stats) => stats.thorns > 0,
+	id: 'thorns',
+	initialState: () => ({ reflectDamage: 0 }),
+	isActive: (stats) => stats.thorns > 0,
 
-  onHit: (state, hit, stats) => {
-    if (hit.type !== 'blockedHit') return null;
-    return {
-      state: { ...state, reflectDamage: hit.originalDamage * stats.thorns },
-    };
-  },
+	onHit: (state, hit, stats) => {
+		if (hit.type !== 'blockedHit') return null;
+		return {
+			state: { ...state, reflectDamage: hit.originalDamage * stats.thorns }
+		};
+	}
 };
 ```
 
@@ -295,17 +313,17 @@ When one system needs to influence another (e.g. "Venomous Crits" adds extra poi
 ```ts
 // venomous-crits.ts — emits effect targeting 'poison'. Never imports poison.
 const venomousCritsSystem: SystemDefinition<{}> = {
-  id: 'venomous-crits',
-  initialState: () => ({}),
-  isActive: (stats) => stats.venomousCrits > 0 && stats.poison > 0,
+	id: 'venomous-crits',
+	initialState: () => ({}),
+	isActive: (stats) => stats.venomousCrits > 0 && stats.poison > 0,
 
-  onHit: (state, hit, stats) => {
-    if (hit.type !== 'criticalHit') return null;
-    return {
-      state,
-      effects: [{ target: 'poison', action: 'addStacks', payload: { count: 1 } }],
-    };
-  },
+	onHit: (state, hit, stats) => {
+		if (hit.type !== 'criticalHit') return null;
+		return {
+			state,
+			effects: [{ target: 'poison', action: 'addStacks', payload: { count: 1 } }]
+		};
+	}
 };
 ```
 

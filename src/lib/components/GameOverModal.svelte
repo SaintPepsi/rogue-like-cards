@@ -13,7 +13,8 @@
 
 	import { formatNumber } from '$lib/format';
 
-	let { show, stage, level, enemiesKilled, goldEarned, totalGold, onReset, onOpenShop }: Props = $props();
+	let { show, stage, level, enemiesKilled, goldEarned, totalGold, onReset, onOpenShop }: Props =
+		$props();
 </script>
 
 {#if show}
@@ -27,10 +28,18 @@
 				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
 				<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
 			</div>
-			<p class="gold-display">Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span></p>
+			<p class="gold-display">
+				Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span>
+			</p>
 			<div class="button-row">
-				<Button.Root class="px-6 py-3 bg-linear-to-r from-[#fbbf24] to-[#f59e0b] border-none rounded-lg text-[#1a1a2e] text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]" onclick={onOpenShop}>Buy Cards</Button.Root>
-				<Button.Root class="px-6 py-3 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]" onclick={onReset}>Play Again</Button.Root>
+				<Button.Root
+					class="px-6 py-3 bg-linear-to-r from-[#fbbf24] to-[#f59e0b] border-none rounded-lg text-[#1a1a2e] text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]"
+					onclick={onOpenShop}>Buy Cards</Button.Root
+				>
+				<Button.Root
+					class="px-6 py-3 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]"
+					onclick={onReset}>Play Again</Button.Root
+				>
 			</div>
 		</div>
 	</div>
@@ -99,5 +108,4 @@
 		justify-content: center;
 		gap: 12px;
 	}
-
 </style>

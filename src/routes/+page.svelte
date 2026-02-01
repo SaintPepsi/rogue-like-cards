@@ -111,20 +111,52 @@
 		<h1>Rogue Arena</h1>
 		<div class="header-buttons">
 			{#if !gameState.showGameOver}
-				<Button.Root class="flex items-center justify-center h-[38px] px-3 border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(239,68,68,0.15)] text-[#f87171] border-[rgba(239,68,68,0.3)] hover:bg-[rgba(239,68,68,0.3)] hover:text-white text-sm font-semibold" onclick={() => showGiveUpConfirm = true} title="Give Up">
+				<Button.Root
+					class="flex items-center justify-center h-[38px] px-3 border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(239,68,68,0.15)] text-[#f87171] border-[rgba(239,68,68,0.3)] hover:bg-[rgba(239,68,68,0.3)] hover:text-white text-sm font-semibold"
+					onclick={() => (showGiveUpConfirm = true)}
+					title="Give Up"
+				>
 					Give Up
 				</Button.Root>
 			{/if}
-			<Button.Root class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(139,92,246,0.2)] text-[#a78bfa] border-[rgba(139,92,246,0.3)] hover:bg-[rgba(139,92,246,0.35)] hover:text-white" onclick={() => showUpgradesModal = true} title="Upgrades">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+			<Button.Root
+				class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(139,92,246,0.2)] text-[#a78bfa] border-[rgba(139,92,246,0.3)] hover:bg-[rgba(139,92,246,0.35)] hover:text-white"
+				onclick={() => (showUpgradesModal = true)}
+				title="Upgrades"
+			>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+					<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
 				</svg>
 			</Button.Root>
-			<Button.Root class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-white/[0.08] text-white/60 border-white/15 hover:bg-white/15 hover:text-white" onclick={() => showSettingsModal = true} title="Settings">
-				<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<circle cx="12" cy="12" r="3"/>
-					<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+			<Button.Root
+				class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-white/[0.08] text-white/60 border-white/15 hover:bg-white/15 hover:text-white"
+				onclick={() => (showSettingsModal = true)}
+				title="Settings"
+			>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<circle cx="12" cy="12" r="3" />
+					<path
+						d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+					/>
 				</svg>
 			</Button.Root>
 		</div>
@@ -136,7 +168,9 @@
 			<span class="stage-label">Stage {gameState.stage}</span>
 			{#if gameState.isBoss}
 				<span class="boss-label">BOSS</span>
-				<span class="boss-timer" class:urgent={gameState.bossTimer <= 10}>{gameState.bossTimer}s</span>
+				<span class="boss-timer" class:urgent={gameState.bossTimer <= 10}
+					>{gameState.bossTimer}s</span
+				>
 			{:else}
 				<span class="wave-progress">{gameState.waveKills}/{gameState.killsPerWave} until boss</span>
 			{/if}
@@ -148,10 +182,15 @@
 			<span class="level-label">Level {gameState.level}</span>
 			{#key gameState.level}
 				<div class="xp-bar">
-					<div class="xp-fill" style:width="{(gameState.xp / gameState.xpToNextLevel) * 100}%"></div>
+					<div
+						class="xp-fill"
+						style:width="{(gameState.xp / gameState.xpToNextLevel) * 100}%"
+					></div>
 				</div>
 			{/key}
-			<span class="xp-text">{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span>
+			<span class="xp-text"
+				>{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span
+			>
 		</div>
 
 		<!-- Main Content: Stats + Battle -->
@@ -226,18 +265,15 @@
 	<UpgradesModal
 		show={showUpgradesModal}
 		unlockedUpgrades={gameState.unlockedUpgrades}
-		onClose={() => showUpgradesModal = false}
+		onClose={() => (showUpgradesModal = false)}
 	/>
 
-	<ChangelogModal
-		show={showChangelogModal}
-		onClose={() => showChangelogModal = false}
-	/>
+	<ChangelogModal show={showChangelogModal} onClose={() => (showChangelogModal = false)} />
 
 	<SettingsModal
 		show={showSettingsModal}
-		onClose={() => showSettingsModal = false}
-		onOpenChangelog={() => showChangelogModal = true}
+		onClose={() => (showSettingsModal = false)}
+		onOpenChangelog={() => (showChangelogModal = true)}
 		onReset={gameState.fullReset}
 	/>
 
@@ -247,8 +283,17 @@
 				<h3>Give Up?</h3>
 				<p>Your current run will end and gold will be deposited to the shop.</p>
 				<div class="confirm-buttons">
-					<Button.Root class="py-2.5 px-6 bg-[#374151] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]" onclick={() => showGiveUpConfirm = false}>Cancel</Button.Root>
-					<Button.Root class="py-2.5 px-6 bg-linear-to-r from-[#dc2626] to-[#ef4444] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(239,68,68,0.4)]" onclick={() => { showGiveUpConfirm = false; gameState.giveUp(); }}>Give Up</Button.Root>
+					<Button.Root
+						class="py-2.5 px-6 bg-[#374151] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]"
+						onclick={() => (showGiveUpConfirm = false)}>Cancel</Button.Root
+					>
+					<Button.Root
+						class="py-2.5 px-6 bg-linear-to-r from-[#dc2626] to-[#ef4444] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(239,68,68,0.4)]"
+						onclick={() => {
+							showGiveUpConfirm = false;
+							gameState.giveUp();
+						}}>Give Up</Button.Root
+					>
 				</div>
 			</div>
 		</div>
@@ -347,8 +392,13 @@
 	}
 
 	@keyframes pulse {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.7; }
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.7;
+		}
 	}
 
 	.level-bar {
@@ -405,7 +455,6 @@
 		flex-direction: column;
 		gap: 12px;
 	}
-
 
 	.game-layout {
 		display: grid;

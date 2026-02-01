@@ -11,6 +11,7 @@
 **Dependencies:** None. Must be completed before Plans 1-3.
 
 **Design doc:** This plan was designed during brainstorming session 2026-01-31. Key decisions:
+
 - Stats are never mutated. All effective values computed via layered memoised pipeline (monad pattern).
 - All gameplay timing uses a named timer registry ticked by the rAF loop. No `setTimeout`/`setInterval` for game logic.
 - Attack speed = "attacks per second" (Adventurer 0.8, future: Warrior 0.4, Mage 0.64, Rogue 1.2).
@@ -37,7 +38,7 @@ registry.tick(2000);
 
 // Simulate 5 seconds at ~60fps granularity
 for (let i = 0; i < 300; i++) {
-  registry.tick(16.67);
+	registry.tick(16.67);
 }
 ```
 
@@ -68,6 +69,7 @@ for (let i = 0; i < 300; i++) {
 ### Task 0.1: Define Stat Pipeline Types and Engine
 
 **Files:**
+
 - Create: `src/lib/engine/statPipeline.ts`
 - Create: `src/lib/engine/statPipeline.test.ts`
 
@@ -78,8 +80,13 @@ Create `src/lib/engine/statPipeline.test.ts`:
 ```typescript
 import { describe, test, expect } from 'vitest';
 import {
-	add, multiply, clampMin, conditionalAdd,
-	computeLayered, createLayer, dirtyLayer,
+	add,
+	multiply,
+	clampMin,
+	conditionalAdd,
+	computeLayered,
+	createLayer,
+	dirtyLayer,
 	type PipelineLayer
 } from '$lib/engine/statPipeline';
 
@@ -109,18 +116,15 @@ describe('step functions', () => {
 describe('computeLayered', () => {
 	test('computes through all layers', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),       // 1 + 5 = 6
-			createLayer([multiply(2)]),  // 6 * 2 = 12
-			createLayer([clampMin(0)])   // 12 (no change)
+			createLayer([add(5)]), // 1 + 5 = 6
+			createLayer([multiply(2)]), // 6 * 2 = 12
+			createLayer([clampMin(0)]) // 12 (no change)
 		];
 		expect(computeLayered(1, layers)).toBe(12);
 	});
 
 	test('returns cached result when not dirty and input unchanged', () => {
-		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),
-			createLayer([multiply(2)])
-		];
+		const layers: PipelineLayer[] = [createLayer([add(5)]), createLayer([multiply(2)])];
 
 		// First computation
 		computeLayered(1, layers);
@@ -135,8 +139,8 @@ describe('computeLayered', () => {
 
 	test('recomputes only dirty layers', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),       // Layer 0: permanent
-			createLayer([add(0)]),       // Layer 1: transient (will be modified)
+			createLayer([add(5)]), // Layer 0: permanent
+			createLayer([add(0)]) // Layer 1: transient (will be modified)
 		];
 
 		// First computation: 1 + 5 + 0 = 6
@@ -153,10 +157,7 @@ describe('computeLayered', () => {
 	});
 
 	test('dirtying an earlier layer forces recomputation of later layers', () => {
-		const layers: PipelineLayer[] = [
-			createLayer([add(5)]),
-			createLayer([multiply(2)])
-		];
+		const layers: PipelineLayer[] = [createLayer([add(5)]), createLayer([multiply(2)])];
 
 		// First: (1 + 5) * 2 = 12
 		expect(computeLayered(1, layers)).toBe(12);
@@ -175,7 +176,7 @@ describe('computeLayered', () => {
 
 	test('handles multiple steps in one layer', () => {
 		const layers: PipelineLayer[] = [
-			createLayer([add(2), add(3), multiply(2)])  // (5 + 2 + 3) * 2 = 20
+			createLayer([add(2), add(3), multiply(2)]) // (5 + 2 + 3) * 2 = 20
 		];
 		expect(computeLayered(5, layers)).toBe(20);
 	});
@@ -196,9 +197,18 @@ Create `src/lib/engine/statPipeline.ts`:
 
 export type StatStep = (value: number) => number;
 
-export const add = (n: number): StatStep => (v) => v + n;
-export const multiply = (n: number): StatStep => (v) => v * n;
-export const clampMin = (min: number): StatStep => (v) => Math.max(min, v);
+export const add =
+	(n: number): StatStep =>
+	(v) =>
+		v + n;
+export const multiply =
+	(n: number): StatStep =>
+	(v) =>
+		v * n;
+export const clampMin =
+	(min: number): StatStep =>
+	(v) =>
+		Math.max(min, v);
 export const conditionalAdd = (n: number, condition: boolean): StatStep =>
 	condition ? (v) => v + n : (v) => v;
 
@@ -259,6 +269,7 @@ Expected: PASS
 ### Task 0.2: Define Stat Modifier Type and Update Upgrade Format
 
 **Files:**
+
 - Modify: `src/lib/types.ts:3-7` (replace display-only `StatModifier` with pipeline `StatModifier`)
 - Modify: `src/lib/types.ts:33-40` (update `Upgrade` type)
 
@@ -291,6 +302,7 @@ export type Upgrade = {
 ```
 
 This removes:
+
 - `stats: StatModifier[]` — display derived from `modifiers` + `statRegistry`
 - `apply: (stats: PlayerStats) => void` — replaced by pipeline
 
@@ -308,6 +320,7 @@ Expected: FAIL — existing code references `stats`, `apply`, and old `StatModif
 ### Task 0.3: Migrate All Upgrade Cards to Modifier Format
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts:16-574` (replace `stats`/`apply` with `modifiers` on all 48 cards in `allUpgrades`)
 - Modify: `src/lib/data/upgrades.ts:577-598` (update 2 shop-only cards)
 
@@ -316,6 +329,7 @@ This is a mechanical migration. Each card follows the same pattern: read what `a
 **Step 1: Migrate damage, crit, XP cards (lines 18-117, 16 cards)**
 
 Pattern for single-stat cards:
+
 ```typescript
 // Before:
 { id: 'damage1', title: 'Sharpen Blade', rarity: 'common', image: swordImg,
@@ -328,6 +342,7 @@ Pattern for single-stat cards:
 ```
 
 Pattern for multi-stat cards (e.g. `crit3` at line 68):
+
 ```typescript
 // Before:
 { id: 'crit3', ..., apply: (s) => { s.critChance += 0.15; s.critMultiplier += 0.5; } }
@@ -347,6 +362,7 @@ Apply to: `poison1-3`, `poisondur1-3`, `poisonstack1-3`, `poisoncrit1-3`.
 Apply to: `multi1-3`, `overkill1`, `execute1-3`.
 
 Boolean stats (overkill) use value `1` as truthy:
+
 ```typescript
 { id: 'overkill1', ..., modifiers: [{ stat: 'overkill', value: 1 }] },
 ```
@@ -360,6 +376,7 @@ Apply to: `timer1-2`, `greed1-2`, `chest1-3`, `bosschest1-2`, `lucky1-2`, `goldd
 Apply to: `combo1-3`, `legendary1-4`.
 
 Multi-stat example:
+
 ```typescript
 { id: 'combo1', title: 'Berserker', rarity: 'epic', image: axeImg,
   modifiers: [
@@ -371,14 +388,21 @@ Multi-stat example:
 **Step 6: Update shop-only cards (lines 577-598)**
 
 The shop-only cards (`executeCapUpgrade`, `goldPerKillUpgrade`) have no-op `apply()` functions. Convert them:
+
 ```typescript
 export const executeCapUpgrade: Upgrade = {
-	id: 'execute_cap', title: "Executioner's Pact", rarity: 'epic', image: pickaxeImg,
+	id: 'execute_cap',
+	title: "Executioner's Pact",
+	rarity: 'epic',
+	image: pickaxeImg,
 	modifiers: [] // Applied via executeCapBonus in gameState, not through normal stats
 };
 
 export const goldPerKillUpgrade: Upgrade = {
-	id: 'gold_per_kill', title: "Prospector's Pick", rarity: 'uncommon', image: coinsImg,
+	id: 'gold_per_kill',
+	title: "Prospector's Pick",
+	rarity: 'uncommon',
+	image: coinsImg,
 	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
 };
 ```
@@ -392,6 +416,7 @@ export const goldPerKillUpgrade: Upgrade = {
 ### Task 0.4: Add Modifier Display Helper and Update Tests
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts` (add `getModifierDisplay` function after line ~600)
 - Modify: `src/lib/data/upgrades.test.ts:1-145` (replace vitest mocks of old `stats` with validation of new `modifiers`)
 
@@ -456,6 +481,7 @@ Expected: Some tests may still fail if other code references `apply()` — those
 ### Task 0.5: Create Stat Pipeline Store
 
 **Files:**
+
 - Modify: `src/lib/engine/stats.ts:4-27` (add `BASE_STATS` constant after `createDefaultStats`)
 - Create: `src/lib/stores/statPipeline.svelte.ts`
 
@@ -473,8 +499,14 @@ Create `src/lib/stores/statPipeline.svelte.ts`:
 
 ```typescript
 import {
-	computeLayered, createLayer, dirtyLayer, add, multiply, clampMin,
-	type PipelineLayer, type StatStep
+	computeLayered,
+	createLayer,
+	dirtyLayer,
+	add,
+	multiply,
+	clampMin,
+	type PipelineLayer,
+	type StatStep
 } from '$lib/engine/statPipeline';
 import { BASE_STATS } from '$lib/engine/stats';
 import { allUpgrades } from '$lib/data/upgrades';
@@ -628,7 +660,9 @@ export function createStatPipeline() {
 
 	return {
 		get,
-		get acquiredUpgradeIds() { return acquiredUpgradeIds; },
+		get acquiredUpgradeIds() {
+			return acquiredUpgradeIds;
+		},
 		acquireUpgrade,
 		setAcquiredUpgrades,
 		setClassBase,
@@ -657,6 +691,7 @@ Expected: Type errors may still exist in gameState (wired in Task 0.6). The stor
 ### Task 0.6: Wire Stat Pipeline into Game State
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts:1-10` (add pipeline import)
 - Modify: `src/lib/stores/gameState.svelte.ts:22-53` (add pipeline instance, replace mutable playerStats)
 - Modify: `src/lib/stores/gameState.svelte.ts:207-251` (update `selectUpgrade`)
@@ -670,11 +705,13 @@ Expected: Type errors may still exist in gameState (wired in Task 0.6). The stor
 **Step 1: Add pipeline import and instance**
 
 In `gameState.svelte.ts`, add import:
+
 ```typescript
 import { createStatPipeline } from './statPipeline.svelte';
 ```
 
 Create pipeline instance alongside other sub-stores (after line 50):
+
 ```typescript
 const statPipeline = createStatPipeline();
 ```
@@ -682,6 +719,7 @@ const statPipeline = createStatPipeline();
 **Step 2: Update `selectUpgrade()` (lines 207-251)**
 
 Replace `upgrade.apply(playerStats)` with pipeline call:
+
 ```typescript
 function selectUpgrade(upgrade: Upgrade) {
 	statPipeline.acquireUpgrade(upgrade.id);
@@ -718,6 +756,7 @@ function selectUpgrade(upgrade: Upgrade) {
 ```
 
 Add import at top:
+
 ```typescript
 import { statRegistry } from '$lib/engine/stats';
 ```
@@ -725,6 +764,7 @@ import { statRegistry } from '$lib/engine/stats';
 **Step 3: Replace all `playerStats.X` reads with `statPipeline.get('X')`**
 
 Every place in gameState that reads a stat value (e.g. `playerStats.damage`, `playerStats.poison`, `playerStats.greed`) now reads `statPipeline.get('damage')`, etc. Key locations:
+
 - `upgradeContext()` (line 55): `playerStats.luckyChance` → `statPipeline.get('luckyChance')`, etc.
 - `attack()` (line 78): build a stats object from pipeline for `calculateAttack`
 - `applyPoison()` (line 122): similarly for `calculatePoison`
@@ -732,6 +772,7 @@ Every place in gameState that reads a stat value (e.g. `playerStats.damage`, `pl
 - `bossTimerMax` derived (line 53): `playerStats.bonusBossTime` → `statPipeline.get('bonusBossTime')`
 
 For `calculateAttack` and `calculatePoison` which expect a `PlayerStats` object, create a helper:
+
 ```typescript
 function getEffectiveStats(): PlayerStats {
 	const stats = {} as PlayerStats;
@@ -761,6 +802,7 @@ Delete this function — shop upgrades are loaded via pipeline.
 **Step 7: Update public return object stat getters**
 
 Replace `get playerStats()` with individual stat getters delegating to pipeline, or keep a compatibility getter:
+
 ```typescript
 get playerStats() {
 	return getEffectiveStats();
@@ -785,6 +827,7 @@ Expected: PASS — all stat reads go through pipeline, all upgrades applied via 
 ### Task 0.7: Stat Pipeline Integration Tests
 
 **Files:**
+
 - Create: `src/lib/stores/statPipeline.test.ts`
 
 Test the store-level integration:
@@ -797,7 +840,12 @@ import { describe, test, expect } from 'vitest';
 // engine functions directly and verify store wiring via e2e.
 
 import {
-	computeLayered, createLayer, add, multiply, clampMin, dirtyLayer,
+	computeLayered,
+	createLayer,
+	add,
+	multiply,
+	clampMin,
+	dirtyLayer,
 	type PipelineLayer
 } from '$lib/engine/statPipeline';
 import { createDefaultStats } from '$lib/engine/stats';
@@ -818,10 +866,10 @@ describe('stat pipeline store logic', () => {
 	test('base stats match defaults before any upgrades', () => {
 		const defaults = createDefaultStats();
 		const layers: PipelineLayer[] = [
-			createLayer([]),      // base
-			createLayer([]),      // permanent
-			createLayer([]),      // class
-			createLayer([]),      // transient
+			createLayer([]), // base
+			createLayer([]), // permanent
+			createLayer([]), // class
+			createLayer([]), // transient
 			createLayer([clampMin(0)]) // clamp
 		];
 		expect(computeLayered(defaults.damage as number, layers)).toBe(1);
@@ -933,6 +981,7 @@ describe('stat pipeline store logic', () => {
 ### Task 1.1: Create Timer Registry Engine
 
 **Files:**
+
 - Create: `src/lib/engine/timerRegistry.ts`
 - Create: `src/lib/engine/timerRegistry.test.ts`
 
@@ -948,7 +997,12 @@ describe('timer registry', () => {
 	test('one-shot timer fires on expiry', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.tick(100);
 		expect(fired).toBe(true);
 		expect(registry.has('test')).toBe(false); // auto-removed
@@ -957,7 +1011,12 @@ describe('timer registry', () => {
 	test('one-shot timer does not fire before expiry', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.tick(50);
 		expect(fired).toBe(false);
 		expect(registry.has('test')).toBe(true);
@@ -966,7 +1025,13 @@ describe('timer registry', () => {
 	test('repeating timer fires and resets', () => {
 		const registry = createTimerRegistry();
 		let count = 0;
-		registry.register('tick', { remaining: 1000, onExpire: () => { count++; }, repeat: 1000 });
+		registry.register('tick', {
+			remaining: 1000,
+			onExpire: () => {
+				count++;
+			},
+			repeat: 1000
+		});
 
 		registry.tick(1000);
 		expect(count).toBe(1);
@@ -979,7 +1044,13 @@ describe('timer registry', () => {
 	test('repeating timer carries remainder', () => {
 		const registry = createTimerRegistry();
 		let count = 0;
-		registry.register('tick', { remaining: 1000, onExpire: () => { count++; }, repeat: 1000 });
+		registry.register('tick', {
+			remaining: 1000,
+			onExpire: () => {
+				count++;
+			},
+			repeat: 1000
+		});
 
 		// 2500ms = fires at 1000, 2000, remainder 500
 		registry.tick(2500);
@@ -993,7 +1064,12 @@ describe('timer registry', () => {
 	test('remove cancels a timer', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.remove('test');
 		registry.tick(200);
 		expect(fired).toBe(false);
@@ -1001,9 +1077,20 @@ describe('timer registry', () => {
 
 	test('multiple timers tick independently', () => {
 		const registry = createTimerRegistry();
-		let a = 0, b = 0;
-		registry.register('a', { remaining: 100, onExpire: () => { a++; } });
-		registry.register('b', { remaining: 200, onExpire: () => { b++; } });
+		let a = 0,
+			b = 0;
+		registry.register('a', {
+			remaining: 100,
+			onExpire: () => {
+				a++;
+			}
+		});
+		registry.register('b', {
+			remaining: 200,
+			onExpire: () => {
+				b++;
+			}
+		});
 
 		registry.tick(150);
 		expect(a).toBe(1);
@@ -1015,9 +1102,20 @@ describe('timer registry', () => {
 
 	test('registering same name replaces existing timer', () => {
 		const registry = createTimerRegistry();
-		let first = 0, second = 0;
-		registry.register('test', { remaining: 100, onExpire: () => { first++; } });
-		registry.register('test', { remaining: 200, onExpire: () => { second++; } });
+		let first = 0,
+			second = 0;
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				first++;
+			}
+		});
+		registry.register('test', {
+			remaining: 200,
+			onExpire: () => {
+				second++;
+			}
+		});
 
 		registry.tick(150);
 		expect(first).toBe(0);
@@ -1030,8 +1128,18 @@ describe('timer registry', () => {
 	test('clear removes all timers', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('a', { remaining: 100, onExpire: () => { fired = true; } });
-		registry.register('b', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('a', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
+		registry.register('b', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.clear();
 		registry.tick(200);
 		expect(fired).toBe(false);
@@ -1140,6 +1248,7 @@ Expected: PASS
 ### Task 1.2: Timer Registry Simulation Tests
 
 **Files:**
+
 - Modify: `src/lib/engine/timerRegistry.test.ts` (append new describe block)
 
 Add tests that validate complex multi-timer game scenarios using only `tick()`:
@@ -1151,7 +1260,9 @@ describe('game loop simulation', () => {
 		let poisonTicks = 0;
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { poisonTicks++; },
+			onExpire: () => {
+				poisonTicks++;
+			},
 			repeat: 1000
 		});
 
@@ -1200,7 +1311,9 @@ describe('game loop simulation', () => {
 			attacks++;
 			registry.register('attack_cooldown', {
 				remaining: attackInterval,
-				onExpire: () => { fireAttack(); }
+				onExpire: () => {
+					fireAttack();
+				}
 			});
 		}
 
@@ -1232,14 +1345,18 @@ describe('game loop simulation', () => {
 			attacks++;
 			registry.register('attack_cooldown', {
 				remaining: 1250,
-				onExpire: () => { fireAttack(); }
+				onExpire: () => {
+					fireAttack();
+				}
 			});
 		}
 
 		// Poison every 1000ms
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { poisonTicks++; },
+			onExpire: () => {
+				poisonTicks++;
+			},
 			repeat: 1000
 		});
 
@@ -1247,7 +1364,9 @@ describe('game loop simulation', () => {
 		registry.register('boss_countdown', {
 			remaining: 1000,
 			repeat: 1000,
-			onExpire: () => { bossSeconds--; }
+			onExpire: () => {
+				bossSeconds--;
+			}
 		});
 
 		fireAttack();
@@ -1255,15 +1374,20 @@ describe('game loop simulation', () => {
 		// Simulate 5 seconds
 		registry.tick(5000);
 
-		expect(attacks).toBe(5);      // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
-		expect(poisonTicks).toBe(5);   // at 1000, 2000, 3000, 4000, 5000
-		expect(bossSeconds).toBe(25);  // 30 - 5
+		expect(attacks).toBe(5); // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
+		expect(poisonTicks).toBe(5); // at 1000, 2000, 3000, 4000, 5000
+		expect(bossSeconds).toBe(25); // 30 - 5
 	});
 
 	test('simulate pausing: timers do not advance when not ticked', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 
 		// "Pause" by simply not calling tick for a while
 		// Then resume by ticking
@@ -1289,6 +1413,7 @@ describe('game loop simulation', () => {
 ### Task 2.1: Add New Stats to PlayerStats
 
 **Files:**
+
 - Modify: `src/lib/types.ts:30` (add 3 fields after `goldPerKill`)
 - Modify: `src/lib/engine/stats.ts:25` (add defaults after `goldPerKill: 0`)
 - Modify: `src/lib/engine/stats.ts:45-66` (add statRegistry entries)
@@ -1340,6 +1465,7 @@ Expected: PASS.
 ### Task 2.2: Create Attack Speed Helper Functions
 
 **Files:**
+
 - Create: `src/lib/engine/gameLoop.ts`
 - Create: `src/lib/engine/gameLoop.test.ts`
 
@@ -1429,6 +1555,7 @@ Expected: PASS
 ### Task 3.1: Create Game Loop Store
 
 **Files:**
+
 - Create: `src/lib/stores/gameLoop.svelte.ts`
 
 **Step 1: Create the store**
@@ -1436,10 +1563,7 @@ Expected: PASS
 This store wraps the timer registry with `requestAnimationFrame` and Svelte 5 runes. It reads attack speed from the stat pipeline and manages frenzy as transient pipeline modifiers.
 
 ```typescript
-import {
-	getEffectiveAttackSpeed,
-	getAttackIntervalMs
-} from '$lib/engine/gameLoop';
+import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/gameLoop';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
 
 export function createGameLoop() {
@@ -1620,11 +1744,19 @@ export function createGameLoop() {
 
 	return {
 		// Timer registry access (for Plans 1-3 to register enemy/ability timers)
-		get timers() { return timers; },
+		get timers() {
+			return timers;
+		},
 
-		get frenzyStacks() { return frenzyCount; },
-		get paused() { return paused; },
-		get pointerHeld() { return pointerHeld; },
+		get frenzyStacks() {
+			return frenzyCount;
+		},
+		get paused() {
+			return paused;
+		},
+		get pointerHeld() {
+			return pointerHeld;
+		},
 
 		start,
 		stop,
@@ -1653,6 +1785,7 @@ Expected: PASS (new file, no callers yet).
 ### Task 3.2: Replace gameState Timer Imports and Calls
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts:3` (replace timers import)
 - Modify: `src/lib/stores/gameState.svelte.ts:41` (replace timers instance)
 - Modify: `src/lib/stores/gameState.svelte.ts:184` (boss kill → `stopBossTimer`)
@@ -1678,14 +1811,14 @@ const gameLoop = createGameLoop();
 
 **Step 2: Replace all `timers.xxx` calls**
 
-| Location | Old | New |
-|----------|-----|-----|
-| `selectUpgrade()` line ~244 | `timers.startPoisonTick(applyPoison); timers.resumeBossTimer(handleBossExpired);` | `gameLoop.resume();` |
-| `openNextUpgrade()` line ~256 | `timers.stopPoisonTick(); timers.pauseBossTimer();` | `gameLoop.pause();` |
-| `killEnemy()` line ~184 (boss dies) | `timers.stopBossTimer();` | `gameLoop.stopBossTimer();` |
-| `killEnemy()` line ~195 (spawn boss) | `timers.startBossTimer(bossTimerMax, handleBossExpired);` | `gameLoop.startBossTimer(bossTimerMax);` |
-| `resetGame()` line ~332 | `timers.stopAll();` | `gameLoop.reset();` |
-| `resetGame()` line ~349 | `timers.startPoisonTick(applyPoison);` | (removed — game loop `start()` handles this) |
+| Location                             | Old                                                                               | New                                          |
+| ------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------- |
+| `selectUpgrade()` line ~244          | `timers.startPoisonTick(applyPoison); timers.resumeBossTimer(handleBossExpired);` | `gameLoop.resume();`                         |
+| `openNextUpgrade()` line ~256        | `timers.stopPoisonTick(); timers.pauseBossTimer();`                               | `gameLoop.pause();`                          |
+| `killEnemy()` line ~184 (boss dies)  | `timers.stopBossTimer();`                                                         | `gameLoop.stopBossTimer();`                  |
+| `killEnemy()` line ~195 (spawn boss) | `timers.startBossTimer(bossTimerMax, handleBossExpired);`                         | `gameLoop.startBossTimer(bossTimerMax);`     |
+| `resetGame()` line ~332              | `timers.stopAll();`                                                               | `gameLoop.reset();`                          |
+| `resetGame()` line ~349              | `timers.startPoisonTick(applyPoison);`                                            | (removed — game loop `start()` handles this) |
 
 **Step 3: Update bossTimer getter in return object**
 
@@ -1712,6 +1845,7 @@ Expected: Errors about deleted `timers.svelte.ts` (resolved in Task 3.3) and mis
 ### Task 3.3: Update init, Persistence, and Delete Old Timers
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts:357-371` (update `init()`)
 - Modify: `src/lib/stores/gameState.svelte.ts:269-289` (update `saveGame()` with `bossTimeRemaining`)
 - Modify: `src/lib/stores/persistence.svelte.ts:9-27` (add `bossTimeRemaining` to `SessionSaveData`)
@@ -1754,7 +1888,8 @@ function init() {
 			statPipeline.removeTransient('frenzy');
 			if (count > 0) {
 				statPipeline.addTransientStep(
-					'frenzy', 'attackSpeed',
+					'frenzy',
+					'attackSpeed',
 					multiply(1 + count * statPipeline.get('tapFrenzyBonus'))
 				);
 			}
@@ -1767,6 +1902,7 @@ function init() {
 ```
 
 Add import at top:
+
 ```typescript
 import { multiply } from '$lib/engine/statPipeline';
 ```
@@ -1778,7 +1914,7 @@ Add to the `saveSession()` call:
 ```typescript
 bossTimeRemaining: gameLoop.timers.has('boss_countdown')
 	? Math.ceil(gameLoop.timers.getRemaining('boss_countdown') / 1000)
-	: undefined
+	: undefined;
 ```
 
 **Step 4: Remove `attack` from public return, add pointer controls**
@@ -1799,6 +1935,7 @@ get effectiveAttackSpeed() {
 ```
 
 Add import:
+
 ```typescript
 import { getEffectiveAttackSpeed } from '$lib/engine/gameLoop';
 ```
@@ -1819,6 +1956,7 @@ Fix any references to deleted `timers` or removed `attack()` public API.
 ### Task 3.4: Update BattleArea for Pointer Input
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte:9-21` (update Props type)
 - Modify: `src/lib/components/BattleArea.svelte:23-35` (update destructured props)
 - Modify: `src/lib/components/BattleArea.svelte:40-48` (replace event handlers)
@@ -1900,6 +2038,7 @@ Add after the hint text:
 ```
 
 Style with pulse animation:
+
 ```css
 .frenzy-indicator {
 	display: flex;
@@ -1911,9 +2050,15 @@ Style with pulse animation:
 }
 
 @keyframes frenzy-pulse {
-	0% { transform: scale(1); }
-	50% { transform: scale(1.15); }
-	100% { transform: scale(1); }
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.15);
+	}
+	100% {
+		transform: scale(1);
+	}
 }
 ```
 
@@ -1954,6 +2099,7 @@ Verify: tap, hold, release, frenzy decay, queued tap, boss timer, poison ticks, 
 ### Task 3.5: Game Loop Integration Tests
 
 **Files:**
+
 - Create: `src/lib/stores/gameLoop.test.ts`
 
 These tests simulate full game scenarios by wiring together the timer registry, stat pipeline, and game loop logic — all driven by `tick()`. No rAF, no DOM, no async.
@@ -2017,7 +2163,9 @@ describe('game loop integration', () => {
 		// Poison every 1000ms
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { totalDamageFromPoison += poisonDamage; },
+			onExpire: () => {
+				totalDamageFromPoison += poisonDamage;
+			},
 			repeat: 1000
 		});
 
@@ -2042,7 +2190,9 @@ describe('game loop integration', () => {
 			const name = `frenzy_${frenzyCount}`;
 			registry.register(name, {
 				remaining: frenzyDuration,
-				onExpire: () => { frenzyCount--; }
+				onExpire: () => {
+					frenzyCount--;
+				}
 			});
 		}
 
@@ -2069,7 +2219,9 @@ describe('game loop integration', () => {
 			const name = `frenzy_${frenzyId}`;
 			registry.register(name, {
 				remaining: frenzyDuration,
-				onExpire: () => { frenzyCount--; }
+				onExpire: () => {
+					frenzyCount--;
+				}
 			});
 		}
 
@@ -2143,7 +2295,10 @@ describe('game loop integration', () => {
 		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 5, frenzyBonus))).toBe(1000);
 
 		// 10 stacks: 0.8 * (1 + 10*0.05) = 1.2/s ≈ 833ms
-		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 10, frenzyBonus))).toBeCloseTo(833.33, 0);
+		expect(getAttackIntervalMs(getEffectiveAttackSpeed(baseSpeed, 10, frenzyBonus))).toBeCloseTo(
+			833.33,
+			0
+		);
 	});
 
 	test('simulate boss timer with reload persistence', () => {
@@ -2207,17 +2362,18 @@ Expected: PASS
 ### Task 4.1: Add Attack Speed Upgrade Cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts:574` (add new cards to `allUpgrades` array before closing bracket)
 
 Add cards using the new `modifiers` format:
 
-| ID | Title | Rarity | Modifiers |
-|----|-------|--------|-----------|
-| `atkspd1` | Swift Strikes | common | `[{ stat: 'attackSpeed', value: 0.1 }]` |
-| `atkspd2` | Rapid Assault | uncommon | `[{ stat: 'attackSpeed', value: 0.2 }]` |
-| `atkspd3` | Blinding Speed | rare | `[{ stat: 'attackSpeed', value: 0.4 }]` |
-| `frenzy1` | Battle Fervor | uncommon | `[{ stat: 'tapFrenzyBonus', value: 0.05 }]` |
-| `frenzy2` | Relentless | rare | `[{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]` |
+| ID        | Title          | Rarity   | Modifiers                                                                        |
+| --------- | -------------- | -------- | -------------------------------------------------------------------------------- |
+| `atkspd1` | Swift Strikes  | common   | `[{ stat: 'attackSpeed', value: 0.1 }]`                                          |
+| `atkspd2` | Rapid Assault  | uncommon | `[{ stat: 'attackSpeed', value: 0.2 }]`                                          |
+| `atkspd3` | Blinding Speed | rare     | `[{ stat: 'attackSpeed', value: 0.4 }]`                                          |
+| `frenzy1` | Battle Fervor  | uncommon | `[{ stat: 'tapFrenzyBonus', value: 0.05 }]`                                      |
+| `frenzy2` | Relentless     | rare     | `[{ stat: 'tapFrenzyBonus', value: 0.05 }, { stat: 'attackSpeed', value: 0.2 }]` |
 
 All generic (no `classRestriction`). Use `swordImg` for attack speed, `fireImg` for frenzy.
 
@@ -2230,6 +2386,7 @@ All generic (no `classRestriction`). Use `swordImg` for attack speed, `fireImg` 
 ### Task 4.2: Add Changelog Entry
 
 **Files:**
+
 - Modify: `src/lib/changelog.ts:16` (add new entry before the existing `0.28.0` entry)
 
 ```typescript

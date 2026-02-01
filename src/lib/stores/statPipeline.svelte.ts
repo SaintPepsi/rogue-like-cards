@@ -1,6 +1,11 @@
 import {
-	computeLayered, createLayer, dirtyLayer, add, clampMin,
-	type PipelineLayer, type StatStep
+	computeLayered,
+	createLayer,
+	dirtyLayer,
+	add,
+	clampMin,
+	type PipelineLayer,
+	type StatStep
 } from '$lib/engine/statPipeline';
 import { BASE_STATS } from '$lib/engine/stats';
 import { allUpgrades } from '$lib/data/upgrades';
@@ -28,8 +33,6 @@ export function createStatPipeline() {
 
 	// Sources of truth
 	let acquiredUpgradeIds = $state<string[]>([]);
-	let classBaseOverrides = $state<StatModifier[]>([]);
-	let classModifiers = $state<StatModifier[]>([]);
 	let transientModifiers = $state<SourcedModifier[]>([]);
 	let transientSteps = $state<{ stat: StatKey; step: StatStep; source: string }[]>([]);
 
@@ -104,12 +107,10 @@ export function createStatPipeline() {
 	}
 
 	function setClassBase(overrides: StatModifier[]): void {
-		classBaseOverrides = overrides;
 		rebuildLayer(LAYER_BASE, overrides);
 	}
 
 	function setClassModifiers(mods: StatModifier[]): void {
-		classModifiers = mods;
 		rebuildLayer(LAYER_CLASS, mods);
 	}
 
@@ -143,8 +144,6 @@ export function createStatPipeline() {
 
 	function reset(): void {
 		acquiredUpgradeIds = [];
-		classBaseOverrides = [];
-		classModifiers = [];
 		transientModifiers = [];
 		transientSteps = [];
 		pipelines = initPipelines();
@@ -152,7 +151,9 @@ export function createStatPipeline() {
 
 	return {
 		get,
-		get acquiredUpgradeIds() { return acquiredUpgradeIds; },
+		get acquiredUpgradeIds() {
+			return acquiredUpgradeIds;
+		},
 		acquireUpgrade,
 		setAcquiredUpgrades,
 		setClassBase,

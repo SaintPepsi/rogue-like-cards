@@ -13,6 +13,7 @@
 ### Task 1: Economy Simulation — Failing Tests
 
 **Files:**
+
 - Create: `src/lib/engine/economy-sim.test.ts`
 
 **Step 1: Write the simulation test file with initial assertions**
@@ -31,7 +32,7 @@ import {
 	getEnemyGoldReward,
 	getBossGoldReward,
 	KILLS_PER_WAVE,
-	BOSS_XP_MULTIPLIER,
+	BOSS_XP_MULTIPLIER
 } from './waves';
 import { getCardPrice } from './shop';
 
@@ -47,14 +48,14 @@ const CURRENT: EconomyConfig = {
 	label: 'Current',
 	xpBase: 10,
 	goldDropChance: 0.15,
-	rarityPrices: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 },
+	rarityPrices: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 }
 };
 
 const PROPOSED: EconomyConfig = {
 	label: 'Proposed',
 	xpBase: 25,
-	goldDropChance: 0.10,
-	rarityPrices: { common: 25, uncommon: 50, rare: 100, epic: 175, legendary: 300 },
+	goldDropChance: 0.1,
+	rarityPrices: { common: 25, uncommon: 50, rare: 100, epic: 175, legendary: 300 }
 };
 
 const MAX_STAGE = 30;
@@ -134,19 +135,23 @@ function simulatePlaythrough(config: EconomyConfig): StageResult[] {
 			goldEarned: Math.round(stageGold),
 			cumulativeGold: Math.round(cumulativeGold),
 			xpToNext: xpToNextLevel(level, config.xpBase),
-			level,
+			level
 		});
 	}
 	return results;
 }
 
-function generateHtml(current: StageResult[], proposed: StageResult[], configs: { current: EconomyConfig; proposed: EconomyConfig }): string {
-	const stages = current.map(r => r.stage);
+function generateHtml(
+	current: StageResult[],
+	proposed: StageResult[],
+	configs: { current: EconomyConfig; proposed: EconomyConfig }
+): string {
+	const stages = current.map((r) => r.stage);
 	const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 
 	// Cards affordable at each stage for each config
 	const cardsAffordable = (results: StageResult[], prices: Record<string, number>) =>
-		rarities.map(r => results.map(s => Math.floor(s.cumulativeGold / prices[r])));
+		rarities.map((r) => results.map((s) => Math.floor(s.cumulativeGold / prices[r])));
 
 	const currentCards = cardsAffordable(current, configs.current.rarityPrices);
 	const proposedCards = cardsAffordable(proposed, configs.proposed.rarityPrices);
@@ -293,6 +298,7 @@ git commit -m "test: add economy simulation with Chart.js report output"
 ### Task 2: XP Curve — Update Base Constant
 
 **Files:**
+
 - Modify: `src/lib/engine/waves.ts:78-87` — `getXpToNextLevel()`
 - Modify: `src/lib/engine/waves.test.ts:316-365` — update test expectations
 
@@ -301,44 +307,49 @@ git commit -m "test: add economy simulation with Chart.js report output"
 In `src/lib/engine/waves.test.ts`, update the `getXpToNextLevel` describe block:
 
 Change test at line 317-319:
+
 ```ts
 // OLD: test('level 1 needs 10 xp', () => { expect(getXpToNextLevel(1)).toBe(10); });
 // NEW:
 test('level 1 needs 25 xp', () => {
-    expect(getXpToNextLevel(1)).toBe(25);
+	expect(getXpToNextLevel(1)).toBe(25);
 });
 ```
 
 Change test at line 321-323:
+
 ```ts
 // OLD: test('level 2 needs 15 xp', () => { expect(getXpToNextLevel(2)).toBe(15); });
 // NEW:
 test('level 2 needs 37 xp', () => {
-    expect(getXpToNextLevel(2)).toBe(37);
+	expect(getXpToNextLevel(2)).toBe(37);
 });
 ```
 
 Change test at line 325-327:
+
 ```ts
 // OLD: test('level 3 needs 22 xp', () => { expect(getXpToNextLevel(3)).toBe(22); });
 // NEW:
 test('level 3 needs 56 xp', () => {
-    expect(getXpToNextLevel(3)).toBe(56);
+	expect(getXpToNextLevel(3)).toBe(56);
 });
 ```
 
 Change test at line 329-333:
+
 ```ts
 // OLD: for (const lvl of ...) { expect(getXpToNextLevel(lvl)).toBe(Math.floor(10 * ...)); }
 // NEW:
 test('levels 1-100 match pure exponential with base 25', () => {
-    for (const lvl of [1, 10, 25, 50, 75, 100]) {
-        expect(getXpToNextLevel(lvl)).toBe(Math.floor(25 * Math.pow(1.5, lvl - 1)));
-    }
+	for (const lvl of [1, 10, 25, 50, 75, 100]) {
+		expect(getXpToNextLevel(lvl)).toBe(Math.floor(25 * Math.pow(1.5, lvl - 1)));
+	}
 });
 ```
 
 Change test at line 341 (soft cap assertion):
+
 ```ts
 const pureExponential = Math.floor(25 * Math.pow(1.5, 100));
 ```
@@ -352,6 +363,7 @@ Expected: FAIL — `getXpToNextLevel` tests fail because code still uses base 10
 **Step 3: Update the implementation**
 
 In `src/lib/engine/waves.ts`, line 82:
+
 ```ts
 // OLD: return Math.floor(10 * Math.pow(1.5, level - 1));
 // NEW:
@@ -359,6 +371,7 @@ return Math.floor(25 * Math.pow(1.5, level - 1));
 ```
 
 Line 86:
+
 ```ts
 // OLD: return Math.floor(10 * base * Math.pow(1 + beyond * 0.1, 3));
 // NEW:
@@ -383,6 +396,7 @@ git commit -m "feat: raise XP curve base from 10 to 25 for gradual early progres
 ### Task 3: Gold Economy — Update Prices and Drop Chance
 
 **Files:**
+
 - Modify: `src/lib/engine/shop.ts:3-9` — rarity prices
 - Modify: `src/lib/engine/stats.ts:24` — default gold drop chance
 - Modify: `src/lib/engine/shop.test.ts` — update price expectations
@@ -393,41 +407,41 @@ In `src/lib/engine/shop.test.ts`, update all base price tests:
 
 ```ts
 test('common base price with 0 purchases', () => {
-    expect(getCardPrice('common', 0)).toBe(25);
+	expect(getCardPrice('common', 0)).toBe(25);
 });
 
 test('uncommon base price with 0 purchases', () => {
-    expect(getCardPrice('uncommon', 0)).toBe(50);
+	expect(getCardPrice('uncommon', 0)).toBe(50);
 });
 
 test('rare base price with 0 purchases', () => {
-    expect(getCardPrice('rare', 0)).toBe(100);
+	expect(getCardPrice('rare', 0)).toBe(100);
 });
 
 test('epic base price with 0 purchases', () => {
-    expect(getCardPrice('epic', 0)).toBe(175);
+	expect(getCardPrice('epic', 0)).toBe(175);
 });
 
 test('legendary base price with 0 purchases', () => {
-    expect(getCardPrice('legendary', 0)).toBe(300);
+	expect(getCardPrice('legendary', 0)).toBe(300);
 });
 
 test('price scales with purchase count using 1.5x multiplier', () => {
-    // common: 25 * 1.5^1 = 37.5 -> 38
-    expect(getCardPrice('common', 1)).toBe(38);
-    // common: 25 * 1.5^2 = 56.25 -> 56
-    expect(getCardPrice('common', 2)).toBe(56);
-    // common: 25 * 1.5^3 = 84.375 -> 84
-    expect(getCardPrice('common', 3)).toBe(84);
+	// common: 25 * 1.5^1 = 37.5 -> 38
+	expect(getCardPrice('common', 1)).toBe(38);
+	// common: 25 * 1.5^2 = 56.25 -> 56
+	expect(getCardPrice('common', 2)).toBe(56);
+	// common: 25 * 1.5^3 = 84.375 -> 84
+	expect(getCardPrice('common', 3)).toBe(84);
 });
 
 test('higher rarity scales more steeply', () => {
-    // epic: 175 * 1.5^1 = 262.5 -> 263
-    expect(getCardPrice('epic', 1)).toBe(263);
-    // epic: 175 * 1.5^2 = 393.75 -> 394
-    expect(getCardPrice('epic', 2)).toBe(394);
-    // legendary: 300 * 1.5^1 = 450
-    expect(getCardPrice('legendary', 1)).toBe(450);
+	// epic: 175 * 1.5^1 = 262.5 -> 263
+	expect(getCardPrice('epic', 1)).toBe(263);
+	// epic: 175 * 1.5^2 = 393.75 -> 394
+	expect(getCardPrice('epic', 2)).toBe(394);
+	// legendary: 300 * 1.5^1 = 450
+	expect(getCardPrice('legendary', 1)).toBe(450);
 });
 ```
 
@@ -440,6 +454,7 @@ Expected: FAIL — prices still use old values.
 **Step 3: Update shop prices**
 
 In `src/lib/engine/shop.ts`, lines 3-9:
+
 ```ts
 const RARITY_BASE_PRICES: Record<Rarity, number> = {
 	common: 25,
@@ -453,6 +468,7 @@ const RARITY_BASE_PRICES: Record<Rarity, number> = {
 **Step 4: Update gold drop chance**
 
 In `src/lib/engine/stats.ts`, line 24:
+
 ```ts
 // OLD: goldDropChance: 0.15,
 // NEW:
@@ -485,14 +501,14 @@ const LEGACY: EconomyConfig = {
 	label: 'Legacy (pre-rebalance)',
 	xpBase: 10,
 	goldDropChance: 0.15,
-	rarityPrices: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 },
+	rarityPrices: { common: 10, uncommon: 20, rare: 35, epic: 60, legendary: 100 }
 };
 
 const CURRENT: EconomyConfig = {
 	label: 'Current',
 	xpBase: 25,
-	goldDropChance: 0.10,
-	rarityPrices: { common: 25, uncommon: 50, rare: 100, epic: 175, legendary: 300 },
+	goldDropChance: 0.1,
+	rarityPrices: { common: 25, uncommon: 50, rare: 100, epic: 175, legendary: 300 }
 };
 ```
 
@@ -516,6 +532,7 @@ git commit -m "test: update economy sim to compare legacy vs current rebalanced 
 ### Task 5: Deferred Upgrade Queue — Leveling Store
 
 **Files:**
+
 - Modify: `src/lib/stores/leveling.svelte.ts`
 
 **Step 1: Define the UpgradeEvent type and refactor the leveling store**
@@ -569,7 +586,13 @@ export function createLeveling() {
 			xp -= getXpToNextLevel(level);
 			level++;
 			leveled++;
-			const choices = getRandomUpgrades(3, ctx.luckyChance, ctx.executeChance, ctx.executeCap, ctx.poison);
+			const choices = getRandomUpgrades(
+				3,
+				ctx.luckyChance,
+				ctx.executeChance,
+				ctx.executeCap,
+				ctx.poison
+			);
 			upgradeQueue = [...upgradeQueue, { type: 'levelup', choices }];
 		}
 		return leveled;
@@ -583,7 +606,14 @@ export function createLeveling() {
 		if (wasBossChest) {
 			choices = getRandomLegendaryUpgrades(3);
 		} else {
-			choices = getRandomUpgrades(3, ctx.luckyChance + 0.5, ctx.executeChance, ctx.executeCap, ctx.poison, 'uncommon');
+			choices = getRandomUpgrades(
+				3,
+				ctx.luckyChance + 0.5,
+				ctx.executeChance,
+				ctx.executeCap,
+				ctx.poison,
+				'uncommon'
+			);
 		}
 		upgradeQueue = [...upgradeQueue, { type: 'chest', choices, gold }];
 	}
@@ -625,14 +655,30 @@ export function createLeveling() {
 	}
 
 	return {
-		get xp() { return xp; },
-		get level() { return level; },
-		get xpToNextLevel() { return xpToNextLevel; },
-		get pendingUpgrades() { return upgradeQueue.length; },
-		get activeEvent() { return activeEvent; },
-		get upgradeChoices() { return upgradeChoices; },
-		get hasActiveEvent() { return activeEvent !== null; },
-		get upgradeQueue() { return upgradeQueue; },
+		get xp() {
+			return xp;
+		},
+		get level() {
+			return level;
+		},
+		get xpToNextLevel() {
+			return xpToNextLevel;
+		},
+		get pendingUpgrades() {
+			return upgradeQueue.length;
+		},
+		get activeEvent() {
+			return activeEvent;
+		},
+		get upgradeChoices() {
+			return upgradeChoices;
+		},
+		get hasActiveEvent() {
+			return activeEvent !== null;
+		},
+		get upgradeQueue() {
+			return upgradeQueue;
+		},
 		addXp,
 		checkLevelUp,
 		queueChestLoot,
@@ -662,6 +708,7 @@ git commit -m "refactor: replace level-up modal auto-show with unified upgrade q
 ### Task 6: Deferred Upgrade Queue — Game State Integration
 
 **Files:**
+
 - Modify: `src/lib/stores/gameState.svelte.ts`
 
 **Step 1: Update gameState to use the new leveling API**
@@ -685,133 +732,148 @@ Key changes in `gameState.svelte.ts`:
 8. **Update `saveGame()`**: No changes needed (queue state is transient — not persisted).
 
 The full updated `killEnemy()`:
+
 ```ts
 function killEnemy() {
-    if (killingEnemy) return;
-    killingEnemy = true;
+	if (killingEnemy) return;
+	killingEnemy = true;
 
-    try {
-        enemy.recordKill();
-        poisonStacks = [];
+	try {
+		enemy.recordKill();
+		poisonStacks = [];
 
-        if (enemy.isChest) {
-            const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
-            gold += goldReward;
-            const wasBossChest = enemy.isBossChest;
-            enemy.clearChestFlags();
+		if (enemy.isChest) {
+			const goldReward = getChestGoldReward(enemy.stage, playerStats.goldMultiplier);
+			gold += goldReward;
+			const wasBossChest = enemy.isBossChest;
+			enemy.clearChestFlags();
 
-            leveling.queueChestLoot(wasBossChest, upgradeContext(), goldReward);
-            enemy.spawnNextTarget(playerStats);
-            saveGame();
-            return;
-        }
+			leveling.queueChestLoot(wasBossChest, upgradeContext(), goldReward);
+			enemy.spawnNextTarget(playerStats);
+			saveGame();
+			return;
+		}
 
-        enemy.advanceWave();
+		enemy.advanceWave();
 
-        const effectiveGoldPerKill = playerStats.goldPerKill + shop.getGoldPerKillBonus();
-        if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
-            const goldReward = enemy.isBoss
-                ? getBossGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier)
-                : getEnemyGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier);
-            gold += goldReward;
-            ui.addGoldDrop(goldReward);
-        }
+		const effectiveGoldPerKill = playerStats.goldPerKill + shop.getGoldPerKillBonus();
+		if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
+			const goldReward = enemy.isBoss
+				? getBossGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier)
+				: getEnemyGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier);
+			gold += goldReward;
+			ui.addGoldDrop(goldReward);
+		}
 
-        const enemyXpMultiplier = enemy.isBoss ? BOSS_XP_MULTIPLIER : enemy.isChest ? CHEST_XP_MULTIPLIER : 1;
-        const greedMult = getGreedMultiplier(playerStats.greed);
-        const xpGain = getXpReward(enemy.enemyMaxHealth, enemy.stage, playerStats.xpMultiplier, enemyXpMultiplier, greedMult);
-        leveling.addXp(xpGain);
+		const enemyXpMultiplier = enemy.isBoss
+			? BOSS_XP_MULTIPLIER
+			: enemy.isChest
+				? CHEST_XP_MULTIPLIER
+				: 1;
+		const greedMult = getGreedMultiplier(playerStats.greed);
+		const xpGain = getXpReward(
+			enemy.enemyMaxHealth,
+			enemy.stage,
+			playerStats.xpMultiplier,
+			enemyXpMultiplier,
+			greedMult
+		);
+		leveling.addXp(xpGain);
 
-        if (enemy.isBoss) {
-            timers.stopBossTimer();
-            enemy.advanceStage();
-        }
+		if (enemy.isBoss) {
+			timers.stopBossTimer();
+			enemy.advanceStage();
+		}
 
-        leveling.checkLevelUp(upgradeContext());
+		leveling.checkLevelUp(upgradeContext());
 
-        if (!enemy.isBoss && enemy.isWaveComplete()) {
-            if (enemy.shouldSpawnBossChestTarget(playerStats)) {
-                enemy.spawnBossChest(playerStats.greed);
-            } else {
-                enemy.spawnBoss(playerStats.greed);
-                timers.startBossTimer(bossTimerMax, handleBossExpired);
-            }
-        } else {
-            enemy.spawnNextTarget(playerStats);
-        }
+		if (!enemy.isBoss && enemy.isWaveComplete()) {
+			if (enemy.shouldSpawnBossChestTarget(playerStats)) {
+				enemy.spawnBossChest(playerStats.greed);
+			} else {
+				enemy.spawnBoss(playerStats.greed);
+				timers.startBossTimer(bossTimerMax, handleBossExpired);
+			}
+		} else {
+			enemy.spawnNextTarget(playerStats);
+		}
 
-        saveGame();
-    } finally {
-        killingEnemy = false;
-    }
+		saveGame();
+	} finally {
+		killingEnemy = false;
+	}
 }
 ```
 
 The new `openNextUpgrade()`:
+
 ```ts
 function openNextUpgrade() {
-    const event = leveling.openNextUpgrade();
-    if (event) {
-        timers.stopPoisonTick();
-        timers.pauseBossTimer();
-    }
+	const event = leveling.openNextUpgrade();
+	if (event) {
+		timers.stopPoisonTick();
+		timers.pauseBossTimer();
+	}
 }
 ```
 
 The updated `selectUpgrade()`:
+
 ```ts
 function selectUpgrade(upgrade: Upgrade) {
-    upgrade.apply(playerStats);
+	upgrade.apply(playerStats);
 
-    // Track unlocked upgrades for collection
-    unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+	// Track unlocked upgrades for collection
+	unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
 
-    // Track special effects
-    const hasSpecialEffect = upgrade.stats.some(
-        (s) =>
-            s.label.includes('Crit') ||
-            s.label.includes('XP') ||
-            s.label.includes('Poison') ||
-            s.label.includes('Stacks') ||
-            s.label.includes('Duration') ||
-            s.label.includes('Multi') ||
-            s.label.includes('Execute') ||
-            s.label.includes('Overkill') ||
-            s.label.includes('Timer') ||
-            s.label.includes('Lucky') ||
-            s.label.includes('Chest') ||
-            s.label.includes('Boss Chest') ||
-            s.label.includes('Gold')
-    );
+	// Track special effects
+	const hasSpecialEffect = upgrade.stats.some(
+		(s) =>
+			s.label.includes('Crit') ||
+			s.label.includes('XP') ||
+			s.label.includes('Poison') ||
+			s.label.includes('Stacks') ||
+			s.label.includes('Duration') ||
+			s.label.includes('Multi') ||
+			s.label.includes('Execute') ||
+			s.label.includes('Overkill') ||
+			s.label.includes('Timer') ||
+			s.label.includes('Lucky') ||
+			s.label.includes('Chest') ||
+			s.label.includes('Boss Chest') ||
+			s.label.includes('Gold')
+	);
 
-    if (hasSpecialEffect) {
-        const effectName = upgrade.title;
-        if (!effects.find((e) => e.name === effectName)) {
-            effects.push({
-                name: effectName,
-                description: upgrade.stats.map((s) => `${s.label} ${s.value}`).join(', ')
-            });
-        }
-    }
+	if (hasSpecialEffect) {
+		const effectName = upgrade.title;
+		if (!effects.find((e) => e.name === effectName)) {
+			effects.push({
+				name: effectName,
+				description: upgrade.stats.map((s) => `${s.label} ${s.value}`).join(', ')
+			});
+		}
+	}
 
-    const allConsumed = leveling.closeActiveEvent();
-    if (allConsumed) {
-        // All upgrades consumed — resume game
-        timers.startPoisonTick(applyPoison);
-        timers.resumeBossTimer(handleBossExpired);
-    }
-    saveGame();
+	const allConsumed = leveling.closeActiveEvent();
+	if (allConsumed) {
+		// All upgrades consumed — resume game
+		timers.startPoisonTick(applyPoison);
+		timers.resumeBossTimer(handleBossExpired);
+	}
+	saveGame();
 }
 ```
 
 The updated `isModalOpen()`:
+
 ```ts
 function isModalOpen() {
-    return showGameOver || leveling.hasActiveEvent;
+	return showGameOver || leveling.hasActiveEvent;
 }
 ```
 
 The updated return object — remove old getters, add new ones:
+
 ```ts
 // REMOVE these getters:
 // get showLevelUp()
@@ -846,6 +908,7 @@ git commit -m "refactor: integrate unified upgrade queue into game state"
 ### Task 7: Deferred Upgrade Queue — UI (Badge + Modal Updates)
 
 **Files:**
+
 - Create: `src/lib/components/UpgradeBadge.svelte`
 - Modify: `src/routes/+page.svelte`
 
@@ -882,7 +945,9 @@ git commit -m "refactor: integrate unified upgrade queue into game state"
 		font-size: 0.9rem;
 		cursor: pointer;
 		animation: pulse-badge 1s ease-in-out infinite;
-		transition: transform 0.15s, box-shadow 0.15s;
+		transition:
+			transform 0.15s,
+			box-shadow 0.15s;
 		box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
 	}
 
@@ -900,8 +965,13 @@ git commit -m "refactor: integrate unified upgrade queue into game state"
 	}
 
 	@keyframes pulse-badge {
-		0%, 100% { transform: scale(1); }
-		50% { transform: scale(1.05); }
+		0%,
+		100% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.05);
+		}
 	}
 </style>
 ```
@@ -909,46 +979,52 @@ git commit -m "refactor: integrate unified upgrade queue into game state"
 **Step 2: Update +page.svelte**
 
 Key changes:
+
 1. Import `UpgradeBadge`
 2. Add badge in the level bar area
 3. Replace `LevelUpModal` and `ChestLootModal` with a single conditional block driven by `gameState.activeEvent`
 
 Replace imports (add UpgradeBadge, keep both modals since they have different styling):
+
 ```svelte
 import UpgradeBadge from '$lib/components/UpgradeBadge.svelte';
 ```
 
 In the level bar section (around line 61), add the badge after the XP text:
+
 ```svelte
 <!-- Level Bar - Full Width -->
 <div class="level-bar">
-    <span class="level-label">Level {gameState.level}</span>
-    {#key gameState.level}
-        <div class="xp-bar">
-            <div class="xp-fill" style:width="{(gameState.xp / gameState.xpToNextLevel) * 100}%"></div>
-        </div>
-    {/key}
-    <span class="xp-text">{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span>
-    <UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
+	<span class="level-label">Level {gameState.level}</span>
+	{#key gameState.level}
+		<div class="xp-bar">
+			<div class="xp-fill" style:width="{(gameState.xp / gameState.xpToNextLevel) * 100}%"></div>
+		</div>
+	{/key}
+	<span class="xp-text"
+		>{formatNumber(gameState.xp)}/{formatNumber(gameState.xpToNextLevel)} XP</span
+	>
+	<UpgradeBadge count={gameState.pendingUpgrades} onclick={gameState.openNextUpgrade} />
 </div>
 ```
 
 Replace the old `LevelUpModal` and `ChestLootModal` blocks (lines 90-125) with:
+
 ```svelte
 {#if gameState.activeEvent?.type === 'levelup'}
-    <LevelUpModal
-        show={true}
-        choices={gameState.upgradeChoices}
-        pendingCount={gameState.pendingUpgrades + 1}
-        onSelect={gameState.selectUpgrade}
-    />
+	<LevelUpModal
+		show={true}
+		choices={gameState.upgradeChoices}
+		pendingCount={gameState.pendingUpgrades + 1}
+		onSelect={gameState.selectUpgrade}
+	/>
 {:else if gameState.activeEvent?.type === 'chest'}
-    <ChestLootModal
-        show={true}
-        gold={gameState.activeEvent.gold ?? 0}
-        choices={gameState.upgradeChoices}
-        onSelect={gameState.selectUpgrade}
-    />
+	<ChestLootModal
+		show={true}
+		gold={gameState.activeEvent.gold ?? 0}
+		choices={gameState.upgradeChoices}
+		onSelect={gameState.selectUpgrade}
+	/>
 {/if}
 ```
 
@@ -957,6 +1033,7 @@ Replace the old `LevelUpModal` and `ChestLootModal` blocks (lines 90-125) with:
 Run: `cd /Users/hogers/Documents/repos/rogue-like-cards && bun run dev`
 
 Test manually:
+
 - Kill enemies — badge appears with count when level-up earned
 - Badge shows correct count, clicking it opens the level-up modal
 - Game pauses only when modal opens
@@ -975,11 +1052,13 @@ git commit -m "feat: add deferred upgrade badge — player controls when to leve
 ### Task 8: Bug Fix — Chest Icon
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte:5`
 
 **Step 1: Update chest sprite import**
 
 In `src/lib/components/BattleArea.svelte`, line 5:
+
 ```ts
 // OLD: import chestSprite from '$lib/assets/images/chest.png';
 // NEW:
@@ -1004,6 +1083,7 @@ git commit -m "fix: show closed chest sprite during combat instead of open chest
 ### Task 9: Changelog Entry
 
 **Files:**
+
 - Modify: `src/lib/changelog.ts:14-25`
 
 **Step 1: Add new changelog entry**
@@ -1051,6 +1131,7 @@ Review graphs one final time.
 Run: `cd /Users/hogers/Documents/repos/rogue-like-cards && bun run dev`
 
 Verify:
+
 - Stage 1 gives ~2 level-ups (not 5+)
 - Badge appears and counts pending upgrades
 - Clicking badge opens modal and pauses game

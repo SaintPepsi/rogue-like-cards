@@ -62,7 +62,7 @@ function createGameState() {
 	const shop = createShop(persistence);
 
 	// Derived values
-	let bossTimerMax = $derived(BASE_BOSS_TIME + statPipeline.get('bonusBossTime'));
+	const bossTimerMax = $derived(BASE_BOSS_TIME + statPipeline.get('bonusBossTime'));
 
 	// Helper: build a PlayerStats object from pipeline
 	function getEffectiveStats(): PlayerStats {
@@ -91,7 +91,7 @@ function createGameState() {
 			tapFrenzyBonus: statPipeline.get('tapFrenzyBonus'),
 			tapFrenzyDuration: statPipeline.get('tapFrenzyDuration'),
 			tapFrenzyStackMultiplier: statPipeline.get('tapFrenzyStackMultiplier'),
-			executeCap: shop.getExecuteCapValue(),
+			executeCap: shop.getExecuteCapValue()
 		};
 	}
 
@@ -145,23 +145,30 @@ function createGameState() {
 			enemyMaxHealth: enemy.enemyMaxHealth,
 			overkillDamage: enemy.overkillDamage,
 			isBoss: enemy.isBoss,
-			rng: Math.random,
+			rng: Math.random
 		});
 
 		// Map pipeline hits to UI HitInfo
 		const newHits: HitInfo[] = result.hits.map((h) => {
 			let uiType: HitType;
 			switch (h.type) {
-				case 'criticalHit': uiType = 'crit'; break;
-				case 'executeHit': uiType = 'execute'; break;
-				case 'hit': uiType = 'normal'; break;
-				default: uiType = h.type as HitType;
+				case 'criticalHit':
+					uiType = 'crit';
+					break;
+				case 'executeHit':
+					uiType = 'execute';
+					break;
+				case 'hit':
+					uiType = 'normal';
+					break;
+				default:
+					uiType = h.type as HitType;
 			}
 			return {
 				damage: h.damage,
 				type: uiType,
 				id: ui.nextHitId(),
-				index: h.index,
+				index: h.index
 			};
 		});
 
@@ -179,12 +186,14 @@ function createGameState() {
 		for (const tick of tickResults) {
 			if (tick.damage <= 0) continue;
 
-			dealDamage(tick.damage, [{
-				damage: tick.damage,
-				type: (tick.hitType ?? 'poison') as HitType,
-				id: ui.nextHitId(),
-				index: 0,
-			}]);
+			dealDamage(tick.damage, [
+				{
+					damage: tick.damage,
+					type: (tick.hitType ?? 'poison') as HitType,
+					id: ui.nextHitId(),
+					index: 0
+				}
+			]);
 		}
 		syncPoisonStacks();
 	}
@@ -203,7 +212,7 @@ function createGameState() {
 				isBoss: enemy.isBoss,
 				isChest: enemy.isChest,
 				isBossChest: enemy.isBossChest,
-				stage: enemy.stage,
+				stage: enemy.stage
 			});
 			syncPoisonStacks();
 
@@ -334,9 +343,7 @@ function createGameState() {
 			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
 			timestamp: Date.now(),
-			bossTimeRemaining: gameLoop.bossTimeRemaining > 0
-				? gameLoop.bossTimeRemaining
-				: undefined
+			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined
 		});
 	}
 

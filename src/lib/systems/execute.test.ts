@@ -8,7 +8,7 @@ function makeStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return {
 		...createDefaultStats(),
 		damage: 10,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -19,7 +19,7 @@ function makeCtx(overrides: Partial<AttackContext> = {}): AttackContext {
 		overkillDamage: 0,
 		isBoss: false,
 		rng: () => 0.5,
-		...overrides,
+		...overrides
 	};
 }
 
@@ -58,7 +58,7 @@ describe('executeSystem', () => {
 		expect(result!.skip).toBe(true);
 		expect(result!.hits).toHaveLength(1);
 		expect(result!.hits![0].type).toBe('executeHit');
-		expect((result!.hits![0] as any).damage).toBe(50); // enemy health
+		expect(result!.hits![0].damage).toBe(50); // enemy health
 	});
 
 	test('does not trigger when rng above executeChance', () => {

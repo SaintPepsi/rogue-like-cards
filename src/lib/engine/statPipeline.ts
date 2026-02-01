@@ -2,9 +2,18 @@
 
 export type StatStep = (value: number) => number;
 
-export const add = (n: number): StatStep => (v) => v + n;
-export const multiply = (n: number): StatStep => (v) => v * n;
-export const clampMin = (min: number): StatStep => (v) => Math.max(min, v);
+export const add =
+	(n: number): StatStep =>
+	(v) =>
+		v + n;
+export const multiply =
+	(n: number): StatStep =>
+	(v) =>
+		v * n;
+export const clampMin =
+	(min: number): StatStep =>
+	(v) =>
+		Math.max(min, v);
 export const conditionalAdd = (n: number, condition: boolean): StatStep =>
 	condition ? (v) => v + n : (v) => v;
 

@@ -11,14 +11,20 @@ export function useCardFlip() {
 
 		for (let i = 0; i < count; i++) {
 			flipTimers.push(
-				setTimeout(() => {
-					flippedCards[i] = true;
-				}, 200 + i * 250)
+				setTimeout(
+					() => {
+						flippedCards[i] = true;
+					},
+					200 + i * 250
+				)
 			);
 			flipTimers.push(
-				setTimeout(() => {
-					enabledCards[i] = true;
-				}, 200 + i * 250 + 600)
+				setTimeout(
+					() => {
+						enabledCards[i] = true;
+					},
+					200 + i * 250 + 600
+				)
 			);
 		}
 	}

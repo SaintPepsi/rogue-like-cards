@@ -17,19 +17,37 @@
 </script>
 
 {#if show}
-	<div class="modal-overlay" onclick={onClose} onkeydown={(e) => e.key === 'Escape' && onClose()} role="button" tabindex="0">
-		<div class="modal" onclick={(e) => e.stopPropagation()} onkeydown={() => {}} role="dialog">
+	<div
+		class="modal-overlay"
+		onclick={onClose}
+		onkeydown={(e) => e.key === 'Escape' && onClose()}
+		role="button"
+		tabindex="0"
+	>
+		<div
+			class="modal"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={() => {}}
+			role="dialog"
+			tabindex="-1"
+		>
 			<div class="modal-header">
 				<h2>Changelog</h2>
-				<Button.Root class="bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white" onclick={onClose}>&times;</Button.Root>
+				<Button.Root
+					class="bg-transparent border-none text-white/60 text-[2rem] cursor-pointer leading-none p-0 hover:text-white"
+					onclick={onClose}>&times;</Button.Root
+				>
 			</div>
 			<div class="modal-content">
-				{#each CHANGELOG as entry}
+				{#each CHANGELOG as entry (entry.version)}
 					<div class="version-entry">
 						<h3>v{entry.version} <span class="version-date">{entry.date}</span></h3>
 						<ul>
-							{#each entry.changes as change}
-								<li><span class="tag tag-{change.category}">{tagLabel[change.category]}</span> <span class="change-description">{change.description}</span></li>
+							{#each entry.changes as change, i (i)}
+								<li>
+									<span class="tag tag-{change.category}">{tagLabel[change.category]}</span>
+									<span class="change-description">{change.description}</span>
+								</li>
 							{/each}
 						</ul>
 					</div>

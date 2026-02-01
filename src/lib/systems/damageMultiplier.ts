@@ -6,14 +6,14 @@ export const damageMultiplierSystem: SystemDefinition<{}> = {
 	initialState: () => ({}),
 	transformsFrom: ['hit', 'criticalHit'],
 
-	transformHit: (state, hit, stats, _rng) => {
+	transformHit: (state, hit, stats) => {
 		const h = hit as PipelineHit & { damage: number };
 		return {
 			state,
 			hit: {
 				...hit,
-				damage: Math.floor(h.damage * (stats.damageMultiplier ?? 1)),
-			} as PipelineHit,
+				damage: Math.floor(h.damage * (stats.damageMultiplier ?? 1))
+			} as PipelineHit
 		};
-	},
+	}
 };

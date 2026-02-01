@@ -160,8 +160,6 @@ describe('createShop', () => {
 		shop.depositGold(100);
 		const stats = createDefaultStats();
 		shop.open(stats);
-		const firstChoiceIds = shop.shopChoices.map((c) => c.id);
-
 		shop.reroll(stats);
 		expect(shop.rerollCost).toBe(2);
 		// Choices were regenerated (may or may not differ due to randomness, but function ran)
@@ -300,5 +298,4 @@ describe('createShop', () => {
 		const shop = createShop(persistence);
 		expect(shop.getGoldPerKillBonus()).toBe(0);
 	});
-
 });

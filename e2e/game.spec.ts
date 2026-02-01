@@ -52,5 +52,7 @@ test('attack enemy 100 times without crashing', async ({ page }) => {
 	expect(finalKills).toBeGreaterThan(initialKills);
 
 	// Assert no uncaught errors occurred
-	expect(errors, `Uncaught page errors:\n${errors.map((e) => e.message).join('\n')}`).toHaveLength(0);
+	expect(errors, `Uncaught page errors:\n${errors.map((e) => e.message).join('\n')}`).toHaveLength(
+		0
+	);
 });

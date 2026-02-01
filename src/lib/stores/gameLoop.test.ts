@@ -1,9 +1,6 @@
 import { test, expect, describe } from 'vitest';
 import { createTimerRegistry } from '$lib/engine/timerRegistry';
-import {
-	getEffectiveAttackSpeed,
-	getAttackIntervalMs
-} from '$lib/engine/attackSpeed';
+import { getEffectiveAttackSpeed, getAttackIntervalMs } from '$lib/engine/attackSpeed';
 
 // Frenzy decay tests live in frenzy.test.ts — gameLoop no longer owns frenzy state.
 

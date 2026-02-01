@@ -1,5 +1,5 @@
 import { createDefaultStats } from '$lib/engine/stats';
-import type { PlayerStats, Upgrade, HitInfo, GoldDrop, HitType } from '$lib/types';
+import type { PlayerStats, Upgrade, HitInfo, GoldDrop } from '$lib/types';
 
 export function createMockStats(overrides: Partial<PlayerStats> = {}): PlayerStats {
 	return { ...createDefaultStats(), ...overrides };
@@ -35,4 +35,5 @@ export function createMockGoldDrop(overrides: Partial<GoldDrop> = {}): GoldDrop 
 }
 
 export const noop = () => {};
-export const noopArg = (_arg: unknown) => {};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const noopArg = (_: unknown) => {};

@@ -1,11 +1,19 @@
 #!/bin/sh
 #
 # Pre-commit hook:
-#   Runs the production build and aborts on failure.
+#   1. Formats staged files with Prettier
+#   2. Runs the production build and aborts on failure.
 #
 # Changelog validation and version bumping are handled by Claude Code hooks
 # in .claude/hooks/ — see .claude/settings.json for configuration.
 #
+
+# --- Format staged files ---
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -n "$STAGED_FILES" ]; then
+  echo "$STAGED_FILES" | xargs bunx prettier --write --ignore-unknown 2>/dev/null
+  echo "$STAGED_FILES" | xargs git add
+fi
 
 # --- Build check ---
 echo "Running build check..."

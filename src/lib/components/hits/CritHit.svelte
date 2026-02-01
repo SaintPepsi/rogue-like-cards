@@ -11,7 +11,7 @@
 	// Random position within the enemy area
 	const randomX = Math.floor(Math.random() * 100) - 50;
 	const randomY = Math.floor(Math.random() * 80) - 40;
-	const animationDelay = index * 0.05;
+	const animationDelay = $derived(index * 0.05);
 </script>
 
 <div

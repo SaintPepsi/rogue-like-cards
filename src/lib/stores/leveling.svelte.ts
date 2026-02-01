@@ -25,7 +25,7 @@ export function createLeveling() {
 	let activeEvent = $state<UpgradeEvent | null>(null);
 	let upgradeChoices = $state<Upgrade[]>([]);
 
-	let xpToNextLevel = $derived(getXpToNextLevel(level));
+	const xpToNextLevel = $derived(getXpToNextLevel(level));
 
 	function addXp(amount: number) {
 		xp += amount;
@@ -43,7 +43,13 @@ export function createLeveling() {
 			xp -= getXpToNextLevel(level);
 			level++;
 			leveled++;
-			const choices = getRandomUpgrades(3, ctx.luckyChance, ctx.executeChance, ctx.executeCap, ctx.poison);
+			const choices = getRandomUpgrades(
+				3,
+				ctx.luckyChance,
+				ctx.executeChance,
+				ctx.executeCap,
+				ctx.poison
+			);
 			upgradeQueue = [...upgradeQueue, { type: 'levelup', choices }];
 		}
 		return leveled;
@@ -57,7 +63,14 @@ export function createLeveling() {
 		if (wasBossChest) {
 			choices = getRandomLegendaryUpgrades(3);
 		} else {
-			choices = getRandomUpgrades(3, ctx.luckyChance + 0.5, ctx.executeChance, ctx.executeCap, ctx.poison, 'uncommon');
+			choices = getRandomUpgrades(
+				3,
+				ctx.luckyChance + 0.5,
+				ctx.executeChance,
+				ctx.executeCap,
+				ctx.poison,
+				'uncommon'
+			);
 		}
 		upgradeQueue = [...upgradeQueue, { type: 'chest', choices, gold }];
 	}
@@ -126,14 +139,30 @@ export function createLeveling() {
 	}
 
 	return {
-		get xp() { return xp; },
-		get level() { return level; },
-		get xpToNextLevel() { return xpToNextLevel; },
-		get pendingUpgrades() { return upgradeQueue.length; },
-		get activeEvent() { return activeEvent; },
-		get upgradeChoices() { return upgradeChoices; },
-		get hasActiveEvent() { return activeEvent !== null; },
-		get upgradeQueue() { return upgradeQueue; },
+		get xp() {
+			return xp;
+		},
+		get level() {
+			return level;
+		},
+		get xpToNextLevel() {
+			return xpToNextLevel;
+		},
+		get pendingUpgrades() {
+			return upgradeQueue.length;
+		},
+		get activeEvent() {
+			return activeEvent;
+		},
+		get upgradeChoices() {
+			return upgradeChoices;
+		},
+		get hasActiveEvent() {
+			return activeEvent !== null;
+		},
+		get upgradeQueue() {
+			return upgradeQueue;
+		},
 		addXp,
 		checkLevelUp,
 		queueChestLoot,

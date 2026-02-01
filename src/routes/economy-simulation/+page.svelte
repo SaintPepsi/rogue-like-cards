@@ -5,69 +5,549 @@
 	const xpLevels = Array.from({ length: 30 }, (_, i) => i + 1);
 
 	const cur = [
-		{ stage: 1, levelUps: 4, cumulativeLevelUps: 4, goldEarned: 3, cumulativeGold: 3, xpToNext: 50, level: 5 },
-		{ stage: 2, levelUps: 2, cumulativeLevelUps: 6, goldEarned: 4, cumulativeGold: 8, xpToNext: 113, level: 7 },
-		{ stage: 3, levelUps: 1, cumulativeLevelUps: 7, goldEarned: 5, cumulativeGold: 13, xpToNext: 170, level: 8 },
-		{ stage: 4, levelUps: 1, cumulativeLevelUps: 8, goldEarned: 6, cumulativeGold: 20, xpToNext: 256, level: 9 },
-		{ stage: 5, levelUps: 1, cumulativeLevelUps: 9, goldEarned: 8, cumulativeGold: 27, xpToNext: 384, level: 10 },
-		{ stage: 6, levelUps: 1, cumulativeLevelUps: 10, goldEarned: 9, cumulativeGold: 36, xpToNext: 576, level: 11 },
-		{ stage: 7, levelUps: 1, cumulativeLevelUps: 11, goldEarned: 10, cumulativeGold: 45, xpToNext: 864, level: 12 },
-		{ stage: 8, levelUps: 0, cumulativeLevelUps: 11, goldEarned: 11, cumulativeGold: 56, xpToNext: 864, level: 12 },
-		{ stage: 9, levelUps: 1, cumulativeLevelUps: 12, goldEarned: 12, cumulativeGold: 68, xpToNext: 1297, level: 13 },
-		{ stage: 10, levelUps: 1, cumulativeLevelUps: 13, goldEarned: 13, cumulativeGold: 80, xpToNext: 1946, level: 14 },
-		{ stage: 11, levelUps: 1, cumulativeLevelUps: 14, goldEarned: 14, cumulativeGold: 94, xpToNext: 2919, level: 15 },
-		{ stage: 12, levelUps: 1, cumulativeLevelUps: 15, goldEarned: 15, cumulativeGold: 109, xpToNext: 4378, level: 16 },
-		{ stage: 13, levelUps: 1, cumulativeLevelUps: 16, goldEarned: 16, cumulativeGold: 125, xpToNext: 6568, level: 17 },
-		{ stage: 14, levelUps: 1, cumulativeLevelUps: 17, goldEarned: 17, cumulativeGold: 142, xpToNext: 9852, level: 18 },
-		{ stage: 15, levelUps: 1, cumulativeLevelUps: 18, goldEarned: 18, cumulativeGold: 160, xpToNext: 14778, level: 19 },
-		{ stage: 16, levelUps: 1, cumulativeLevelUps: 19, goldEarned: 19, cumulativeGold: 179, xpToNext: 22168, level: 20 },
-		{ stage: 17, levelUps: 0, cumulativeLevelUps: 19, goldEarned: 20, cumulativeGold: 199, xpToNext: 22168, level: 20 },
-		{ stage: 18, levelUps: 1, cumulativeLevelUps: 20, goldEarned: 21, cumulativeGold: 220, xpToNext: 33252, level: 21 },
-		{ stage: 19, levelUps: 1, cumulativeLevelUps: 21, goldEarned: 22, cumulativeGold: 242, xpToNext: 49878, level: 22 },
-		{ stage: 20, levelUps: 1, cumulativeLevelUps: 22, goldEarned: 23, cumulativeGold: 265, xpToNext: 74818, level: 23 },
-		{ stage: 21, levelUps: 1, cumulativeLevelUps: 23, goldEarned: 24, cumulativeGold: 290, xpToNext: 112227, level: 24 },
-		{ stage: 22, levelUps: 1, cumulativeLevelUps: 24, goldEarned: 25, cumulativeGold: 315, xpToNext: 168341, level: 25 },
-		{ stage: 23, levelUps: 1, cumulativeLevelUps: 25, goldEarned: 26, cumulativeGold: 342, xpToNext: 252511, level: 26 },
-		{ stage: 24, levelUps: 1, cumulativeLevelUps: 26, goldEarned: 27, cumulativeGold: 369, xpToNext: 378767, level: 27 },
-		{ stage: 25, levelUps: 1, cumulativeLevelUps: 27, goldEarned: 29, cumulativeGold: 397, xpToNext: 568151, level: 28 },
-		{ stage: 26, levelUps: 1, cumulativeLevelUps: 28, goldEarned: 30, cumulativeGold: 427, xpToNext: 852226, level: 29 },
-		{ stage: 27, levelUps: 1, cumulativeLevelUps: 29, goldEarned: 31, cumulativeGold: 458, xpToNext: 1278340, level: 30 },
-		{ stage: 28, levelUps: 1, cumulativeLevelUps: 30, goldEarned: 32, cumulativeGold: 489, xpToNext: 1917510, level: 31 },
-		{ stage: 29, levelUps: 1, cumulativeLevelUps: 31, goldEarned: 33, cumulativeGold: 522, xpToNext: 2876265, level: 32 },
-		{ stage: 30, levelUps: 1, cumulativeLevelUps: 32, goldEarned: 34, cumulativeGold: 556, xpToNext: 4314398, level: 33 }
+		{
+			stage: 1,
+			levelUps: 4,
+			cumulativeLevelUps: 4,
+			goldEarned: 3,
+			cumulativeGold: 3,
+			xpToNext: 50,
+			level: 5
+		},
+		{
+			stage: 2,
+			levelUps: 2,
+			cumulativeLevelUps: 6,
+			goldEarned: 4,
+			cumulativeGold: 8,
+			xpToNext: 113,
+			level: 7
+		},
+		{
+			stage: 3,
+			levelUps: 1,
+			cumulativeLevelUps: 7,
+			goldEarned: 5,
+			cumulativeGold: 13,
+			xpToNext: 170,
+			level: 8
+		},
+		{
+			stage: 4,
+			levelUps: 1,
+			cumulativeLevelUps: 8,
+			goldEarned: 6,
+			cumulativeGold: 20,
+			xpToNext: 256,
+			level: 9
+		},
+		{
+			stage: 5,
+			levelUps: 1,
+			cumulativeLevelUps: 9,
+			goldEarned: 8,
+			cumulativeGold: 27,
+			xpToNext: 384,
+			level: 10
+		},
+		{
+			stage: 6,
+			levelUps: 1,
+			cumulativeLevelUps: 10,
+			goldEarned: 9,
+			cumulativeGold: 36,
+			xpToNext: 576,
+			level: 11
+		},
+		{
+			stage: 7,
+			levelUps: 1,
+			cumulativeLevelUps: 11,
+			goldEarned: 10,
+			cumulativeGold: 45,
+			xpToNext: 864,
+			level: 12
+		},
+		{
+			stage: 8,
+			levelUps: 0,
+			cumulativeLevelUps: 11,
+			goldEarned: 11,
+			cumulativeGold: 56,
+			xpToNext: 864,
+			level: 12
+		},
+		{
+			stage: 9,
+			levelUps: 1,
+			cumulativeLevelUps: 12,
+			goldEarned: 12,
+			cumulativeGold: 68,
+			xpToNext: 1297,
+			level: 13
+		},
+		{
+			stage: 10,
+			levelUps: 1,
+			cumulativeLevelUps: 13,
+			goldEarned: 13,
+			cumulativeGold: 80,
+			xpToNext: 1946,
+			level: 14
+		},
+		{
+			stage: 11,
+			levelUps: 1,
+			cumulativeLevelUps: 14,
+			goldEarned: 14,
+			cumulativeGold: 94,
+			xpToNext: 2919,
+			level: 15
+		},
+		{
+			stage: 12,
+			levelUps: 1,
+			cumulativeLevelUps: 15,
+			goldEarned: 15,
+			cumulativeGold: 109,
+			xpToNext: 4378,
+			level: 16
+		},
+		{
+			stage: 13,
+			levelUps: 1,
+			cumulativeLevelUps: 16,
+			goldEarned: 16,
+			cumulativeGold: 125,
+			xpToNext: 6568,
+			level: 17
+		},
+		{
+			stage: 14,
+			levelUps: 1,
+			cumulativeLevelUps: 17,
+			goldEarned: 17,
+			cumulativeGold: 142,
+			xpToNext: 9852,
+			level: 18
+		},
+		{
+			stage: 15,
+			levelUps: 1,
+			cumulativeLevelUps: 18,
+			goldEarned: 18,
+			cumulativeGold: 160,
+			xpToNext: 14778,
+			level: 19
+		},
+		{
+			stage: 16,
+			levelUps: 1,
+			cumulativeLevelUps: 19,
+			goldEarned: 19,
+			cumulativeGold: 179,
+			xpToNext: 22168,
+			level: 20
+		},
+		{
+			stage: 17,
+			levelUps: 0,
+			cumulativeLevelUps: 19,
+			goldEarned: 20,
+			cumulativeGold: 199,
+			xpToNext: 22168,
+			level: 20
+		},
+		{
+			stage: 18,
+			levelUps: 1,
+			cumulativeLevelUps: 20,
+			goldEarned: 21,
+			cumulativeGold: 220,
+			xpToNext: 33252,
+			level: 21
+		},
+		{
+			stage: 19,
+			levelUps: 1,
+			cumulativeLevelUps: 21,
+			goldEarned: 22,
+			cumulativeGold: 242,
+			xpToNext: 49878,
+			level: 22
+		},
+		{
+			stage: 20,
+			levelUps: 1,
+			cumulativeLevelUps: 22,
+			goldEarned: 23,
+			cumulativeGold: 265,
+			xpToNext: 74818,
+			level: 23
+		},
+		{
+			stage: 21,
+			levelUps: 1,
+			cumulativeLevelUps: 23,
+			goldEarned: 24,
+			cumulativeGold: 290,
+			xpToNext: 112227,
+			level: 24
+		},
+		{
+			stage: 22,
+			levelUps: 1,
+			cumulativeLevelUps: 24,
+			goldEarned: 25,
+			cumulativeGold: 315,
+			xpToNext: 168341,
+			level: 25
+		},
+		{
+			stage: 23,
+			levelUps: 1,
+			cumulativeLevelUps: 25,
+			goldEarned: 26,
+			cumulativeGold: 342,
+			xpToNext: 252511,
+			level: 26
+		},
+		{
+			stage: 24,
+			levelUps: 1,
+			cumulativeLevelUps: 26,
+			goldEarned: 27,
+			cumulativeGold: 369,
+			xpToNext: 378767,
+			level: 27
+		},
+		{
+			stage: 25,
+			levelUps: 1,
+			cumulativeLevelUps: 27,
+			goldEarned: 29,
+			cumulativeGold: 397,
+			xpToNext: 568151,
+			level: 28
+		},
+		{
+			stage: 26,
+			levelUps: 1,
+			cumulativeLevelUps: 28,
+			goldEarned: 30,
+			cumulativeGold: 427,
+			xpToNext: 852226,
+			level: 29
+		},
+		{
+			stage: 27,
+			levelUps: 1,
+			cumulativeLevelUps: 29,
+			goldEarned: 31,
+			cumulativeGold: 458,
+			xpToNext: 1278340,
+			level: 30
+		},
+		{
+			stage: 28,
+			levelUps: 1,
+			cumulativeLevelUps: 30,
+			goldEarned: 32,
+			cumulativeGold: 489,
+			xpToNext: 1917510,
+			level: 31
+		},
+		{
+			stage: 29,
+			levelUps: 1,
+			cumulativeLevelUps: 31,
+			goldEarned: 33,
+			cumulativeGold: 522,
+			xpToNext: 2876265,
+			level: 32
+		},
+		{
+			stage: 30,
+			levelUps: 1,
+			cumulativeLevelUps: 32,
+			goldEarned: 34,
+			cumulativeGold: 556,
+			xpToNext: 4314398,
+			level: 33
+		}
 	];
 
 	const prop = [
-		{ stage: 1, levelUps: 3, cumulativeLevelUps: 3, goldEarned: 2, cumulativeGold: 2, xpToNext: 84, level: 4 },
-		{ stage: 2, levelUps: 1, cumulativeLevelUps: 4, goldEarned: 3, cumulativeGold: 5, xpToNext: 126, level: 5 },
-		{ stage: 3, levelUps: 1, cumulativeLevelUps: 5, goldEarned: 4, cumulativeGold: 9, xpToNext: 189, level: 6 },
-		{ stage: 4, levelUps: 1, cumulativeLevelUps: 6, goldEarned: 4, cumulativeGold: 13, xpToNext: 284, level: 7 },
-		{ stage: 5, levelUps: 1, cumulativeLevelUps: 7, goldEarned: 5, cumulativeGold: 18, xpToNext: 427, level: 8 },
-		{ stage: 6, levelUps: 1, cumulativeLevelUps: 8, goldEarned: 6, cumulativeGold: 24, xpToNext: 640, level: 9 },
-		{ stage: 7, levelUps: 0, cumulativeLevelUps: 8, goldEarned: 6, cumulativeGold: 30, xpToNext: 640, level: 9 },
-		{ stage: 8, levelUps: 1, cumulativeLevelUps: 9, goldEarned: 7, cumulativeGold: 37, xpToNext: 961, level: 10 },
-		{ stage: 9, levelUps: 1, cumulativeLevelUps: 10, goldEarned: 8, cumulativeGold: 45, xpToNext: 1441, level: 11 },
-		{ stage: 10, levelUps: 1, cumulativeLevelUps: 11, goldEarned: 9, cumulativeGold: 54, xpToNext: 2162, level: 12 },
-		{ stage: 11, levelUps: 1, cumulativeLevelUps: 12, goldEarned: 9, cumulativeGold: 63, xpToNext: 3243, level: 13 },
-		{ stage: 12, levelUps: 1, cumulativeLevelUps: 13, goldEarned: 10, cumulativeGold: 73, xpToNext: 4865, level: 14 },
-		{ stage: 13, levelUps: 1, cumulativeLevelUps: 14, goldEarned: 11, cumulativeGold: 83, xpToNext: 7298, level: 15 },
-		{ stage: 14, levelUps: 0, cumulativeLevelUps: 14, goldEarned: 11, cumulativeGold: 95, xpToNext: 7298, level: 15 },
-		{ stage: 15, levelUps: 1, cumulativeLevelUps: 15, goldEarned: 12, cumulativeGold: 107, xpToNext: 10947, level: 16 },
-		{ stage: 16, levelUps: 1, cumulativeLevelUps: 16, goldEarned: 13, cumulativeGold: 119, xpToNext: 16421, level: 17 },
-		{ stage: 17, levelUps: 1, cumulativeLevelUps: 17, goldEarned: 13, cumulativeGold: 133, xpToNext: 24631, level: 18 },
-		{ stage: 18, levelUps: 1, cumulativeLevelUps: 18, goldEarned: 14, cumulativeGold: 147, xpToNext: 36947, level: 19 },
-		{ stage: 19, levelUps: 1, cumulativeLevelUps: 19, goldEarned: 15, cumulativeGold: 162, xpToNext: 55420, level: 20 },
-		{ stage: 20, levelUps: 1, cumulativeLevelUps: 20, goldEarned: 16, cumulativeGold: 177, xpToNext: 83131, level: 21 },
-		{ stage: 21, levelUps: 1, cumulativeLevelUps: 21, goldEarned: 16, cumulativeGold: 193, xpToNext: 124697, level: 22 },
-		{ stage: 22, levelUps: 1, cumulativeLevelUps: 22, goldEarned: 17, cumulativeGold: 210, xpToNext: 187045, level: 23 },
-		{ stage: 23, levelUps: 1, cumulativeLevelUps: 23, goldEarned: 18, cumulativeGold: 228, xpToNext: 280568, level: 24 },
-		{ stage: 24, levelUps: 1, cumulativeLevelUps: 24, goldEarned: 18, cumulativeGold: 246, xpToNext: 420852, level: 25 },
-		{ stage: 25, levelUps: 1, cumulativeLevelUps: 25, goldEarned: 19, cumulativeGold: 265, xpToNext: 631279, level: 26 },
-		{ stage: 26, levelUps: 1, cumulativeLevelUps: 26, goldEarned: 20, cumulativeGold: 285, xpToNext: 946918, level: 27 },
-		{ stage: 27, levelUps: 1, cumulativeLevelUps: 27, goldEarned: 20, cumulativeGold: 305, xpToNext: 1420378, level: 28 },
-		{ stage: 28, levelUps: 0, cumulativeLevelUps: 27, goldEarned: 21, cumulativeGold: 326, xpToNext: 1420378, level: 28 },
-		{ stage: 29, levelUps: 1, cumulativeLevelUps: 28, goldEarned: 22, cumulativeGold: 348, xpToNext: 2130567, level: 29 },
-		{ stage: 30, levelUps: 1, cumulativeLevelUps: 29, goldEarned: 23, cumulativeGold: 371, xpToNext: 3195850, level: 30 }
+		{
+			stage: 1,
+			levelUps: 3,
+			cumulativeLevelUps: 3,
+			goldEarned: 2,
+			cumulativeGold: 2,
+			xpToNext: 84,
+			level: 4
+		},
+		{
+			stage: 2,
+			levelUps: 1,
+			cumulativeLevelUps: 4,
+			goldEarned: 3,
+			cumulativeGold: 5,
+			xpToNext: 126,
+			level: 5
+		},
+		{
+			stage: 3,
+			levelUps: 1,
+			cumulativeLevelUps: 5,
+			goldEarned: 4,
+			cumulativeGold: 9,
+			xpToNext: 189,
+			level: 6
+		},
+		{
+			stage: 4,
+			levelUps: 1,
+			cumulativeLevelUps: 6,
+			goldEarned: 4,
+			cumulativeGold: 13,
+			xpToNext: 284,
+			level: 7
+		},
+		{
+			stage: 5,
+			levelUps: 1,
+			cumulativeLevelUps: 7,
+			goldEarned: 5,
+			cumulativeGold: 18,
+			xpToNext: 427,
+			level: 8
+		},
+		{
+			stage: 6,
+			levelUps: 1,
+			cumulativeLevelUps: 8,
+			goldEarned: 6,
+			cumulativeGold: 24,
+			xpToNext: 640,
+			level: 9
+		},
+		{
+			stage: 7,
+			levelUps: 0,
+			cumulativeLevelUps: 8,
+			goldEarned: 6,
+			cumulativeGold: 30,
+			xpToNext: 640,
+			level: 9
+		},
+		{
+			stage: 8,
+			levelUps: 1,
+			cumulativeLevelUps: 9,
+			goldEarned: 7,
+			cumulativeGold: 37,
+			xpToNext: 961,
+			level: 10
+		},
+		{
+			stage: 9,
+			levelUps: 1,
+			cumulativeLevelUps: 10,
+			goldEarned: 8,
+			cumulativeGold: 45,
+			xpToNext: 1441,
+			level: 11
+		},
+		{
+			stage: 10,
+			levelUps: 1,
+			cumulativeLevelUps: 11,
+			goldEarned: 9,
+			cumulativeGold: 54,
+			xpToNext: 2162,
+			level: 12
+		},
+		{
+			stage: 11,
+			levelUps: 1,
+			cumulativeLevelUps: 12,
+			goldEarned: 9,
+			cumulativeGold: 63,
+			xpToNext: 3243,
+			level: 13
+		},
+		{
+			stage: 12,
+			levelUps: 1,
+			cumulativeLevelUps: 13,
+			goldEarned: 10,
+			cumulativeGold: 73,
+			xpToNext: 4865,
+			level: 14
+		},
+		{
+			stage: 13,
+			levelUps: 1,
+			cumulativeLevelUps: 14,
+			goldEarned: 11,
+			cumulativeGold: 83,
+			xpToNext: 7298,
+			level: 15
+		},
+		{
+			stage: 14,
+			levelUps: 0,
+			cumulativeLevelUps: 14,
+			goldEarned: 11,
+			cumulativeGold: 95,
+			xpToNext: 7298,
+			level: 15
+		},
+		{
+			stage: 15,
+			levelUps: 1,
+			cumulativeLevelUps: 15,
+			goldEarned: 12,
+			cumulativeGold: 107,
+			xpToNext: 10947,
+			level: 16
+		},
+		{
+			stage: 16,
+			levelUps: 1,
+			cumulativeLevelUps: 16,
+			goldEarned: 13,
+			cumulativeGold: 119,
+			xpToNext: 16421,
+			level: 17
+		},
+		{
+			stage: 17,
+			levelUps: 1,
+			cumulativeLevelUps: 17,
+			goldEarned: 13,
+			cumulativeGold: 133,
+			xpToNext: 24631,
+			level: 18
+		},
+		{
+			stage: 18,
+			levelUps: 1,
+			cumulativeLevelUps: 18,
+			goldEarned: 14,
+			cumulativeGold: 147,
+			xpToNext: 36947,
+			level: 19
+		},
+		{
+			stage: 19,
+			levelUps: 1,
+			cumulativeLevelUps: 19,
+			goldEarned: 15,
+			cumulativeGold: 162,
+			xpToNext: 55420,
+			level: 20
+		},
+		{
+			stage: 20,
+			levelUps: 1,
+			cumulativeLevelUps: 20,
+			goldEarned: 16,
+			cumulativeGold: 177,
+			xpToNext: 83131,
+			level: 21
+		},
+		{
+			stage: 21,
+			levelUps: 1,
+			cumulativeLevelUps: 21,
+			goldEarned: 16,
+			cumulativeGold: 193,
+			xpToNext: 124697,
+			level: 22
+		},
+		{
+			stage: 22,
+			levelUps: 1,
+			cumulativeLevelUps: 22,
+			goldEarned: 17,
+			cumulativeGold: 210,
+			xpToNext: 187045,
+			level: 23
+		},
+		{
+			stage: 23,
+			levelUps: 1,
+			cumulativeLevelUps: 23,
+			goldEarned: 18,
+			cumulativeGold: 228,
+			xpToNext: 280568,
+			level: 24
+		},
+		{
+			stage: 24,
+			levelUps: 1,
+			cumulativeLevelUps: 24,
+			goldEarned: 18,
+			cumulativeGold: 246,
+			xpToNext: 420852,
+			level: 25
+		},
+		{
+			stage: 25,
+			levelUps: 1,
+			cumulativeLevelUps: 25,
+			goldEarned: 19,
+			cumulativeGold: 265,
+			xpToNext: 631279,
+			level: 26
+		},
+		{
+			stage: 26,
+			levelUps: 1,
+			cumulativeLevelUps: 26,
+			goldEarned: 20,
+			cumulativeGold: 285,
+			xpToNext: 946918,
+			level: 27
+		},
+		{
+			stage: 27,
+			levelUps: 1,
+			cumulativeLevelUps: 27,
+			goldEarned: 20,
+			cumulativeGold: 305,
+			xpToNext: 1420378,
+			level: 28
+		},
+		{
+			stage: 28,
+			levelUps: 0,
+			cumulativeLevelUps: 27,
+			goldEarned: 21,
+			cumulativeGold: 326,
+			xpToNext: 1420378,
+			level: 28
+		},
+		{
+			stage: 29,
+			levelUps: 1,
+			cumulativeLevelUps: 28,
+			goldEarned: 22,
+			cumulativeGold: 348,
+			xpToNext: 2130567,
+			level: 29
+		},
+		{
+			stage: 30,
+			levelUps: 1,
+			cumulativeLevelUps: 29,
+			goldEarned: 23,
+			cumulativeGold: 371,
+			xpToNext: 3195850,
+			level: 30
+		}
 	];
 
 	const colors = { current: '#8b5cf6', proposed: '#22d3ee' };
@@ -75,15 +555,26 @@
 	const rarityNames = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 	const curCards = [
-		[0, 0, 1, 2, 2, 3, 4, 5, 6, 8, 9, 10, 12, 14, 16, 17, 19, 22, 24, 26, 29, 31, 34, 36, 39, 42, 45, 48, 52, 55],
-		[0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 4, 5, 6, 7, 8, 8, 9, 11, 12, 13, 14, 15, 17, 18, 19, 21, 22, 24, 26, 27],
-		[0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 9, 10, 11, 12, 13, 13, 14, 15],
+		[
+			0, 0, 1, 2, 2, 3, 4, 5, 6, 8, 9, 10, 12, 14, 16, 17, 19, 22, 24, 26, 29, 31, 34, 36, 39, 42,
+			45, 48, 52, 55
+		],
+		[
+			0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 4, 5, 6, 7, 8, 8, 9, 11, 12, 13, 14, 15, 17, 18, 19, 21, 22, 24,
+			26, 27
+		],
+		[
+			0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 9, 9, 10, 11, 12, 13, 13, 14,
+			15
+		],
 		[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5]
 	];
 
 	const propCards = [
-		[0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 7, 8, 9, 9, 10, 11, 12, 13, 13, 14],
+		[
+			0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 7, 8, 9, 9, 10, 11, 12, 13, 13, 14
+		],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 7],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
@@ -137,38 +628,88 @@
 		const chartConfigs: { datasets: ChartDataset[]; labels: number[] }[] = [
 			{
 				datasets: [
-					{ label: 'Current (base 10)', data: xpLevels.map((l) => Math.floor(10 * Math.pow(1.5, l - 1))), borderColor: colors.current, fill: false },
-					{ label: 'Proposed (base 25)', data: xpLevels.map((l) => Math.floor(25 * Math.pow(1.5, l - 1))), borderColor: colors.proposed, fill: false }
+					{
+						label: 'Current (base 10)',
+						data: xpLevels.map((l) => Math.floor(10 * Math.pow(1.5, l - 1))),
+						borderColor: colors.current,
+						fill: false
+					},
+					{
+						label: 'Proposed (base 25)',
+						data: xpLevels.map((l) => Math.floor(25 * Math.pow(1.5, l - 1))),
+						borderColor: colors.proposed,
+						fill: false
+					}
 				],
 				labels: xpLevels
 			},
 			{
 				datasets: [
-					{ label: 'Current', data: cur.map((r) => r.levelUps), borderColor: colors.current, fill: false },
-					{ label: 'Proposed', data: prop.map((r) => r.levelUps), borderColor: colors.proposed, fill: false }
+					{
+						label: 'Current',
+						data: cur.map((r) => r.levelUps),
+						borderColor: colors.current,
+						fill: false
+					},
+					{
+						label: 'Proposed',
+						data: prop.map((r) => r.levelUps),
+						borderColor: colors.proposed,
+						fill: false
+					}
 				],
 				labels: stages
 			},
 			{
 				datasets: [
-					{ label: 'Current (15% drop)', data: cur.map((r) => r.cumulativeGold), borderColor: colors.current, fill: false },
-					{ label: 'Proposed (10% drop)', data: prop.map((r) => r.cumulativeGold), borderColor: colors.proposed, fill: false }
+					{
+						label: 'Current (15% drop)',
+						data: cur.map((r) => r.cumulativeGold),
+						borderColor: colors.current,
+						fill: false
+					},
+					{
+						label: 'Proposed (10% drop)',
+						data: prop.map((r) => r.cumulativeGold),
+						borderColor: colors.proposed,
+						fill: false
+					}
 				],
 				labels: stages
 			},
 			{
 				datasets: [
-					{ label: 'Current', data: cur.map((r) => r.level), borderColor: colors.current, fill: false },
-					{ label: 'Proposed', data: prop.map((r) => r.level), borderColor: colors.proposed, fill: false }
+					{
+						label: 'Current',
+						data: cur.map((r) => r.level),
+						borderColor: colors.current,
+						fill: false
+					},
+					{
+						label: 'Proposed',
+						data: prop.map((r) => r.level),
+						borderColor: colors.proposed,
+						fill: false
+					}
 				],
 				labels: stages
 			},
 			{
-				datasets: rarityNames.map((name, i) => ({ label: name, data: curCards[i], borderColor: rarityColors[i], fill: false })),
+				datasets: rarityNames.map((name, i) => ({
+					label: name,
+					data: curCards[i],
+					borderColor: rarityColors[i],
+					fill: false
+				})),
 				labels: stages
 			},
 			{
-				datasets: rarityNames.map((name, i) => ({ label: name, data: propCards[i], borderColor: rarityColors[i], fill: false })),
+				datasets: rarityNames.map((name, i) => ({
+					label: name,
+					data: propCards[i],
+					borderColor: rarityColors[i],
+					fill: false
+				})),
 				labels: stages
 			}
 		];

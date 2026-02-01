@@ -105,12 +105,12 @@ Each class has access to weighted card pools during upgrade selection. Shared/ge
 
 ### Class Summary
 
-| Class | UI Elements | Combat Identity | Economy Perk |
-| --- | --- | --- | --- |
-| Adventurer (Levels 1-29) | Tap enemy only | Basic damage | None |
-| Warrior | Tap enemy + weapon roulette display (passive) | Slow heavy hitter, weapon combos | Longer boss timer |
-| Mage | Tap enemy + 3 element buttons + mana bar | Spell caster, element combos | Bonus XP multiplier |
-| Rogue | Tap enemy + Poison Cloud button (once unlocked) | Fast poison stacker, crits | Higher base gold drop |
+| Class                    | UI Elements                                     | Combat Identity                  | Economy Perk          |
+| ------------------------ | ----------------------------------------------- | -------------------------------- | --------------------- |
+| Adventurer (Levels 1-29) | Tap enemy only                                  | Basic damage                     | None                  |
+| Warrior                  | Tap enemy + weapon roulette display (passive)   | Slow heavy hitter, weapon combos | Longer boss timer     |
+| Mage                     | Tap enemy + 3 element buttons + mana bar        | Spell caster, element combos     | Bonus XP multiplier   |
+| Rogue                    | Tap enemy + Poison Cloud button (once unlocked) | Fast poison stacker, crits       | Higher base gold drop |
 
 ## Gameplay Notes
 
@@ -184,11 +184,11 @@ Class-specific cards display a class label beneath the card title (e.g. "Warrior
 ### Unlock Schedule
 
 | Stage Introduced | Enemy Types Available |
-|-----------------|----------------------|
-| Stage 1 | Skeleton, Goblin |
-| Stage 2 | + Red Mushroom |
-| Stage 3 | + Blue Mushroom |
-| Stage 4 | + Blinking Eyes |
+| ---------------- | --------------------- |
+| Stage 1          | Skeleton, Goblin      |
+| Stage 2          | + Red Mushroom        |
+| Stage 3          | + Blue Mushroom       |
+| Stage 4          | + Blinking Eyes       |
 
 ### Enemy Definitions
 
@@ -234,13 +234,13 @@ Class-specific cards display a class label beneath the card title (e.g. "Warrior
 
 ### Enemy Summary Table
 
-| # | Enemy | Immune/Resist | Weak To | Mechanic | Stage |
-|---|-------|--------------|---------|----------|-------|
-| 1 | Skeleton | Bleed immune | Hammer/Stun (2x) | Reassemble (revive once at 25%) | 1 |
-| 2 | Goblin | Stun (halved) | Poison | Nimble (dodge taps) | 1 |
-| 3 | Red Mushroom | Poison immune | Fire (2x DoT) | Spore Cloud (reduce Attack) | 2 |
-| 4 | Blue Mushroom | Frost immune | Bleed/physical (2x) | Frost Aura (slows DoTs) | 3 |
-| 5 | Blinking Eyes | Execute immune | Arcane | Creeping Darkness (stat drain if idle) | 4 |
+| #   | Enemy         | Immune/Resist  | Weak To             | Mechanic                               | Stage |
+| --- | ------------- | -------------- | ------------------- | -------------------------------------- | ----- |
+| 1   | Skeleton      | Bleed immune   | Hammer/Stun (2x)    | Reassemble (revive once at 25%)        | 1     |
+| 2   | Goblin        | Stun (halved)  | Poison              | Nimble (dodge taps)                    | 1     |
+| 3   | Red Mushroom  | Poison immune  | Fire (2x DoT)       | Spore Cloud (reduce Attack)            | 2     |
+| 4   | Blue Mushroom | Frost immune   | Bleed/physical (2x) | Frost Aura (slows DoTs)                | 3     |
+| 5   | Blinking Eyes | Execute immune | Arcane              | Creeping Darkness (stat drain if idle) | 4     |
 
 ### Spawn Rules
 
@@ -258,6 +258,7 @@ Class-specific cards display a class label beneath the card title (e.g. "Warrior
 ## Notes on Bleed vs Poison
 
 Bleed (Warrior) and Poison (Rogue) are separate DoT mechanics:
+
 - **Bleed**: Burst-applied via Warrior's Sword combo payoff. Large damage applied at once that ticks down.
 - **Poison**: Steadily stacked per Rogue tap. Scales with number of stacks. Also serves as a crit damage multiplier for Rogue.
 

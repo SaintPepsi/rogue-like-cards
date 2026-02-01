@@ -21,6 +21,7 @@
 ### Task 1.1: Define Enemy Type Data Model
 
 **Files:**
+
 - Modify: `src/lib/types.ts` (add `EnemyTypeId`, `DamageType`, `ResistanceLevel`, `EnemyTypeDefinition`)
 - Create: `src/lib/data/enemies.ts`
 - Create: `src/lib/data/enemies.test.ts`
@@ -30,13 +31,23 @@
 Add after the `GoldDrop` type:
 
 ```typescript
-export type EnemyTypeId = 'skeleton' | 'goblin' | 'red_mushroom' | 'blue_mushroom' | 'blinking_eyes';
+export type EnemyTypeId =
+	| 'skeleton'
+	| 'goblin'
+	| 'red_mushroom'
+	| 'blue_mushroom'
+	| 'blinking_eyes';
 
 export type DamageType = 'physical' | 'bleed' | 'poison' | 'fire' | 'frost' | 'arcane' | 'stun';
 
 export type ResistanceLevel = 'immune' | 'resistant' | 'normal' | 'weak';
 
-export type EnemyMechanicId = 'reassemble' | 'nimble' | 'spore_cloud' | 'frost_aura' | 'creeping_darkness';
+export type EnemyMechanicId =
+	| 'reassemble'
+	| 'nimble'
+	| 'spore_cloud'
+	| 'frost_aura'
+	| 'creeping_darkness';
 
 export type EnemyTypeDefinition = {
 	id: EnemyTypeId;
@@ -53,17 +64,18 @@ export type EnemyTypeDefinition = {
 
 Define all 5 enemy types per the design doc:
 
-| Enemy | Stage | Resistance | Weakness | Mechanic |
-|-------|-------|-----------|----------|----------|
-| Skeleton | 1 | Bleed immune | Stun (2x) | Reassemble |
-| Goblin | 1 | Stun (halved) | Poison | Nimble |
-| Red Mushroom | 2 | Poison immune | Fire (2x) | Spore Cloud |
-| Blue Mushroom | 3 | Frost immune | Bleed (2x) | Frost Aura |
-| Blinking Eyes | 4 | Execute immune | Arcane | Creeping Darkness |
+| Enemy         | Stage | Resistance     | Weakness   | Mechanic          |
+| ------------- | ----- | -------------- | ---------- | ----------------- |
+| Skeleton      | 1     | Bleed immune   | Stun (2x)  | Reassemble        |
+| Goblin        | 1     | Stun (halved)  | Poison     | Nimble            |
+| Red Mushroom  | 2     | Poison immune  | Fire (2x)  | Spore Cloud       |
+| Blue Mushroom | 3     | Frost immune   | Bleed (2x) | Frost Aura        |
+| Blinking Eyes | 4     | Execute immune | Arcane     | Creeping Darkness |
 
 Sprite imports: Use `enemy.png` as placeholder for all types initially. Use specific sprite files if they exist in assets.
 
 Export functions:
+
 - `getAvailableEnemyTypes(stage: number): EnemyTypeId[]`
 - `pickRandomEnemyType(stage: number, rng?: () => number): EnemyTypeId`
 - `getResistance(enemyType: EnemyTypeId, damageType: DamageType): ResistanceLevel`
@@ -72,6 +84,7 @@ Export functions:
 **Step 3: Write tests in `src/lib/data/enemies.test.ts`**
 
 Test:
+
 - 5 enemy types defined with all required fields
 - `getAvailableEnemyTypes`: stage 1 → 2 types, stage 2 → 3, stage 3 → 4, stage 4+ → 5
 - `pickRandomEnemyType`: returns valid type for given stage
@@ -88,6 +101,7 @@ Test:
 ### Task 1.2: Integrate Enemy Types into Enemy Store
 
 **Files:**
+
 - Modify: `src/lib/stores/enemy.svelte.ts`
 - Modify or create: `src/lib/stores/enemy.test.ts`
 
@@ -125,6 +139,7 @@ get enemySprite() { return ENEMY_DEFINITIONS[enemyType].spriteImport; },
 ### Task 1.3: Wire Enemy Type into Persistence
 
 **Files:**
+
 - Modify: `src/lib/stores/persistence.svelte.ts` (add `enemyType` to `SessionSaveData`)
 - Modify: `src/lib/stores/gameState.svelte.ts` (save/load `enemyType`)
 
@@ -139,6 +154,7 @@ Add `enemyType?: string` to `SessionSaveData`. Save it in `saveGame()`, restore 
 ### Task 1.4: Display Enemy Type in Battle UI
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte` (dynamic sprite, enemy name label)
 - Modify: `src/routes/+page.svelte` (pass new props)
 - Modify: `src/lib/stores/gameState.svelte.ts` (expose `enemyName`, `enemySprite`)
@@ -173,6 +189,7 @@ Add `enemyType?: string` to `SessionSaveData`. Save it in `saveGame()`, restore 
 ### Task 2.1: Create Enemy Mechanics Engine + Execute Immunity
 
 **Files:**
+
 - Create: `src/lib/engine/enemyMechanics.ts`
 - Create: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/engine/combat.ts` (add `executeImmune` to `AttackContext`)
@@ -184,10 +201,12 @@ Add `enemyType?: string` to `SessionSaveData`. Save it in `saveGame()`, restore 
 **Step 2:** Add `executeImmune?: boolean` to `AttackContext` in `combat.ts`. In `calculateAttack`, treat `executeImmune` the same as `isBoss` for execute chance:
 
 ```typescript
-const effectiveExecuteChance = (ctx.isBoss || ctx.executeImmune) ? 0
-	: ctx.executeCap != null
-		? Math.min(stats.executeChance, ctx.executeCap)
-		: stats.executeChance;
+const effectiveExecuteChance =
+	ctx.isBoss || ctx.executeImmune
+		? 0
+		: ctx.executeCap != null
+			? Math.min(stats.executeChance, ctx.executeCap)
+			: stats.executeChance;
 ```
 
 **Step 3:** In `gameState.attack()` (internal), pass `executeImmune: enemy.enemyType === 'blinking_eyes'`.
@@ -203,6 +222,7 @@ const effectiveExecuteChance = (ctx.isBoss || ctx.executeImmune) ? 0
 ### Task 2.2: Skeleton Reassemble Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts`
 - Modify: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/stores/enemy.svelte.ts` (reassemble state)
@@ -216,7 +236,11 @@ const effectiveExecuteChance = (ctx.isBoss || ctx.executeImmune) ? 0
 export const REASSEMBLE_CHANCE = 0.5;
 export const REASSEMBLE_HP_FRACTION = 0.25;
 
-export function shouldReassemble(hasReassembled: boolean, wasOverkill: boolean, rng: () => number): boolean;
+export function shouldReassemble(
+	hasReassembled: boolean,
+	wasOverkill: boolean,
+	rng: () => number
+): boolean;
 export function getReassembleHealth(maxHealth: number): number;
 ```
 
@@ -237,6 +261,7 @@ Overkill detection: `enemyHealth` is negative after lethal damage. If `playerSta
 ### Task 2.3: Goblin Nimble Mechanic (Dodge)
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (dodge constants)
 - Modify: `src/lib/types.ts` (add `'dodge'` to `HitType`)
 - Modify: `src/lib/stores/enemy.svelte.ts` (dodge state)
@@ -291,6 +316,7 @@ This automatically pauses during upgrade modals since the game loop pauses.
 ### Task 2.4: Red Mushroom Spore Cloud Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (spore constants)
 - Modify: `src/lib/stores/gameState.svelte.ts` (spore timer registration + transient modifiers)
 - Modify: `src/lib/components/BattleArea.svelte` (spore visual)
@@ -323,9 +349,7 @@ gameLoop.timers.register('spore_cloud', {
 		const debuffName = `spore_debuff_${sporeDebuffId}`;
 
 		// Add transient modifier to stat pipeline — no manual stat mutation
-		statPipeline.addTransient(debuffName, [
-			{ stat: 'damage', value: -SPORE_CLOUD_DEBUFF_AMOUNT }
-		]);
+		statPipeline.addTransient(debuffName, [{ stat: 'damage', value: -SPORE_CLOUD_DEBUFF_AMOUNT }]);
 
 		// Register expiry timer
 		gameLoop.timers.register(debuffName, {
@@ -366,6 +390,7 @@ No manual stat restoration needed — removing the transient modifier from the p
 ### Task 2.5: Blue Mushroom Frost Aura Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (frost aura constant)
 - Modify: `src/lib/stores/gameState.svelte.ts` (apply/remove frost aura transient)
 - Modify: `src/lib/components/BattleArea.svelte` (frost visual)
@@ -385,7 +410,11 @@ export const FROST_AURA_ATTACK_SPEED_MULTIPLIER = 0.5;
 import { multiply } from '$lib/engine/statPipeline';
 
 // Slow attack speed by 50%
-statPipeline.addTransientStep('frost_aura', 'attackSpeed', multiply(FROST_AURA_ATTACK_SPEED_MULTIPLIER));
+statPipeline.addTransientStep(
+	'frost_aura',
+	'attackSpeed',
+	multiply(FROST_AURA_ATTACK_SPEED_MULTIPLIER)
+);
 ```
 
 **Step 3:** Make poison tick interval dynamic. The `poison_tick` timer in the game loop currently uses a hardcoded 1000ms repeat. Change the game loop to read the interval from a getter:
@@ -428,6 +457,7 @@ Pipeline recomputes — attack speed and poison tick interval return to normal a
 ### Task 2.6: Blinking Eyes Creeping Darkness Mechanic
 
 **Files:**
+
 - Modify: `src/lib/engine/enemyMechanics.ts` (darkness logic)
 - Modify: `src/lib/engine/enemyMechanics.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (idle detection via timer registry + transient modifiers)
@@ -462,17 +492,17 @@ gameLoop.timers.register('darkness_check', {
 
 		if (isIdle) {
 			darknessIdleCounter++;
-			if (darknessIdleCounter >= DARKNESS_IDLE_THRESHOLD_S
-					&& darknessStackCount < DARKNESS_MAX_STACKS) {
+			if (
+				darknessIdleCounter >= DARKNESS_IDLE_THRESHOLD_S &&
+				darknessStackCount < DARKNESS_MAX_STACKS
+			) {
 				darknessStackId++;
 				darknessStackCount++;
 				const stat = pickStatToDrain(Math.random);
 				const name = `darkness_${darknessStackId}`;
 
 				// Add transient modifier — no manual stat mutation
-				statPipeline.addTransient(name, [
-					{ stat, value: -DARKNESS_DRAIN_AMOUNT }
-				]);
+				statPipeline.addTransient(name, [{ stat, value: -DARKNESS_DRAIN_AMOUNT }]);
 
 				darknessIdleCounter = 0; // reset counter for next stack
 			}
@@ -508,6 +538,7 @@ No manual stat restoration needed — removing transients from the pipeline reco
 ### Task 2.7: Resistance-Aware Damage Calculations
 
 **Files:**
+
 - Modify: `src/lib/engine/combat.ts` (add `enemyType` and `damageType` to `AttackContext`)
 - Modify: `src/lib/engine/combat.test.ts`
 - Modify: `src/lib/stores/gameState.svelte.ts` (pass enemy type to combat)
@@ -531,6 +562,7 @@ if (ctx.enemyType && ctx.damageType) {
 **Step 3:** Pass `enemyType` from `gameState.attack()`. For now, `damageType` is `'physical'` by default. Class-specific damage types (bleed, poison, fire, etc.) will be wired in Plan 3.
 
 **Step 4:** Write tests:
+
 - Bleed damage vs skeleton → 0 (immune)
 - Poison damage vs goblin → 2x (weak)
 - Physical damage vs any → 1x (normal)
@@ -544,9 +576,11 @@ if (ctx.enemyType && ctx.damageType) {
 ### Task 2.8: Enemy Mechanic Visual Indicators
 
 **Files:**
+
 - Modify: `src/lib/components/BattleArea.svelte`
 
 Add visual indicators for active mechanics on each enemy type:
+
 - **Skeleton**: Bone icon + "Can Reassemble" badge (hidden after reassemble used)
 - **Goblin**: Hop animation on dodge + "DODGE!" text
 - **Red Mushroom**: Spore cloud particles periodically, debuff stack counter
@@ -562,6 +596,7 @@ Each indicator uses the store-driven temporary effect pattern from CLAUDE.md.
 ### Task 2.9: Add Changelog Entry
 
 **Files:**
+
 - Modify: `src/lib/changelog.ts`
 
 ```typescript

@@ -50,7 +50,9 @@ export function createFrenzy(pipeline: StatPipeline, timers: TimerRegistry) {
 	}
 
 	return {
-		get count() { return count; },
+		get count() {
+			return count;
+		},
 		addStack,
 		reset
 	};

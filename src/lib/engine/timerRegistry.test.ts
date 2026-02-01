@@ -1,11 +1,16 @@
 import { describe, test, expect } from 'vitest';
-import { createTimerRegistry, type GameTimer } from '$lib/engine/timerRegistry';
+import { createTimerRegistry } from '$lib/engine/timerRegistry';
 
 describe('timer registry', () => {
 	test('one-shot timer fires on expiry', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.tick(100);
 		expect(fired).toBe(true);
 		expect(registry.has('test')).toBe(false); // auto-removed
@@ -14,7 +19,12 @@ describe('timer registry', () => {
 	test('one-shot timer does not fire before expiry', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.tick(50);
 		expect(fired).toBe(false);
 		expect(registry.has('test')).toBe(true);
@@ -23,7 +33,13 @@ describe('timer registry', () => {
 	test('repeating timer fires and resets', () => {
 		const registry = createTimerRegistry();
 		let count = 0;
-		registry.register('tick', { remaining: 1000, onExpire: () => { count++; }, repeat: 1000 });
+		registry.register('tick', {
+			remaining: 1000,
+			onExpire: () => {
+				count++;
+			},
+			repeat: 1000
+		});
 
 		registry.tick(1000);
 		expect(count).toBe(1);
@@ -36,7 +52,13 @@ describe('timer registry', () => {
 	test('repeating timer carries remainder', () => {
 		const registry = createTimerRegistry();
 		let count = 0;
-		registry.register('tick', { remaining: 1000, onExpire: () => { count++; }, repeat: 1000 });
+		registry.register('tick', {
+			remaining: 1000,
+			onExpire: () => {
+				count++;
+			},
+			repeat: 1000
+		});
 
 		// 2500ms = fires at 1000, 2000, remainder 500
 		registry.tick(2500);
@@ -50,7 +72,12 @@ describe('timer registry', () => {
 	test('remove cancels a timer', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.remove('test');
 		registry.tick(200);
 		expect(fired).toBe(false);
@@ -58,9 +85,20 @@ describe('timer registry', () => {
 
 	test('multiple timers tick independently', () => {
 		const registry = createTimerRegistry();
-		let a = 0, b = 0;
-		registry.register('a', { remaining: 100, onExpire: () => { a++; } });
-		registry.register('b', { remaining: 200, onExpire: () => { b++; } });
+		let a = 0,
+			b = 0;
+		registry.register('a', {
+			remaining: 100,
+			onExpire: () => {
+				a++;
+			}
+		});
+		registry.register('b', {
+			remaining: 200,
+			onExpire: () => {
+				b++;
+			}
+		});
 
 		registry.tick(150);
 		expect(a).toBe(1);
@@ -72,9 +110,20 @@ describe('timer registry', () => {
 
 	test('registering same name replaces existing timer', () => {
 		const registry = createTimerRegistry();
-		let first = 0, second = 0;
-		registry.register('test', { remaining: 100, onExpire: () => { first++; } });
-		registry.register('test', { remaining: 200, onExpire: () => { second++; } });
+		let first = 0,
+			second = 0;
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				first++;
+			}
+		});
+		registry.register('test', {
+			remaining: 200,
+			onExpire: () => {
+				second++;
+			}
+		});
 
 		registry.tick(150);
 		expect(first).toBe(0);
@@ -87,8 +136,18 @@ describe('timer registry', () => {
 	test('clear removes all timers', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('a', { remaining: 100, onExpire: () => { fired = true; } });
-		registry.register('b', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('a', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
+		registry.register('b', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 		registry.clear();
 		registry.tick(200);
 		expect(fired).toBe(false);
@@ -120,7 +179,9 @@ describe('game loop simulation', () => {
 		let poisonTicks = 0;
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { poisonTicks++; },
+			onExpire: () => {
+				poisonTicks++;
+			},
 			repeat: 1000
 		});
 
@@ -169,7 +230,9 @@ describe('game loop simulation', () => {
 			attacks++;
 			registry.register('attack_cooldown', {
 				remaining: attackInterval,
-				onExpire: () => { fireAttack(); }
+				onExpire: () => {
+					fireAttack();
+				}
 			});
 		}
 
@@ -201,14 +264,18 @@ describe('game loop simulation', () => {
 			attacks++;
 			registry.register('attack_cooldown', {
 				remaining: 1250,
-				onExpire: () => { fireAttack(); }
+				onExpire: () => {
+					fireAttack();
+				}
 			});
 		}
 
 		// Poison every 1000ms
 		registry.register('poison_tick', {
 			remaining: 1000,
-			onExpire: () => { poisonTicks++; },
+			onExpire: () => {
+				poisonTicks++;
+			},
 			repeat: 1000
 		});
 
@@ -216,7 +283,9 @@ describe('game loop simulation', () => {
 		registry.register('boss_countdown', {
 			remaining: 1000,
 			repeat: 1000,
-			onExpire: () => { bossSeconds--; }
+			onExpire: () => {
+				bossSeconds--;
+			}
 		});
 
 		fireAttack();
@@ -224,15 +293,20 @@ describe('game loop simulation', () => {
 		// Simulate 5 seconds
 		registry.tick(5000);
 
-		expect(attacks).toBe(5);      // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
-		expect(poisonTicks).toBe(5);   // at 1000, 2000, 3000, 4000, 5000
-		expect(bossSeconds).toBe(25);  // 30 - 5
+		expect(attacks).toBe(5); // 1 initial + 4 from cooldowns (at 1250, 2500, 3750, 5000)
+		expect(poisonTicks).toBe(5); // at 1000, 2000, 3000, 4000, 5000
+		expect(bossSeconds).toBe(25); // 30 - 5
 	});
 
 	test('simulate pausing: timers do not advance when not ticked', () => {
 		const registry = createTimerRegistry();
 		let fired = false;
-		registry.register('test', { remaining: 100, onExpire: () => { fired = true; } });
+		registry.register('test', {
+			remaining: 100,
+			onExpire: () => {
+				fired = true;
+			}
+		});
 
 		// "Pause" by simply not calling tick for a while
 		// Then resume by ticking

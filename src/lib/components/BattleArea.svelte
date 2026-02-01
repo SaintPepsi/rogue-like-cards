@@ -49,11 +49,21 @@
 			onpointerdown={onPointerDown}
 			onpointerup={onPointerUp}
 			onpointerleave={onPointerUp}
-			onkeydown={(e) => { if (e.key === ' ') { onPointerDown(); setTimeout(onPointerUp, 100); } }}
+			onkeydown={(e) => {
+				if (e.key === ' ') {
+					onPointerDown();
+					setTimeout(onPointerUp, 100);
+				}
+			}}
 			tabindex="0"
 			role="button"
 		>
-			<img class="enemy-sprite" src={isBossChest ? mimicSprite : isChest ? chestSprite : enemySprite} alt={isBossChest ? 'Mimic' : isChest ? 'Chest' : 'Enemy'} draggable="false" />
+			<img
+				class="enemy-sprite"
+				src={isBossChest ? mimicSprite : isChest ? chestSprite : enemySprite}
+				alt={isBossChest ? 'Mimic' : isChest ? 'Chest' : 'Enemy'}
+				draggable="false"
+			/>
 			{#if poisonStacks > 0}
 				<div class="poison-counter">
 					<span class="poison-icon">☠️</span>
@@ -190,11 +200,14 @@
 	}
 
 	@keyframes chest-glow {
-		0%, 100% {
+		0%,
+		100% {
 			box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
 		}
 		50% {
-			box-shadow: 0 0 35px rgba(251, 191, 36, 0.8), 0 0 50px rgba(251, 191, 36, 0.3);
+			box-shadow:
+				0 0 35px rgba(251, 191, 36, 0.8),
+				0 0 50px rgba(251, 191, 36, 0.3);
 		}
 	}
 
@@ -237,7 +250,8 @@
 	}
 
 	@keyframes poison-pulse {
-		0%, 100% {
+		0%,
+		100% {
 			box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 		}
 		50% {
@@ -274,8 +288,12 @@
 	}
 
 	@keyframes frenzy-sprite {
-		from { background-position: 0 0; }
-		to { background-position: -56px 0; }
+		from {
+			background-position: 0 0;
+		}
+		to {
+			background-position: -56px 0;
+		}
 	}
 
 	.frenzy-count {
@@ -283,7 +301,8 @@
 	}
 
 	@keyframes frenzy-pulse {
-		0%, 100% {
+		0%,
+		100% {
 			box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
 		}
 		50% {

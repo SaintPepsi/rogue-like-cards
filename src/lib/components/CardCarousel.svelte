@@ -32,9 +32,12 @@
 	</div>
 	{#if count > 1}
 		<div class="carousel-dots">
-			{#each Array(count) as _, i}
+			{#each Array.from({ length: count }, (_, i) => i) as i (i)}
 				<Button.Root
-					class="w-2.5 h-2.5 rounded-full border-none bg-white/30 cursor-pointer p-0 transition-[background,transform] duration-200 {i === activeIndex ? 'bg-[#fbbf24] scale-[1.3]' : ''}"
+					class="w-2.5 h-2.5 rounded-full border-none bg-white/30 cursor-pointer p-0 transition-[background,transform] duration-200 {i ===
+					activeIndex
+						? 'bg-[#fbbf24] scale-[1.3]'
+						: ''}"
 					onclick={() => scrollTo(i)}
 					aria-label="Go to card {i + 1}"
 				></Button.Root>

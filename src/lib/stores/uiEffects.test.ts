@@ -87,7 +87,10 @@ describe('createUIEffects', () => {
 
 		// Fill to capacity with normal hits
 		const batch = Array.from({ length: 100 }, (_, i) => ({
-			id: i + 1, damage: 1, type: 'normal' as const, index: 0
+			id: i + 1,
+			damage: 1,
+			type: 'normal' as const,
+			index: 0
 		}));
 		ui.addHits(batch);
 		expect(ui.hits).toHaveLength(100);
@@ -107,7 +110,10 @@ describe('createUIEffects', () => {
 		const ui = createUIEffects();
 
 		const batch = Array.from({ length: 100 }, (_, i) => ({
-			id: i + 1, damage: 1, type: 'normal' as const, index: 0
+			id: i + 1,
+			damage: 1,
+			type: 'normal' as const,
+			index: 0
 		}));
 		ui.addHits(batch);
 		expect(ui.hits).toHaveLength(100);
@@ -130,7 +136,10 @@ describe('createUIEffects', () => {
 		const ui = createUIEffects();
 
 		const batch = Array.from({ length: 99 }, (_, i) => ({
-			id: i + 1, damage: 1, type: 'normal' as const, index: 0
+			id: i + 1,
+			damage: 1,
+			type: 'normal' as const,
+			index: 0
 		}));
 		ui.addHits(batch);
 		expect(ui.hits).toHaveLength(99);
@@ -139,12 +148,12 @@ describe('createUIEffects', () => {
 		ui.addHits([
 			{ id: 100, damage: 1, type: 'normal', index: 0 },
 			{ id: 101, damage: 1, type: 'normal', index: 1 },
-			{ id: 102, damage: 99, type: 'execute', index: 2 },
+			{ id: 102, damage: 99, type: 'execute', index: 2 }
 		]);
 		expect(ui.hits).toHaveLength(101);
-		expect(ui.hits.find(h => h.id === 100)).toBeDefined();
-		expect(ui.hits.find(h => h.id === 101)).toBeUndefined();
-		expect(ui.hits.find(h => h.id === 102)).toBeDefined();
+		expect(ui.hits.find((h) => h.id === 100)).toBeDefined();
+		expect(ui.hits.find((h) => h.id === 101)).toBeUndefined();
+		expect(ui.hits.find((h) => h.id === 102)).toBeDefined();
 
 		vi.useRealTimers();
 	});

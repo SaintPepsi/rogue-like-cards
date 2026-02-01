@@ -5,24 +5,26 @@ Use the **store-driven, array-based, self-cleaning** pattern for any on-screen e
 ### The pattern
 
 **Store** (`gameState.svelte.ts`):
+
 ```ts
 let items = $state<Item[]>([]);
 let itemId = $state(0);
 
 function addItem(data: Omit<Item, 'id'>) {
-    itemId++;
-    items = [...items, { ...data, id: itemId }];
-    const id = itemId;
-    setTimeout(() => {
-        items = items.filter((i) => i.id !== id);
-    }, ANIMATION_DURATION_MS);
+	itemId++;
+	items = [...items, { ...data, id: itemId }];
+	const id = itemId;
+	setTimeout(() => {
+		items = items.filter((i) => i.id !== id);
+	}, ANIMATION_DURATION_MS);
 }
 ```
 
 **Component** (pure renderer — no `$effect`, no `$state`, no `setTimeout`):
+
 ```svelte
 {#each items as item (item.id)}
-    <span class="animated-thing">{item.value}</span>
+	<span class="animated-thing">{item.value}</span>
 {/each}
 ```
 
@@ -124,6 +126,7 @@ Each entry in the `CHANGELOG` array uses this structure:
 ### Categories
 
 Every change item must have a `category`:
+
 - `new` — New features, mechanics, or content
 - `changed` — Modifications to existing behavior
 - `fixed` — Bug fixes

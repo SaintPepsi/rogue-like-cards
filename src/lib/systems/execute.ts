@@ -15,9 +15,10 @@ export const executeSystem: SystemDefinition<{}> = {
 	beforeAttack: (state, ctx, stats) => {
 		if (ctx.isBoss) return { state, skip: false };
 
-		const effectiveChance = stats.executeCap != null
-			? Math.min(stats.executeChance, stats.executeCap)
-			: stats.executeChance;
+		const effectiveChance =
+			stats.executeCap != null
+				? Math.min(stats.executeChance, stats.executeCap)
+				: stats.executeChance;
 
 		if (effectiveChance <= 0) return { state, skip: false };
 		if (ctx.rng() >= effectiveChance) return { state, skip: false };
@@ -25,11 +26,13 @@ export const executeSystem: SystemDefinition<{}> = {
 		return {
 			state,
 			skip: true,
-			hits: [{
-				type: 'executeHit',
-				damage: ctx.enemyHealth,
-				index: 0,
-			} as PipelineHit<'executeHit'>],
+			hits: [
+				{
+					type: 'executeHit',
+					damage: ctx.enemyHealth,
+					index: 0
+				} as PipelineHit<'executeHit'>
+			]
 		};
-	},
+	}
 };

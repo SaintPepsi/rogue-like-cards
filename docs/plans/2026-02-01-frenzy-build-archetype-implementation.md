@@ -13,6 +13,7 @@
 ### Task 1: Add `tapFrenzyStackMultiplier` to PlayerStats type
 
 **Files:**
+
 - Modify: `src/lib/types.ts:37` (after `tapFrenzyDuration`)
 
 **Step 1: Add the new stat to the PlayerStats type**
@@ -20,9 +21,9 @@
 In `src/lib/types.ts`, add `tapFrenzyStackMultiplier: number;` after `tapFrenzyDuration: number;`:
 
 ```typescript
-	tapFrenzyDuration: number;
-	tapFrenzyStackMultiplier: number; // Multiplier on frenzy stacks per tap (legendary-only)
-	executeCap: number;
+tapFrenzyDuration: number;
+tapFrenzyStackMultiplier: number; // Multiplier on frenzy stacks per tap (legendary-only)
+executeCap: number;
 ```
 
 **Step 2: Add default value in `createDefaultStats()`**
@@ -61,6 +62,7 @@ git commit -m "feat: add tapFrenzyStackMultiplier stat for frenzy build archetyp
 ### Task 2: Wire stack multiplier into frenzy module
 
 **Files:**
+
 - Modify: `src/lib/stores/frenzy.svelte.ts:27-43` (addStack function)
 - Test: `src/lib/stores/frenzy.test.ts`
 
@@ -161,29 +163,30 @@ Expected: New tests pass (they test the timer pattern directly, same as existing
 In `src/lib/stores/frenzy.svelte.ts`, replace the `addStack()` function:
 
 ```typescript
-	function addStack() {
-		const stacksToAdd = Math.floor(pipeline.get('tapFrenzyStackMultiplier') as number);
-		const duration = pipeline.get('tapFrenzyDuration') * 1000;
+function addStack() {
+	const stacksToAdd = Math.floor(pipeline.get('tapFrenzyStackMultiplier') as number);
+	const duration = pipeline.get('tapFrenzyDuration') * 1000;
 
-		for (let i = 0; i < stacksToAdd; i++) {
-			nextId++;
-			count++;
-			const id = nextId;
+	for (let i = 0; i < stacksToAdd; i++) {
+		nextId++;
+		count++;
+		const id = nextId;
 
-			timers.register(`frenzy_${id}`, {
-				remaining: duration,
-				onExpire: () => {
-					count = Math.max(0, count - 1);
-					syncPipeline();
-				}
-			});
-		}
-
-		syncPipeline();
+		timers.register(`frenzy_${id}`, {
+			remaining: duration,
+			onExpire: () => {
+				count = Math.max(0, count - 1);
+				syncPipeline();
+			}
+		});
 	}
+
+	syncPipeline();
+}
 ```
 
 Key changes:
+
 - Reads `tapFrenzyStackMultiplier` from pipeline (defaults to 1, so existing behavior unchanged)
 - Loops `stacksToAdd` times, each iteration creating a stack with its own ID and decay timer
 - `syncPipeline()` called once at end (not per stack) for efficiency
@@ -206,6 +209,7 @@ git commit -m "feat: frenzy addStack reads tapFrenzyStackMultiplier for multi-st
 ### Task 3: Add 5 new frenzy upgrade cards
 
 **Files:**
+
 - Modify: `src/lib/data/upgrades.ts:450-464` (frenzy section)
 - Test: `src/lib/data/upgrades.test.ts`
 
@@ -215,7 +219,15 @@ Add to `src/lib/data/upgrades.test.ts`, inside a new describe block:
 
 ```typescript
 describe('frenzy upgrade cards', () => {
-	const frenzyIds = ['frenzy1', 'frenzy2', 'frenzy3', 'frenzydur1', 'frenzydur2', 'frenzydur3', 'frenzylegendary1'];
+	const frenzyIds = [
+		'frenzy1',
+		'frenzy2',
+		'frenzy3',
+		'frenzydur1',
+		'frenzydur2',
+		'frenzydur3',
+		'frenzylegendary1'
+	];
 
 	test('all frenzy cards exist', () => {
 		for (const id of frenzyIds) {
@@ -233,7 +245,7 @@ describe('frenzy upgrade cards', () => {
 
 	test('GOTTA GO FAST modifies tapFrenzyStackMultiplier', () => {
 		const card = getUpgradeById('frenzylegendary1')!;
-		const stackMod = card.modifiers.find(m => m.stat === 'tapFrenzyStackMultiplier');
+		const stackMod = card.modifiers.find((m) => m.stat === 'tapFrenzyStackMultiplier');
 		expect(stackMod).toBeDefined();
 		expect(stackMod!.value).toBe(2);
 	});
@@ -242,8 +254,14 @@ describe('frenzy upgrade cards', () => {
 		// With zero poison and maxed execute, frenzy cards should still appear
 		let foundFrenzyNew = false;
 		for (let i = 0; i < 500; i++) {
-			const result = getRandomUpgrades(10, 1.0, EXECUTE_CHANCE_BASE_CAP, EXECUTE_CHANCE_BASE_CAP, 0);
-			if (result.some(u => frenzyIds.includes(u.id))) {
+			const result = getRandomUpgrades(
+				10,
+				1.0,
+				EXECUTE_CHANCE_BASE_CAP,
+				EXECUTE_CHANCE_BASE_CAP,
+				0
+			);
+			if (result.some((u) => frenzyIds.includes(u.id))) {
 				foundFrenzyNew = true;
 				break;
 			}
@@ -338,6 +356,7 @@ git commit -m "feat: add 5 new frenzy upgrade cards (duration, bonus, legendary 
 ### Task 4: Add `tapFrenzyDuration` to stat registry display
 
 **Files:**
+
 - Modify: `src/lib/engine/stats.ts:89` (stat registry)
 
 The `tapFrenzyDuration` stat already exists in PlayerStats and `createDefaultStats()`, but it has **no entry in `statRegistry`**. This means duration cards won't show their modifier on upgrade cards or in the stats panel.

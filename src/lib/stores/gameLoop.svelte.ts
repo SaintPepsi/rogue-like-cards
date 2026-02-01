@@ -150,11 +150,19 @@ export function createGameLoop() {
 
 	return {
 		// Timer registry access (for Plans 1-3 to register enemy/ability timers)
-		get timers() { return timers; },
+		get timers() {
+			return timers;
+		},
 
-		get bossTimeRemaining() { return bossTimeRemaining; },
-		get paused() { return paused; },
-		get pointerHeld() { return pointerHeld; },
+		get bossTimeRemaining() {
+			return bossTimeRemaining;
+		},
+		get paused() {
+			return paused;
+		},
+		get pointerHeld() {
+			return pointerHeld;
+		},
 
 		start,
 		stop,

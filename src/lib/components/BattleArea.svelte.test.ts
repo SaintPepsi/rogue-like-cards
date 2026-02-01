@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
 import BattleArea from './BattleArea.svelte';
-import { createMockHit, createMockGoldDrop, noop } from '$lib/test-utils/mock-factories';
+import { createMockHit, noop } from '$lib/test-utils/mock-factories';
 
 const baseProps = {
 	isBoss: false,

@@ -46,7 +46,11 @@ export function shouldSpawnChest(chestChance: number, rng: () => number): boolea
 	return rng() < chestChance;
 }
 
-export function shouldSpawnBossChest(chestChance: number, bossChestChance: number, rng: () => number): boolean {
+export function shouldSpawnBossChest(
+	chestChance: number,
+	bossChestChance: number,
+	rng: () => number
+): boolean {
 	return rng() < chestChance && rng() < bossChestChance;
 }
 
@@ -58,7 +62,13 @@ export function getXpPerHealth(stage: number): number {
 	return XP_PER_HEALTH / Math.sqrt(stage);
 }
 
-export function getXpReward(enemyMaxHealth: number, stage: number, xpMultiplier: number, enemyXpMultiplier: number = 1, greedMultiplier: number = 1): number {
+export function getXpReward(
+	enemyMaxHealth: number,
+	stage: number,
+	xpMultiplier: number,
+	enemyXpMultiplier: number = 1,
+	greedMultiplier: number = 1
+): number {
 	// Decouple XP from greed: use base health (before greed) so greed is purely a difficulty increase
 	const baseHealth = enemyMaxHealth / greedMultiplier;
 	// Apply diminishing returns to XP multiplier to prevent every-kill level ups at high stages
@@ -70,11 +80,19 @@ export function getChestGoldReward(stage: number, goldMultiplier: number): numbe
 	return Math.floor((10 + stage * 5) * goldMultiplier);
 }
 
-export function getEnemyGoldReward(stage: number, goldPerKill: number, goldMultiplier: number): number {
+export function getEnemyGoldReward(
+	stage: number,
+	goldPerKill: number,
+	goldMultiplier: number
+): number {
 	return Math.floor((2 + stage + goldPerKill) * goldMultiplier);
 }
 
-export function getBossGoldReward(stage: number, goldPerKill: number, goldMultiplier: number): number {
+export function getBossGoldReward(
+	stage: number,
+	goldPerKill: number,
+	goldMultiplier: number
+): number {
 	return Math.floor((5 + stage * 2 + goldPerKill) * goldMultiplier);
 }
 

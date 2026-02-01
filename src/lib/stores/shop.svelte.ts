@@ -1,5 +1,13 @@
+import { SvelteMap } from 'svelte/reactivity';
 import type { PlayerStats, Upgrade } from '$lib/types';
-import { allUpgrades, pickByRarity, getExecuteCap, getUpgradeById, executeCapUpgrade, goldPerKillUpgrade } from '$lib/data/upgrades';
+import {
+	allUpgrades,
+	pickByRarity,
+	getExecuteCap,
+	getUpgradeById,
+	executeCapUpgrade,
+	goldPerKillUpgrade
+} from '$lib/data/upgrades';
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 import type { createPersistence } from './persistence.svelte';
 
@@ -8,7 +16,7 @@ const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
 
 export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let persistentGold = $state(0);
-	let purchasedUpgradeCounts = $state<Map<string, number>>(new Map());
+	let purchasedUpgradeCounts = new SvelteMap<string, number>();
 	let executeCapBonus = $state(0);
 	let goldPerKillBonus = $state(0);
 	let showShop = $state(false);
@@ -66,7 +74,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 			goldPerKillBonus += GOLD_PER_KILL_BONUS_PER_LEVEL;
 		} else {
 			const prev = purchasedUpgradeCounts.get(upgrade.id) ?? 0;
-			purchasedUpgradeCounts = new Map([...purchasedUpgradeCounts, [upgrade.id, prev + 1]]);
+			purchasedUpgradeCounts = new SvelteMap([...purchasedUpgradeCounts, [upgrade.id, prev + 1]]);
 		}
 
 		save();
@@ -106,7 +114,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		const data = persistence.loadPersistent();
 		if (!data) return;
 		persistentGold = data.gold || 0;
-		purchasedUpgradeCounts = new Map(Object.entries(data.purchasedUpgradeCounts || {}));
+		purchasedUpgradeCounts = new SvelteMap(Object.entries(data.purchasedUpgradeCounts || {}));
 		executeCapBonus = data.executeCapBonus || 0;
 		goldPerKillBonus = data.goldPerKillBonus || 0;
 		rerollCost = data.rerollCost ?? 1;
@@ -134,7 +142,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 
 	function fullReset() {
 		persistentGold = 0;
-		purchasedUpgradeCounts = new Map();
+		purchasedUpgradeCounts = new SvelteMap();
 		executeCapBonus = 0;
 		goldPerKillBonus = 0;
 		shopChoices = [];

@@ -10,5 +10,5 @@ export const allSystems: SystemDefinition[] = [
 	executeSystem,
 	critSystem,
 	damageMultiplierSystem,
-	poisonSystem,
+	poisonSystem
 ];
