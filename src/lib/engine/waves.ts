@@ -1,6 +1,6 @@
-// DECISION: 5 kills per wave keeps waves short (~5-10s) so players feel constant progression.
-// Lower values (3) made waves trivial; higher values (7+) felt grindy before boss encounters.
-export const KILLS_PER_WAVE = 5;
+// DECISION: 10 kills per wave (up from 5). Combined with halved base HP,
+// each wave has similar total HP but more individual kills — more upgrade/loot opportunities.
+export const KILLS_PER_WAVE = 10;
 
 // DECISION: 30s boss timer creates urgency without being punishing.
 // 20s was too tight for under-geared players; 45s removed all tension.
@@ -25,16 +25,18 @@ export function getGreedMultiplier(greed: number): number {
 	return 1 + greed;
 }
 
+// DECISION: Base HP halved (10→5, 50→25, 20→10). With doubled kills per wave,
+// total HP per wave is similar but enemies die faster — feels more action-packed.
 export function getEnemyHealth(stage: number, greed: number): number {
-	return Math.floor(10 * getStageMultiplier(stage) * getGreedMultiplier(greed));
+	return Math.floor(5 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
 export function getBossHealth(stage: number, greed: number): number {
-	return Math.floor(50 * getStageMultiplier(stage) * getGreedMultiplier(greed));
+	return Math.floor(25 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
 export function getChestHealth(stage: number, greed: number): number {
-	return Math.floor(20 * getStageMultiplier(stage) * getGreedMultiplier(greed));
+	return Math.floor(10 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
 export function getBossChestHealth(stage: number, greed: number): number {

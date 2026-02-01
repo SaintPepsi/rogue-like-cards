@@ -14,8 +14,15 @@ import {
 	getXpToNextLevel,
 	XP_PER_HEALTH,
 	BOSS_XP_MULTIPLIER,
-	CHEST_XP_MULTIPLIER
+	CHEST_XP_MULTIPLIER,
+	KILLS_PER_WAVE
 } from './waves';
+
+describe('KILLS_PER_WAVE', () => {
+	test('10 kills per wave', () => {
+		expect(KILLS_PER_WAVE).toBe(10);
+	});
+});
 
 describe('getStageMultiplier', () => {
 	test('stage 1 returns 1', () => {
@@ -84,33 +91,33 @@ describe('getGreedMultiplier', () => {
 
 describe('enemy health', () => {
 	test('regular enemy at stage 1, greed 0', () => {
-		expect(getEnemyHealth(1, 0)).toBe(10);
+		expect(getEnemyHealth(1, 0)).toBe(5);
 	});
 
 	test('regular enemy at stage 2, greed 0', () => {
-		expect(getEnemyHealth(2, 0)).toBe(15);
+		expect(getEnemyHealth(2, 0)).toBe(7);
 	});
 
 	test('boss at stage 1, greed 0', () => {
-		expect(getBossHealth(1, 0)).toBe(50);
+		expect(getBossHealth(1, 0)).toBe(25);
 	});
 
 	test('chest at stage 1, greed 0', () => {
-		expect(getChestHealth(1, 0)).toBe(20);
+		expect(getChestHealth(1, 0)).toBe(10);
 	});
 
 	test('boss chest at stage 1, greed 0', () => {
-		// boss(50) * 10 = 500
-		expect(getBossChestHealth(1, 0)).toBe(500);
+		// boss(25) * 10 = 250
+		expect(getBossChestHealth(1, 0)).toBe(250);
 	});
 
 	test('boss chest at stage 2, greed 0', () => {
-		// boss(75) * 10 = 750
-		expect(getBossChestHealth(2, 0)).toBe(750);
+		// boss(37) * 10 = 370
+		expect(getBossChestHealth(2, 0)).toBe(370);
 	});
 
 	test('regular enemy with greed', () => {
-		expect(getEnemyHealth(1, 0.5)).toBe(15);
+		expect(getEnemyHealth(1, 0.5)).toBe(7);
 	});
 
 	test('all health types are finite at stage 500', () => {
@@ -214,18 +221,18 @@ describe('getXpPerHealth', () => {
 
 describe('getXpReward', () => {
 	test('regular enemy at stage 1 with 1x multiplier', () => {
-		// 10hp * 1.0 xpPerHp * sqrt(1) = 10
-		expect(getXpReward(10, 1, 1)).toBe(10);
+		// 5hp * 1.0 xpPerHp * sqrt(1) = 5
+		expect(getXpReward(5, 1, 1)).toBe(5);
 	});
 
 	test('boss applies BOSS_XP_MULTIPLIER', () => {
-		// 50hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 75
-		expect(getXpReward(50, 1, 1, BOSS_XP_MULTIPLIER)).toBe(75);
+		// 25hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 37
+		expect(getXpReward(25, 1, 1, BOSS_XP_MULTIPLIER)).toBe(37);
 	});
 
 	test('chest applies CHEST_XP_MULTIPLIER', () => {
-		// 20hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 30
-		expect(getXpReward(20, 1, 1, CHEST_XP_MULTIPLIER)).toBe(30);
+		// 10hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 15
+		expect(getXpReward(10, 1, 1, CHEST_XP_MULTIPLIER)).toBe(15);
 	});
 
 	test('boss xp per hp is higher than regular due to multiplier', () => {
