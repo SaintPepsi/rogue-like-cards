@@ -45,7 +45,11 @@
 			"Skill(sancoca-skills:writing-skills)",
 			"WebFetch(domain:bits-ui.com)",
 			"WebFetch(domain:github.com)",
-			"Bash(find:*)"
+			"Bash(find:*)",
+			"mcp__svelte__svelte-autofixer",
+			"Bash(npm run test:*)",
+			"Skill(writing-plans)",
+			"mcp__svelte__list-sections"
 		]
 	},
 	"enableAllProjectMcpServers": true,
