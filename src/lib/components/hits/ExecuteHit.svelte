@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatNumber } from '$lib/format';
+	import { playHitSound } from './playHitSound';
 
 	type Props = {
 		damage: number;
@@ -7,6 +8,8 @@
 	};
 
 	let { damage, index }: Props = $props();
+
+	playHitSound('hit:execute', index);
 
 	// Execute shows centered for more impact
 	const animationDelay = $derived(index * 0.05);

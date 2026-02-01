@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatNumber } from '$lib/format';
+	import { playHitSound } from './playHitSound';
 
 	type Props = {
 		damage: number;
@@ -7,6 +8,8 @@
 	};
 
 	let { damage, index }: Props = $props();
+
+	playHitSound('hit:poisonCrit', index);
 
 	// Random position within the enemy area
 	const randomX = Math.floor(Math.random() * 100) - 50;

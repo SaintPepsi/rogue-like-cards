@@ -4,8 +4,10 @@ import { createHitThrottle } from './hitThrottle';
 
 // Audio asset imports — Vite resolves to hashed URLs at build time
 import woodHit1Url from '$lib/assets/audio/sfx/wood-hit-1.wav';
+import batHit4Url from '$lib/assets/audio/sfx/bat-hit-4.wav';
 import bellCutUrl from '$lib/assets/audio/sfx/bell-cut.mp3';
 import bodyHitUrl from '$lib/assets/audio/sfx/body-hit-with-grunt-3.wav';
+import fish1Url from '$lib/assets/audio/sfx/fish-1.wav';
 import oofUrl from '$lib/assets/audio/sfx/oof-4.wav';
 import scream14Url from '$lib/assets/audio/sfx/scream-14.wav';
 import scream18Url from '$lib/assets/audio/sfx/scream-18.wav';
@@ -28,17 +30,18 @@ interface SfxConfig {
 	rate?: number;
 	bus?: BusName;
 	fadeOutMs?: number;
+	fadeInMs?: number;
 }
 
 const SFX_REGISTRY = {
 	'hit:normal': { src: woodHit1Url, volume: 0.6 },
-	'hit:crit': { src: woodHit1Url, volume: 0.8, rate: 1.2 },
+	'hit:crit': { src: batHit4Url, volume: 0.8, rate: 1.2 },
 	'hit:execute': { src: bellCutUrl, volume: 1.0 },
-	'hit:poison': { src: bodyHitUrl, volume: 0.5 },
+	'hit:poison': { src: fish1Url, volume: 0.5 },
 	'hit:poisonCrit': { src: bodyHitUrl, volume: 0.7, rate: 1.1 },
 	'enemy:death': { src: oofUrl, volume: 0.7, rate: 0.6, fadeOutMs: 400 },
-	'enemy:bossSpawn': { src: scream14Url, volume: 0.9, rate: 0.4 },
-	'enemy:bossDeath': { src: scream18Url, volume: 1.0, rate: 0.4 },
+	'enemy:bossSpawn': { src: scream14Url, volume: 0.9, rate: 0.4, fadeInMs: 300 },
+	'enemy:bossDeath': { src: scream18Url, volume: 1.0, rate: 0.4, fadeOutMs: 500 },
 	'gold:drop': { src: coinJingleUrl, volume: 0.4 },
 	'chest:break': { src: hammerGlassUrl, volume: 0.8 },
 	'game:over': { src: bigThumpUrl, volume: 1.0 },
@@ -124,6 +127,12 @@ export function createSfx(audioManager: AudioManager) {
 			rate *= 1 - HIT_PITCH_VARIATION + Math.random() * HIT_PITCH_VARIATION * 2;
 		}
 		howl.rate(rate, id);
+
+		// Fade in if configured — starts at 0 volume, ramps to effectiveVolume over fadeInMs
+		if ('fadeInMs' in config && config.fadeInMs) {
+			howl.volume(0, id);
+			howl.fade(0, effectiveVolume, config.fadeInMs, id);
+		}
 
 		// Fade out if configured — starts immediately, volume ramps to 0 over fadeOutMs
 		if ('fadeOutMs' in config && config.fadeOutMs) {
