@@ -280,6 +280,13 @@
 		scrollbar-color: var(--bg-muted);
 	}
 
+	img {
+		-webkit-user-select: none;
+		user-select: none;
+		-webkit-touch-callout: none;
+		pointer-events: none;
+	}
+
 	body {
 		@apply bg-background text-foreground;
 		font-feature-settings:
