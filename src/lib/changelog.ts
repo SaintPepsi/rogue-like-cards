@@ -13,6 +13,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.43.0',
+		date: '2026-02-03',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added automatic changelog notifications showing new entries on version updates'
+			}
+		]
+	},
+	{
 		version: '0.42.0',
 		date: '2026-02-02',
 		changes: [
