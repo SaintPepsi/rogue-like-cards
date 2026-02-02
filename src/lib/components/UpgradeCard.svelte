@@ -71,11 +71,15 @@
 			{#each displayStats as stat, i (i)}
 				<li>
 					<span class="stat-icon">{stat.icon}</span>
-					<span class="stat-label">{stat.label}</span>
-					<span class="stat-value">{stat.value}</span>
-					{#if stat.total}
-						<span class="stat-total">→ {stat.total}</span>
-					{/if}
+					<div class="stat-text">
+						<span class="stat-label">{stat.label}</span>
+						<span class="stat-change">
+							<span class="stat-value">{stat.value}</span>
+							{#if 'total' in stat && stat.total}
+								<span class="stat-total">→ {stat.total}</span>
+							{/if}
+						</span>
+					</div>
 				</li>
 			{/each}
 		</ul>
@@ -167,9 +171,21 @@
 			font-size: 1rem;
 		}
 
-		.stat-label {
+		.stat-text {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
 			flex: 1;
+		}
+
+		.stat-label {
 			color: rgba(255, 255, 255, 0.8);
+		}
+
+		.stat-change {
+			display: flex;
+			align-items: center;
+			gap: 6px;
 		}
 
 		.stat-value {
@@ -179,7 +195,7 @@
 
 		.stat-total {
 			font-size: 0.75rem;
-			color: rgba(255, 255, 255, 0.5);
+			color: #facc15;
 			font-weight: 400;
 		}
 	}
