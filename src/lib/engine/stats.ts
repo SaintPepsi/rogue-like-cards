@@ -81,7 +81,7 @@ export const statRegistry: StatEntry[] = [
 	},
 	{
 		key: 'damageMultiplier',
-		icon: '⚔️',
+		icon: '⚔️💥',
 		label: 'Damage Bonus',
 		description: 'Percentage bonus applied to all damage.',
 		format: asBonusPercent,
@@ -176,7 +176,7 @@ export const statRegistry: StatEntry[] = [
 		key: 'luckyChance',
 		icon: '🍀',
 		label: 'Lucky',
-		description: 'Bonus chance to be offered rare upgrades.',
+		description: 'Increases chance at higher rarity upgrades.',
 		format: asPercent,
 		formatMod: asPlusPercent
 	},
