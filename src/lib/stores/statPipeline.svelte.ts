@@ -28,6 +28,11 @@ const LAYER_TRANSIENT = 3;
 const LAYER_CLAMP = 4;
 const LAYER_COUNT = 5;
 
+// DECISION: 25% hard cap on crit chance. Crit is multiplicative with crit damage,
+// so uncapped crit + high crit multiplier leads to guaranteed massive hits.
+// 25% keeps crit builds viable but not dominant.
+const CRIT_CHANCE_CAP = 0.25;
+
 export function createStatPipeline() {
 	// Per-stat pipeline layers
 	let pipelines = $state<Record<StatKey, PipelineLayer[]>>(initPipelines());
@@ -36,11 +41,6 @@ export function createStatPipeline() {
 	let acquiredUpgradeIds = $state<string[]>([]);
 	let transientModifiers = $state<SourcedModifier[]>([]);
 	let transientSteps = $state<{ stat: StatKey; step: StatStep; source: string }[]>([]);
-
-	// DECISION: 25% hard cap on crit chance. Crit is multiplicative with crit damage,
-	// so uncapped crit + high crit multiplier leads to guaranteed massive hits.
-	// 25% keeps crit builds viable but not dominant.
-	const CRIT_CHANCE_CAP = 0.25;
 
 	function initPipelines(): Record<StatKey, PipelineLayer[]> {
 		const result = {} as Record<StatKey, PipelineLayer[]>;
