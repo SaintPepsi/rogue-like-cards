@@ -576,6 +576,7 @@ function createGameState() {
 		closeShop: () => shop.close(),
 		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
 		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade),
+		getUpgradeLevel: (upgrade: Upgrade) => shop.getUpgradeLevel(upgrade),
 		rerollShop: () => shop.reroll(getEffectiveStats())
 	};
 }

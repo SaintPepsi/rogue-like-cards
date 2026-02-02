@@ -74,6 +74,7 @@ export const statRegistry: StatEntry[] = [
 		label: 'Damage',
 		description: 'Base damage dealt per attack.',
 		format: asNumber,
+		formatMod: asPlusNumber,
 		alwaysShow: true
 	},
 	{
@@ -89,7 +90,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '🎯',
 		label: 'Crit Chance',
 		description: 'Probability of landing a critical hit.',
-		format: asPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'critMultiplier',
@@ -104,7 +106,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '☠️',
 		label: 'Poison',
 		description: 'Damage dealt per poison stack per tick.',
-		format: (v) => `${formatNumber(v as number)}/stack`,
+		format: (v) => `${formatNumber(v as number)}/stk`,
+		formatMod: (v) => `+${formatNumber(v as number)}/stk`,
 		colorClass: 'poison'
 	},
 	{
@@ -113,6 +116,7 @@ export const statRegistry: StatEntry[] = [
 		label: 'Max Stacks',
 		description: 'Maximum number of concurrent poison stacks on a target.',
 		format: (v) => `${v}`,
+		formatMod: (v) => `+${v}`,
 		colorClass: 'poison'
 	},
 	{
@@ -121,6 +125,7 @@ export const statRegistry: StatEntry[] = [
 		label: 'Duration',
 		description: 'How long each poison stack lasts.',
 		format: (v) => `${v}s`,
+		formatMod: asPlusSeconds,
 		colorClass: 'poison'
 	},
 	{
@@ -129,6 +134,7 @@ export const statRegistry: StatEntry[] = [
 		label: 'Poison Crit',
 		description: 'Chance for poison ticks to critically strike.',
 		format: asPercent,
+		formatMod: asPlusPercent,
 		colorClass: 'poison'
 	},
 	{
@@ -136,14 +142,16 @@ export const statRegistry: StatEntry[] = [
 		icon: '⚡',
 		label: 'Multi-Strike',
 		description: 'Extra attacks dealt per click.',
-		format: asPlusNumber
+		format: asNumber,
+		formatMod: asPlusNumber
 	},
 	{
 		key: 'executeChance',
 		icon: '⚰️',
 		label: 'Execute',
 		description: 'Chance to instantly kill an enemy. Capped at 10% against bosses.',
-		format: asPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	// { key: 'overkill', icon: '💀', label: 'Overkill', format: () => 'Active' }, // disabled — needs redesign
 	{
@@ -159,28 +167,32 @@ export const statRegistry: StatEntry[] = [
 		icon: '⏱️',
 		label: 'Boss Time',
 		description: 'Extra seconds added to boss fight timers.',
-		format: asPlusSeconds
+		format: (v) => `${v}s`,
+		formatMod: asPlusSeconds
 	},
 	{
 		key: 'luckyChance',
 		icon: '🍀',
 		label: 'Lucky',
 		description: 'Bonus chance to be offered rare upgrades.',
-		format: asPlusPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'chestChance',
 		icon: '📦',
 		label: 'Chest Chance',
 		description: 'Probability of a chest spawning after a kill.',
-		format: asPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'bossChestChance',
 		icon: '👑',
 		label: 'Mimic',
 		description: 'Probability of a boss dropping a mimic chest.',
-		format: asPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'goldDropChance',
@@ -188,6 +200,7 @@ export const statRegistry: StatEntry[] = [
 		label: 'Gold Drop',
 		description: 'Probability of gold dropping from a kill.',
 		format: asPercent,
+		formatMod: asPlusPercent,
 		colorClass: 'gold'
 	},
 	{
@@ -195,7 +208,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '💵',
 		label: 'Gold/Kill',
 		description: 'Flat gold earned per enemy killed.',
-		format: asPlusNumber,
+		format: asNumber,
+		formatMod: asPlusNumber,
 		colorClass: 'gold'
 	},
 	{
@@ -212,7 +226,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '💰',
 		label: 'Greed',
 		description: 'Increases gold earned but also increases enemy health.',
-		format: asPlusPercent,
+		format: asPercent,
+		formatMod: asPlusPercent,
 		colorClass: 'greed'
 	},
 	{
@@ -221,6 +236,7 @@ export const statRegistry: StatEntry[] = [
 		label: 'Attack Speed',
 		description: 'Number of automatic attacks per second.',
 		format: (v) => `${(v as number).toFixed(2)}/s`,
+		formatMod: (v) => `+${(v as number).toFixed(2)}/s`,
 		alwaysShow: true
 	},
 	{
@@ -228,14 +244,16 @@ export const statRegistry: StatEntry[] = [
 		icon: '✨',
 		label: 'Frenzy Bonus',
 		description: 'Attack speed bonus gained per frenzy tap.',
-		format: asPlusPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'tapFrenzyDuration',
 		icon: '⏳',
 		label: 'Frenzy Duration',
 		description: 'How long the frenzy effect lasts.',
-		format: asPlusSeconds
+		format: (v) => `${v}s`,
+		formatMod: asPlusSeconds
 	},
 	{
 		key: 'tapFrenzyStackMultiplier',

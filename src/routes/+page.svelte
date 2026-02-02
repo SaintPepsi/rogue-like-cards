@@ -225,6 +225,7 @@
 				pendingCount={slot.exiting ? slot.pendingCount : gameState.pendingUpgrades + 1}
 				onSelect={handleUpgradeSelect}
 				exiting={slot.exiting}
+				currentStats={gameState.playerStats}
 			/>
 		{:else if slot.type === 'chest'}
 			<ChestLootModal
@@ -233,6 +234,7 @@
 				choices={slot.choices}
 				onSelect={handleUpgradeSelect}
 				exiting={slot.exiting}
+				currentStats={gameState.playerStats}
 			/>
 		{/if}
 	{/each}
@@ -252,11 +254,11 @@
 		show={gameState.showShop}
 		gold={gameState.persistentGold}
 		choices={gameState.shopChoices}
-		executeCapLevel={gameState.executeCapLevel}
-		goldPerKillLevel={gameState.goldPerKillLevel}
+		getUpgradeLevel={gameState.getUpgradeLevel}
 		rerollCost={gameState.rerollCost}
 		getPrice={gameState.getCardPrice}
 		onBuy={gameState.buyUpgrade}
+		currentStats={gameState.playerStats}
 		onReroll={gameState.rerollShop}
 		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}

@@ -13,6 +13,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.42.0',
+		date: '2026-02-02',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added total stat previews on upgrade cards showing the resulting value after applying modifiers'
+			}
+		]
+	},
+	{
 		version: '0.38.0',
 		date: '2026-02-02',
 		changes: [

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import type { Upgrade, StatModifier } from '$lib/types';
+	import type { Upgrade, StatModifier, PlayerStats } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
@@ -12,28 +12,28 @@
 		show: boolean;
 		gold: number;
 		choices: Upgrade[];
-		executeCapLevel: number;
-		goldPerKillLevel: number;
+		getUpgradeLevel: (upgrade: Upgrade) => number;
 		rerollCost: number;
 		getPrice: (upgrade: Upgrade) => number;
 		onBuy: (upgrade: Upgrade) => boolean;
 		onReroll: () => void;
 		onBack: () => void;
 		onPlayAgain: () => void;
+		currentStats?: Partial<PlayerStats>;
 	};
 
 	let {
 		show,
 		gold,
 		choices,
-		executeCapLevel,
-		goldPerKillLevel,
+		getUpgradeLevel,
 		rerollCost,
 		getPrice,
 		onBuy,
 		onReroll,
 		onBack,
-		onPlayAgain
+		onPlayAgain,
+		currentStats
 	}: Props = $props();
 
 	const flip = useCardFlip();
@@ -80,9 +80,9 @@
 	}
 
 	function getTitle(upgrade: Upgrade): string {
-		if (upgrade.id === 'execute_cap') return `${upgrade.title} (Lv.${executeCapLevel})`;
-		if (upgrade.id === 'gold_per_kill') return `${upgrade.title} (Lv.${goldPerKillLevel})`;
-		return upgrade.title;
+		const level = getUpgradeLevel(upgrade);
+		if (level === 0) return upgrade.title;
+		return `${upgrade.title} (Lv.${level})`;
 	}
 
 	let transitioning = $derived(
@@ -129,6 +129,7 @@
 									rarity={upgrade.rarity}
 									image={upgrade.image}
 									modifiers={getModifiers(upgrade)}
+									{currentStats}
 								/>
 								<div
 									class="buy-label"
@@ -168,6 +169,7 @@
 										rarity={upgrade.rarity}
 										image={upgrade.image}
 										modifiers={getModifiers(upgrade)}
+										{currentStats}
 									/>
 									<div
 										class="buy-label"
@@ -275,7 +277,7 @@
 
 	.upgrade-choices {
 		display: grid;
-		grid-template-columns: repeat(3, 180px);
+		grid-template-columns: repeat(3, 200px);
 		justify-content: center;
 		align-items: center;
 		gap: 16px;
@@ -426,6 +428,7 @@
 
 	.carousel-fade {
 		transition: opacity 300ms ease-out;
+		margin-bottom: 24px;
 	}
 
 	.carousel-fade.cards-fading {
