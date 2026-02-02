@@ -250,6 +250,7 @@ export const statRegistry: StatEntry[] = [
 		key: 'tapFrenzyDurationBonus',
 		icon: '⏳',
 		label: 'Frenzy Duration Bonus',
+		description: 'Percentage bonus applied to frenzy duration.',
 		format: asPlusPercent
 	},
 	{
