@@ -13,16 +13,6 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
-		version: '0.39.0',
-		date: '2026-02-02',
-		changes: [
-			{
-				category: 'fixed',
-				description: 'Fixed invalid workflow file syntax causing GitHub Actions check failures'
-			}
-		]
-	},
-	{
 		version: '0.38.0',
 		date: '2026-02-02',
 		changes: [
