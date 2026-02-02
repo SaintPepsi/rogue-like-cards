@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { AspectRatio } from 'bits-ui';
-	import type { StatModifier } from '$lib/types';
-	import { getModifierDisplay } from '$lib/data/upgrades';
+	import type { StatModifier, PlayerStats } from '$lib/types';
+	import { getModifierDisplay, getModifierDisplayWithTotal } from '$lib/data/upgrades';
 
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
@@ -17,16 +17,22 @@
 		image?: string;
 		rarity?: Rarity;
 		modifiers?: StatModifier[];
+		currentStats?: Partial<PlayerStats>;
 	};
 
 	let {
 		title,
 		image = 'https://picsum.photos/400/300',
 		rarity = 'common',
-		modifiers = []
+		modifiers = [],
+		currentStats
 	}: Props = $props();
 
-	let displayStats = $derived(modifiers.map(getModifierDisplay));
+	let displayStats = $derived(
+		modifiers.map((mod) =>
+			currentStats ? getModifierDisplayWithTotal(mod, currentStats) : getModifierDisplay(mod)
+		)
+	);
 
 	const rarityColors: Record<Rarity, { glow: string; border: string }> = {
 		common: { glow: 'transparent', border: '#6b7280' },
@@ -65,8 +71,15 @@
 			{#each displayStats as stat, i (i)}
 				<li>
 					<span class="stat-icon">{stat.icon}</span>
-					<span class="stat-label">{stat.label}</span>
-					<span class="stat-value">{stat.value}</span>
+					<div class="stat-text">
+						<span class="stat-label">{stat.label}</span>
+						<span class="stat-change">
+							<span class="stat-value">{stat.value}</span>
+							{#if 'total' in stat && stat.total}
+								<span class="stat-total">→ {stat.total}</span>
+							{/if}
+						</span>
+					</div>
 				</li>
 			{/each}
 		</ul>
@@ -158,14 +171,32 @@
 			font-size: 1rem;
 		}
 
-		.stat-label {
+		.stat-text {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
 			flex: 1;
+		}
+
+		.stat-label {
 			color: rgba(255, 255, 255, 0.8);
+		}
+
+		.stat-change {
+			display: flex;
+			align-items: center;
+			gap: 6px;
 		}
 
 		.stat-value {
 			font-weight: 600;
 			color: #4ade80;
+		}
+
+		.stat-total {
+			font-size: 0.75rem;
+			color: #facc15;
+			font-weight: 400;
 		}
 	}
 </style>

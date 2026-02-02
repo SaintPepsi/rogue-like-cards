@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import type { Upgrade } from '$lib/types';
+	import type { Upgrade, PlayerStats } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
@@ -13,9 +13,10 @@
 		choices: Upgrade[];
 		onSelect: (upgrade: Upgrade) => void;
 		exiting?: boolean;
+		currentStats?: Partial<PlayerStats>;
 	};
 
-	let { show, gold, choices, onSelect, exiting = false }: Props = $props();
+	let { show, gold, choices, onSelect, exiting = false, currentStats }: Props = $props();
 
 	const flip = useCardFlip();
 	const cardSelect = useCardSelect();
@@ -68,6 +69,7 @@
 									rarity={upgrade.rarity}
 									image={upgrade.image}
 									modifiers={upgrade.modifiers}
+									{currentStats}
 								/>
 							</div>
 						</div>
@@ -97,6 +99,7 @@
 									rarity={upgrade.rarity}
 									image={upgrade.image}
 									modifiers={upgrade.modifiers}
+									{currentStats}
 								/>
 							</div>
 						</div>

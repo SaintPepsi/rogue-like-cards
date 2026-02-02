@@ -1,7 +1,7 @@
 {
 	"name": "rogue-like-cards",
 	"private": true,
-	"version": "0.37.0",
+	"version": "0.42.0",
 	"type": "module",
 	"engines": {
 		"node": ">=20"

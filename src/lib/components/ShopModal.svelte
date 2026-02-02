@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import type { Upgrade, StatModifier } from '$lib/types';
+	import type { Upgrade, StatModifier, PlayerStats } from '$lib/types';
 	import { formatNumber } from '$lib/format';
+	import { EXECUTE_CAP_BONUS_PER_TIER } from '$lib/data/upgrades';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
 	import { untrack } from 'svelte';
@@ -12,28 +13,28 @@
 		show: boolean;
 		gold: number;
 		choices: Upgrade[];
-		executeCapLevel: number;
-		goldPerKillLevel: number;
+		getUpgradeLevel: (upgrade: Upgrade) => number;
 		rerollCost: number;
 		getPrice: (upgrade: Upgrade) => number;
 		onBuy: (upgrade: Upgrade) => boolean;
 		onReroll: () => void;
 		onBack: () => void;
 		onPlayAgain: () => void;
+		currentStats?: Partial<PlayerStats>;
 	};
 
 	let {
 		show,
 		gold,
 		choices,
-		executeCapLevel,
-		goldPerKillLevel,
+		getUpgradeLevel,
 		rerollCost,
 		getPrice,
 		onBuy,
 		onReroll,
 		onBack,
-		onPlayAgain
+		onPlayAgain,
+		currentStats
 	}: Props = $props();
 
 	const flip = useCardFlip();
@@ -73,23 +74,17 @@
 		}, REROLL_FADE_MS);
 	}
 
-	const executeCapBonusValues: Record<string, number> = {
-		execute_cap_1: 0.0025,
-		execute_cap_2: 0.005,
-		execute_cap_3: 0.01
-	};
-
 	function getModifiers(upgrade: Upgrade): StatModifier[] {
-		if (upgrade.id in executeCapBonusValues)
-			return [{ stat: 'executeChance', value: executeCapBonusValues[upgrade.id] }];
+		if (upgrade.id in EXECUTE_CAP_BONUS_PER_TIER)
+			return [{ stat: 'executeChance', value: EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] }];
 		if (upgrade.id === 'gold_per_kill') return [{ stat: 'goldPerKill', value: 1 }];
 		return upgrade.modifiers;
 	}
 
 	function getTitle(upgrade: Upgrade): string {
-		if (upgrade.id in executeCapBonusValues) return `${upgrade.title} (Lv.${executeCapLevel})`;
-		if (upgrade.id === 'gold_per_kill') return `${upgrade.title} (Lv.${goldPerKillLevel})`;
-		return upgrade.title;
+		const level = getUpgradeLevel(upgrade);
+		if (level === 0) return upgrade.title;
+		return `${upgrade.title} (Lv.${level})`;
 	}
 
 	let transitioning = $derived(
@@ -136,6 +131,7 @@
 									rarity={upgrade.rarity}
 									image={upgrade.image}
 									modifiers={getModifiers(upgrade)}
+									{currentStats}
 								/>
 								<div
 									class="buy-label"
@@ -175,6 +171,7 @@
 										rarity={upgrade.rarity}
 										image={upgrade.image}
 										modifiers={getModifiers(upgrade)}
+										{currentStats}
 									/>
 									<div
 										class="buy-label"
@@ -282,7 +279,7 @@
 
 	.upgrade-choices {
 		display: grid;
-		grid-template-columns: repeat(3, 180px);
+		grid-template-columns: repeat(3, 200px);
 		justify-content: center;
 		align-items: center;
 		gap: 16px;
@@ -433,6 +430,7 @@
 
 	.carousel-fade {
 		transition: opacity 300ms ease-out;
+		margin-bottom: 24px;
 	}
 
 	.carousel-fade.cards-fading {
