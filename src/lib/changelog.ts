@@ -17,28 +17,9 @@ export const CHANGELOG: ChangelogEntry[] = [
 		date: '2026-02-02',
 		changes: [
 			{
-				category: 'changed',
-				description: 'Updated GitHub Actions workflows for improved CI automation'
-			}
-		]
-	},
-	{
-		version: '0.40.0',
-		date: '2026-02-02',
-		changes: [
-			{
-				category: 'fixed',
-				description: 'Fixed GitHub Actions workflow permission configuration'
-			}
-		]
-	},
-	{
-		version: '0.39.0',
-		date: '2026-02-02',
-		changes: [
-			{
-				category: 'fixed',
-				description: 'Fixed version bump workflow to only update changelog when necessary'
+				category: 'new',
+				description:
+					'Added total stat previews on upgrade cards showing the resulting value after applying modifiers'
 			}
 		]
 	},
@@ -66,17 +47,6 @@ export const CHANGELOG: ChangelogEntry[] = [
 				category: 'new',
 				description:
 					'Added audio settings with volume sliders for SFX, Music, and UI buses plus a mute toggle'
-			}
-		]
-	},
-	{
-		version: '0.34.0',
-		date: '2026-02-01',
-		changes: [
-			{
-				category: 'new',
-				description:
-					'Added total stat previews on upgrade cards showing the resulting value after applying modifiers'
 			}
 		]
 	},
