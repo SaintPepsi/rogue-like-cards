@@ -84,20 +84,20 @@ describe('balance simulation', () => {
 			expect(xp).toBe(37);
 		});
 
-		test('level 1->2 requires 25 XP (~5 kills at stage 1)', () => {
+		test('level 1->2 requires 12 XP (~3 kills at stage 1)', () => {
 			const xpNeeded = getXpToNextLevel(1);
 			const xpPerKill = getXpReward(getEnemyHealth(1, 0), 1, 1);
 			const killsNeeded = Math.ceil(xpNeeded / xpPerKill);
-			expect(xpNeeded).toBe(25);
-			expect(killsNeeded).toBe(5);
+			expect(xpNeeded).toBe(12);
+			expect(killsNeeded).toBe(3);
 		});
 
-		test('level 2->3 requires ~37 XP (~8 kills at stage 1)', () => {
+		test('level 2->3 requires 18 XP (~4 kills at stage 1)', () => {
 			const xpNeeded = getXpToNextLevel(2);
 			const xpPerKill = getXpReward(getEnemyHealth(1, 0), 1, 1);
 			const killsNeeded = Math.ceil(xpNeeded / xpPerKill);
-			expect(xpNeeded).toBe(37);
-			expect(killsNeeded).toBeLessThanOrEqual(10);
+			expect(xpNeeded).toBe(18);
+			expect(killsNeeded).toBeLessThanOrEqual(5);
 		});
 
 		test('XP per HP diminishes at higher stages', () => {
@@ -122,7 +122,7 @@ describe('balance simulation', () => {
 		test('level 10 requires significantly more XP than level 1', () => {
 			const level1 = getXpToNextLevel(1);
 			const level10 = getXpToNextLevel(10);
-			// 25 * 1.5^9 ≈ 961
+			// 12 * 1.5^9 ≈ 461
 			expect(level10).toBeGreaterThan(level1 * 20);
 		});
 	});

@@ -102,10 +102,11 @@ export function shouldDropGold(goldDropChance: number, rng: () => number): boole
 	return rng() < goldDropChance;
 }
 
-// DECISION: Base XP 25 with 1.5x growth per level.
-// Originally 10, but that caused level-up spam in early stages (leveling every 1-2 kills).
-// 25 means level 1→2 requires ~2-3 kills, scaling steeply to prevent trivial late-game leveling.
-export function getXpToNextLevel(level: number, base: number = 25): number {
+// DECISION: Base XP 12 with 1.5x growth per level.
+// Was 25 but felt too slow for the first level-up with halved enemy HP.
+// 12 means level 1→2 in ~2-3 kills, giving an early upgrade quickly.
+// The 1.5x curve still makes later levels steep.
+export function getXpToNextLevel(level: number, base: number = 12): number {
 	const SOFT_CAP_LEVEL = 100;
 	if (level <= SOFT_CAP_LEVEL) {
 		return Math.floor(base * Math.pow(1.5, level - 1));

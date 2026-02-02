@@ -325,21 +325,21 @@ describe('getChestGoldReward', () => {
 });
 
 describe('getXpToNextLevel', () => {
-	test('level 1 needs 25 xp', () => {
-		expect(getXpToNextLevel(1)).toBe(25);
+	test('level 1 needs 12 xp', () => {
+		expect(getXpToNextLevel(1)).toBe(12);
 	});
 
-	test('level 2 needs 37 xp', () => {
-		expect(getXpToNextLevel(2)).toBe(37);
+	test('level 2 needs 18 xp', () => {
+		expect(getXpToNextLevel(2)).toBe(18);
 	});
 
-	test('level 3 needs 56 xp', () => {
-		expect(getXpToNextLevel(3)).toBe(56);
+	test('level 3 needs 27 xp', () => {
+		expect(getXpToNextLevel(3)).toBe(27);
 	});
 
-	test('levels 1-100 match pure exponential with base 25', () => {
+	test('levels 1-100 match pure exponential with base 12', () => {
 		for (const lvl of [1, 10, 25, 50, 75, 100]) {
-			expect(getXpToNextLevel(lvl)).toBe(Math.floor(25 * Math.pow(1.5, lvl - 1)));
+			expect(getXpToNextLevel(lvl)).toBe(Math.floor(12 * Math.pow(1.5, lvl - 1)));
 		}
 	});
 
@@ -349,7 +349,7 @@ describe('getXpToNextLevel', () => {
 		// Should still increase
 		expect(level101).toBeGreaterThan(level100);
 		// But less than pure exponential would
-		const pureExponential = Math.floor(25 * Math.pow(1.5, 100));
+		const pureExponential = Math.floor(12 * Math.pow(1.5, 100));
 		expect(level101).toBeLessThan(pureExponential);
 	});
 
