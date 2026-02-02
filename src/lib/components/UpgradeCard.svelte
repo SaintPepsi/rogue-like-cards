@@ -156,6 +156,8 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
+		flex: 1;
+		justify-content: center;
 
 		li {
 			display: flex;
