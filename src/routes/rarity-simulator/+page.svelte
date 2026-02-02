@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { getRarityWeights } from '$lib/data/upgrades';
+	import { getRarityWeights, getRandomUpgrades } from '$lib/data/upgrades';
+	import type { Upgrade } from '$lib/types';
+	import UpgradeCard from '$lib/components/UpgradeCard.svelte';
 
 	let luckyPercent = $state(0);
 
@@ -25,6 +27,17 @@
 
 	// Chest uses same Lucky as level-ups (uncommon min filter only)
 	let chestWeights = $derived(getRarityWeights(luckyPercent / 100));
+
+	let levelUpCards = $state<Upgrade[]>([]);
+	let chestCards = $state<Upgrade[]>([]);
+
+	function rollLevelUp() {
+		levelUpCards = getRandomUpgrades(3, luckyPercent / 100);
+	}
+
+	function rollChest() {
+		chestCards = getRandomUpgrades(3, luckyPercent / 100, 0, 0.05, 0, 'uncommon');
+	}
 </script>
 
 <div class="page">
@@ -39,7 +52,10 @@
 
 	<div class="tables">
 		<div class="table-section">
-			<h2>Level-Up Drops</h2>
+			<div class="section-header">
+				<h2>Level-Up Drops</h2>
+				<button class="roll-btn" onclick={rollLevelUp}>Roll Cards</button>
+			</div>
 			<table>
 				<thead>
 					<tr>
@@ -71,10 +87,25 @@
 					{/each}
 				</tbody>
 			</table>
+			{#if levelUpCards.length > 0}
+				<div class="card-preview">
+					{#each levelUpCards as card (card.id)}
+						<UpgradeCard
+							title={card.title}
+							rarity={card.rarity}
+							image={card.image}
+							modifiers={card.modifiers}
+						/>
+					{/each}
+				</div>
+			{/if}
 		</div>
 
 		<div class="table-section">
-			<h2>Chest Drops <span class="subtitle">(2x luck, 100% base, uncommon min)</span></h2>
+			<div class="section-header">
+				<h2>Chest Drops <span class="subtitle">(uncommon min)</span></h2>
+				<button class="roll-btn" onclick={rollChest}>Roll Cards</button>
+			</div>
 			<table>
 				<thead>
 					<tr>
@@ -112,6 +143,18 @@
 					{/each}
 				</tbody>
 			</table>
+			{#if chestCards.length > 0}
+				<div class="card-preview">
+					{#each chestCards as card (card.id)}
+						<UpgradeCard
+							title={card.title}
+							rarity={card.rarity}
+							image={card.image}
+							modifiers={card.modifiers}
+						/>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	</div>
 
@@ -136,7 +179,7 @@
 	h2 {
 		color: #d4d4d8;
 		font-size: 1.2rem;
-		margin-bottom: 12px;
+		margin: 0;
 	}
 
 	.subtitle {
@@ -194,6 +237,36 @@
 		border-radius: 12px;
 	}
 
+	.section-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 12px;
+	}
+
+	.roll-btn {
+		padding: 8px 16px;
+		background: linear-gradient(to right, #a855f7, #7c3aed);
+		border: none;
+		border-radius: 8px;
+		color: white;
+		font-weight: bold;
+		font-size: 0.85rem;
+		cursor: pointer;
+		transition:
+			transform 150ms,
+			box-shadow 150ms;
+	}
+
+	.roll-btn:hover {
+		transform: scale(1.05);
+		box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+	}
+
+	.roll-btn:active {
+		transform: scale(0.97);
+	}
+
 	table {
 		width: 100%;
 		border-collapse: collapse;
@@ -230,6 +303,15 @@
 
 	.filtered td {
 		opacity: 0.3;
+	}
+
+	.card-preview {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 12px;
+		margin-top: 16px;
+		padding-top: 16px;
+		border-top: 1px solid #2a2a3e;
 	}
 
 	.back-link {
