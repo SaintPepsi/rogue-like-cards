@@ -68,11 +68,15 @@ jobs:
           # Update package.json to keep in sync
           sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VERSION\"/" package.json
 
-          # Update the latest changelog entry version to match the new version
+          # Only update the latest changelog entry version if this PR actually modified changelog.ts
           CHANGELOG_FILE="src/lib/changelog.ts"
-          LATEST_CHANGELOG_VERSION=$(grep -oP "version: '\K[^']+" "$CHANGELOG_FILE" | head -1)
-          if [ -n "$LATEST_CHANGELOG_VERSION" ]; then
-            sed -i "0,/version: '$LATEST_CHANGELOG_VERSION'/s/version: '$LATEST_CHANGELOG_VERSION'/version: '$NEW_VERSION'/" "$CHANGELOG_FILE"
+          if git diff origin/master -- "$CHANGELOG_FILE" | grep -q '^[+-].*version:'; then
+            LATEST_CHANGELOG_VERSION=$(grep -oP "version: '\K[^']+" "$CHANGELOG_FILE" | head -1)
+            if [ -n "$LATEST_CHANGELOG_VERSION" ]; then
+              sed -i "0,/version: '$LATEST_CHANGELOG_VERSION'/s/version: '$LATEST_CHANGELOG_VERSION'/version: '$NEW_VERSION'/" "$CHANGELOG_FILE"
+            fi
+          else
+            echo "Changelog was not modified in this PR, skipping changelog version bump"
           fi
 
       - name: Commit and push version bump
@@ -81,7 +85,8 @@ jobs:
           NEW_VERSION="${{ steps.check.outputs.new_version }}"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add src/lib/version.ts package.json src/lib/changelog.ts
+          git add src/lib/version.ts package.json
+          git diff --name-only src/lib/changelog.ts 2>/dev/null | grep -q changelog.ts && git add src/lib/changelog.ts || true
           git diff --cached --quiet && exit 0
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git push
