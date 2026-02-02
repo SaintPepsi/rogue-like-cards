@@ -14,7 +14,12 @@
 	import ShopModal from '$lib/components/ShopModal.svelte';
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
+	import LoginModal from '$lib/components/LoginModal.svelte';
+	import DisplayNameModal from '$lib/components/DisplayNameModal.svelte';
+	import LeaderboardModal from '$lib/components/LeaderboardModal.svelte';
 	import UpgradeBadge from '$lib/components/UpgradeBadge.svelte';
+	import { auth } from '$lib/stores/auth.svelte';
+	import { leaderboard } from '$lib/stores/leaderboard.svelte';
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
@@ -139,6 +144,46 @@
 				</svg>
 			</Button.Root>
 			<Button.Root
+				class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(251,191,36,0.2)] text-[#fbbf24] border-[rgba(251,191,36,0.3)] hover:bg-[rgba(251,191,36,0.35)] hover:text-white"
+				onclick={() => (leaderboard.showLeaderboardModal = true)}
+				title="Leaderboard"
+			>
+				<svg
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+					<path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+					<path d="M4 22h16" />
+					<path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+					<path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+					<path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+				</svg>
+			</Button.Root>
+			{#if auth.isLoggedIn}
+				<Button.Root
+					class="flex items-center justify-center h-[38px] px-3 border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(34,197,94,0.15)] text-[#4ade80] border-[rgba(34,197,94,0.3)] hover:bg-[rgba(34,197,94,0.3)] hover:text-white text-sm font-semibold max-w-[120px] overflow-hidden text-ellipsis whitespace-nowrap"
+					onclick={() => auth.signOut()}
+					title="Sign Out"
+				>
+					{auth.profile?.displayName}
+				</Button.Root>
+			{:else}
+				<Button.Root
+					class="flex items-center justify-center h-[38px] px-3 border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border-[rgba(59,130,246,0.3)] hover:bg-[rgba(59,130,246,0.3)] hover:text-white text-sm font-semibold"
+					onclick={() => (auth.showLoginModal = true)}
+					title="Sign In"
+				>
+					Sign In
+				</Button.Root>
+			{/if}
+			<Button.Root
 				class="flex items-center justify-center w-[38px] h-[38px] border rounded-lg cursor-pointer transition-[background,border-color] duration-150 bg-white/[0.08] text-white/60 border-white/15 hover:bg-white/15 hover:text-white"
 				onclick={() => (showSettingsModal = true)}
 				title="Settings"
@@ -244,8 +289,11 @@
 		enemiesKilled={gameState.enemiesKilled}
 		goldEarned={gameState.gold}
 		totalGold={gameState.persistentGold}
+		isLoggedIn={auth.isLoggedIn}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
+		onOpenLeaderboard={() => (leaderboard.showLeaderboardModal = true)}
+		onOpenLogin={() => (auth.showLoginModal = true)}
 	/>
 
 	<ShopModal
@@ -275,6 +323,15 @@
 		onClose={() => (showSettingsModal = false)}
 		onOpenChangelog={() => (showChangelogModal = true)}
 		onReset={gameState.fullReset}
+	/>
+
+	<LoginModal show={auth.showLoginModal} onClose={() => (auth.showLoginModal = false)} />
+
+	<DisplayNameModal show={auth.showDisplayNameModal} />
+
+	<LeaderboardModal
+		show={leaderboard.showLeaderboardModal}
+		onClose={() => (leaderboard.showLeaderboardModal = false)}
 	/>
 
 	{#if showGiveUpConfirm}

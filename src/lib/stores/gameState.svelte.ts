@@ -22,6 +22,8 @@ import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
 import { sfx } from '$lib/audio';
+import { auth } from './auth.svelte';
+import { leaderboard } from './leaderboard.svelte';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -111,6 +113,18 @@ function createGameState() {
 		sfx.play('game:over');
 		showGameOver = true;
 		persistence.clearSession();
+
+		// Auto-submit score to leaderboard if user is logged in
+		if (auth.isLoggedIn && auth.profile) {
+			leaderboard.submitScore({
+				userId: auth.profile.id,
+				displayName: auth.profile.displayName,
+				stage: enemy.stage,
+				level: leveling.level,
+				enemiesKilled: enemy.enemiesKilled,
+				goldEarned: gold
+			});
+		}
 	}
 
 	function giveUp() {
