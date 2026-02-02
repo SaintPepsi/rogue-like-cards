@@ -597,6 +597,29 @@ export function getModifierDisplay(mod: StatModifier): {
 	return { icon: entry.icon, label: entry.label, value: formatter(mod.value) };
 }
 
+export function getModifierDisplayWithTotal(
+	mod: StatModifier,
+	currentStats: Partial<import('$lib/types').PlayerStats>
+): {
+	icon: string;
+	label: string;
+	value: string;
+	total?: string;
+} {
+	const base = getModifierDisplay(mod);
+	const entry = statRegistry.find((s) => s.key === mod.stat);
+	if (!entry) return base;
+
+	const currentValue = currentStats[mod.stat];
+	if (currentValue === undefined) return base;
+
+	// Calculate new total (current + modifier)
+	const newTotal = (currentValue as number) + (mod.value as number);
+	const totalFormatted = entry.format(newTotal);
+
+	return { ...base, total: totalFormatted };
+}
+
 // PERFORMANCE: Map for O(1) lookup by ID — called on every save/load and upgrade acquisition
 const upgradeMap = new Map<UpgradeId, Upgrade>(allUpgrades.map((u) => [u.id as UpgradeId, u]));
 

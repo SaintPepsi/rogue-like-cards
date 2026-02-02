@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import type { Upgrade, StatModifier } from '$lib/types';
+	import type { Upgrade, StatModifier, PlayerStats } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
@@ -20,6 +20,7 @@
 		onReroll: () => void;
 		onBack: () => void;
 		onPlayAgain: () => void;
+		currentStats?: Partial<PlayerStats>;
 	};
 
 	let {
@@ -33,7 +34,8 @@
 		onBuy,
 		onReroll,
 		onBack,
-		onPlayAgain
+		onPlayAgain,
+		currentStats
 	}: Props = $props();
 
 	const flip = useCardFlip();
@@ -129,6 +131,7 @@
 									rarity={upgrade.rarity}
 									image={upgrade.image}
 									modifiers={getModifiers(upgrade)}
+									{currentStats}
 								/>
 								<div
 									class="buy-label"
