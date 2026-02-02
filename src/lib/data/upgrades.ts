@@ -1,5 +1,6 @@
 import type { Upgrade, StatModifier } from '$lib/types';
 import { statRegistry } from '$lib/engine/stats';
+import { formatNumber } from '$lib/format';
 
 // Card images
 import swordImg from '$lib/assets/images/cards/sword.png';
@@ -615,7 +616,54 @@ export function getModifierDisplayWithTotal(
 
 	// Calculate new total (current + modifier)
 	const newTotal = (currentValue as number) + (mod.value as number);
-	const totalFormatted = entry.format(newTotal);
+
+	// Format the total with a cleaner display
+	// Use simplified formatting for better readability
+	let totalFormatted: string;
+
+	// Special handling for different stat types
+	switch (mod.stat) {
+		case 'critChance':
+		case 'poisonCritChance':
+		case 'executeChance':
+		case 'luckyChance':
+		case 'chestChance':
+		case 'bossChestChance':
+		case 'goldDropChance':
+			// Percentages: show as integer percent if whole number
+			totalFormatted = Number.isInteger(newTotal * 100)
+				? `${newTotal * 100}%`
+				: `${(newTotal * 100).toFixed(1)}%`;
+			break;
+		case 'xpMultiplier':
+		case 'damageMultiplier':
+		case 'goldMultiplier':
+		case 'greed':
+		case 'tapFrenzyBonus':
+			// Bonus percentages (base 1): show delta as percent
+			totalFormatted = Number.isInteger((newTotal - 1) * 100)
+				? `+${(newTotal - 1) * 100}%`
+				: `+${((newTotal - 1) * 100).toFixed(1)}%`;
+			break;
+		case 'critMultiplier':
+		case 'tapFrenzyStackMultiplier':
+			// Multipliers: show as decimal
+			totalFormatted = `${newTotal.toFixed(1)}x`;
+			break;
+		case 'attackSpeed':
+			// Attack speed: show as decimal per second
+			totalFormatted = `${newTotal.toFixed(2)}/s`;
+			break;
+		case 'bonusBossTime':
+		case 'poisonDuration':
+		case 'tapFrenzyDuration':
+			// Time values: show as seconds
+			totalFormatted = `+${newTotal}s`;
+			break;
+		default:
+			// Everything else (damage, poison, multiStrike, etc.): show as formatted number
+			totalFormatted = `${formatNumber(newTotal)}`;
+	}
 
 	return { ...base, total: totalFormatted };
 }

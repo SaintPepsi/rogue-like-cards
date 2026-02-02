@@ -96,6 +96,37 @@ function createGameState() {
 		};
 	}
 
+	// Helper: build base stats (without transient modifiers like frenzy)
+	function getBaseStats(): PlayerStats {
+		return {
+			damage: statPipeline.getBase('damage'),
+			critChance: statPipeline.getBase('critChance'),
+			critMultiplier: statPipeline.getBase('critMultiplier'),
+			xpMultiplier: statPipeline.getBase('xpMultiplier'),
+			damageMultiplier: statPipeline.getBase('damageMultiplier'),
+			poison: statPipeline.getBase('poison'),
+			poisonCritChance: statPipeline.getBase('poisonCritChance'),
+			poisonMaxStacks: statPipeline.getBase('poisonMaxStacks'),
+			poisonDuration: statPipeline.getBase('poisonDuration'),
+			multiStrike: statPipeline.getBase('multiStrike'),
+			overkill: statPipeline.getBase('overkill') > 0,
+			executeChance: statPipeline.getBase('executeChance'),
+			bonusBossTime: statPipeline.getBase('bonusBossTime'),
+			greed: statPipeline.getBase('greed'),
+			luckyChance: statPipeline.getBase('luckyChance'),
+			chestChance: statPipeline.getBase('chestChance'),
+			bossChestChance: statPipeline.getBase('bossChestChance'),
+			goldMultiplier: statPipeline.getBase('goldMultiplier'),
+			goldDropChance: statPipeline.getBase('goldDropChance'),
+			goldPerKill: statPipeline.getBase('goldPerKill'),
+			attackSpeed: statPipeline.getBase('attackSpeed'),
+			tapFrenzyBonus: statPipeline.getBase('tapFrenzyBonus'),
+			tapFrenzyDuration: statPipeline.getBase('tapFrenzyDuration'),
+			tapFrenzyStackMultiplier: statPipeline.getBase('tapFrenzyStackMultiplier'),
+			executeCap: shop.getExecuteCapValue()
+		};
+	}
+
 	function upgradeContext() {
 		return {
 			luckyChance: statPipeline.get('luckyChance'),
@@ -461,6 +492,9 @@ function createGameState() {
 		// Getters for state
 		get playerStats() {
 			return getEffectiveStats();
+		},
+		get baseStats() {
+			return getBaseStats();
 		},
 		get effects() {
 			return effects;

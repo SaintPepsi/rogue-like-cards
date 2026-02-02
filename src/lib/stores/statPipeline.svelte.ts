@@ -85,6 +85,12 @@ export function createStatPipeline() {
 		return computeLayered(BASE_STATS[stat] as number, pipelines[stat]);
 	}
 
+	// Get base stat value excluding transient modifiers (layers 0-2 only)
+	function getBase(stat: StatKey): number {
+		const layers = pipelines[stat].slice(0, LAYER_TRANSIENT);
+		return computeLayered(BASE_STATS[stat] as number, layers);
+	}
+
 	// --- Public API ---
 
 	function collectPermanentModifiers(): StatModifier[] {
@@ -151,6 +157,7 @@ export function createStatPipeline() {
 
 	return {
 		get,
+		getBase,
 		get acquiredUpgradeIds() {
 			return acquiredUpgradeIds;
 		},
