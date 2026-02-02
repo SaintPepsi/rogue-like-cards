@@ -45,5 +45,5 @@ jobs:
 
           # Allow Claude to perform git merge operations and interact with GitHub PRs
           claude_args: |
-            --allowedTools "Bash(git merge*)" "Bash(git fetch*)" "Bash(git log*)" "Bash(git diff*)" "Bash(git status*)" "Bash(gh pr*)" "Bash(gh issue*)"
+            --allowedTools "Bash(git merge*)" "Bash(git fetch*)" "Bash(git log*)" "Bash(git diff*)" "Bash(git status*)" "Bash(git add*)" "Bash(git checkout*)" "Bash(git commit*)" "Bash(git push*)" "Bash(gh pr*)" "Bash(gh issue*)"
 
