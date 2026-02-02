@@ -884,15 +884,30 @@ function getRarityWeights(luckyChance: number): Record<string, number> {
 		totalGaussian += w;
 	}
 
-	// Normalize to sum to 100
+	// Normalize to sum to 1 (probability distribution)
 	for (const rarity of RARITY_TIERS) {
-		weights[rarity] = (weights[rarity] / totalGaussian) * 100;
+		weights[rarity] = weights[rarity] / totalGaussian;
 	}
 
 	return weights;
 }
 
-// Pick N cards from a pool using rarity-weighted random selection (no duplicates).
+// DECISION: Per-slot rarity roll instead of carousel. Each card slot independently
+// rolls against the gaussian weight distribution to pick a rarity tier, then picks
+// a random card from that tier. This gives exact probability control without the
+// discretization artifacts of ticket-based systems.
+
+function rollRarity(weights: Record<string, number>): string {
+	const roll = Math.random();
+	let cumulative = 0;
+	for (const rarity of RARITY_TIERS) {
+		cumulative += weights[rarity];
+		if (roll < cumulative) return rarity;
+	}
+	return 'common';
+}
+
+// Pick N cards from a pool using per-slot rarity rolls (no duplicates).
 // The pool can be any pre-filtered set of upgrades.
 export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number = 0): Upgrade[] {
 	// Group pool by rarity
@@ -902,44 +917,36 @@ export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number
 		tiers[upgrade.rarity].push(upgrade);
 	}
 
-	const tierWeights = getRarityWeights(luckyChance);
+	const weights = getRarityWeights(luckyChance);
 
-	// Build carousel: each tier gets tickets equal to its % weight,
-	// distributed evenly across cards in that tier.
-	const carousel: Upgrade[] = [];
-	for (const [rarity, weight] of Object.entries(tierWeights)) {
-		const cards = tiers[rarity];
-		if (!cards || cards.length === 0) continue;
-		const totalTickets = Math.round(weight);
-		if (totalTickets <= 0) continue;
-		for (let t = 0; t < totalTickets; t++) {
-			carousel.push(cards[t % cards.length]);
+	// Redistribute weight from empty tiers to common
+	let redistributed = 0;
+	for (const rarity of RARITY_TIERS) {
+		if (!tiers[rarity] || tiers[rarity].length === 0) {
+			redistributed += weights[rarity];
+			weights[rarity] = 0;
 		}
 	}
+	weights['common'] = (weights['common'] ?? 0) + redistributed;
 
-	// Pick randomly from the carousel without duplicates
 	const selected: Upgrade[] = [];
 	const usedIds = new Set<string>();
 
-	for (let i = 0; i < count && carousel.length > 0; i++) {
+	for (let i = 0; i < count; i++) {
 		let pick: Upgrade | null = null;
-		for (let attempt = 0; attempt < carousel.length; attempt++) {
-			const idx = Math.floor(Math.random() * carousel.length);
-			const candidate = carousel[idx];
+
+		// Try up to 100 times to find an unused card
+		for (let attempt = 0; attempt < 100; attempt++) {
+			const rarity = rollRarity(weights);
+			const cards = tiers[rarity];
+			if (!cards || cards.length === 0) continue;
+			const candidate = cards[Math.floor(Math.random() * cards.length)];
 			if (!usedIds.has(candidate.id)) {
 				pick = candidate;
 				break;
 			}
 		}
-		// Fallback: linear scan for any remaining card not yet picked
-		if (!pick) {
-			for (const candidate of carousel) {
-				if (!usedIds.has(candidate.id)) {
-					pick = candidate;
-					break;
-				}
-			}
-		}
+
 		if (pick) {
 			selected.push(pick);
 			usedIds.add(pick.id);
