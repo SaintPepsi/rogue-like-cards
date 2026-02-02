@@ -32,7 +32,7 @@
 		common: { glow: 'transparent', border: '#6b7280' },
 		uncommon: { glow: 'rgba(34, 197, 94, 0.4)', border: '#22c55e' },
 		rare: { glow: 'rgba(59, 130, 246, 0.4)', border: '#3b82f6' },
-		epic: { glow: 'rgba(192, 192, 192, 0.4)', border: '#c0c0c0' },
+		epic: { glow: 'rgba(168, 85, 247, 0.4)', border: '#a855f7' },
 		legendary: { glow: 'rgba(234, 179, 8, 0.5)', border: '#eab308' }
 	};
 

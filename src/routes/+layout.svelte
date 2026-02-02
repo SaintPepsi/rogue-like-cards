@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { dev } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import favicon from '$lib/assets/favicon.svg';
 	import '../app.css';
 	let { children } = $props();
@@ -23,9 +24,9 @@
 {#if dev}
 	<nav class="dev-bar">
 		<span class="dev-label">DEV</span>
-		<a href="/" class="dev-link">Game</a>
-		{#each devPages as page}
-			<a href={page.href} class="dev-link">{page.label}</a>
+		<a href={resolve('/')} class="dev-link">Game</a>
+		{#each devPages as page (page.href)}
+			<a href={resolve(page.href)} class="dev-link">{page.label}</a>
 		{/each}
 	</nav>
 {/if}

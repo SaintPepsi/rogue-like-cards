@@ -1,32 +1,29 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { getRarityWeights, getRandomUpgrades } from '$lib/data/upgrades';
 	import type { Upgrade } from '$lib/types';
-	import UpgradeCard from '$lib/components/UpgradeCard.svelte';
+	import RarityTable from './RarityTable.svelte';
 
 	let luckyPercent = $state(0);
+	let chestLuckyPercent = $state(100);
 
 	const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 
-	const rarityColors: Record<string, string> = {
-		common: '#9ca3af',
-		uncommon: '#22c55e',
-		rare: '#3b82f6',
-		epic: '#a855f7',
-		legendary: '#eab308'
-	};
-
 	let weights = $derived(getRarityWeights(luckyPercent / 100));
 
-	function formatChance(weight: number): string {
-		const pct = weight * 100;
-		if (pct >= 1) return `${pct.toFixed(1)}%`;
-		if (pct >= 0.01) return `${pct.toFixed(3)}%`;
-		if (pct >= 0.0001) return `${pct.toFixed(5)}%`;
-		return `${pct.toExponential(2)}%`;
-	}
+	let combinedChestLucky = $derived((luckyPercent + chestLuckyPercent) / 100);
 
-	// Chest uses same Lucky as level-ups (uncommon min filter only)
-	let chestWeights = $derived(getRarityWeights(luckyPercent / 100));
+	// Chest filters out common, so redistribute its weight across remaining tiers
+	let chestWeights = $derived.by(() => {
+		const raw = getRarityWeights(combinedChestLucky);
+		const remaining = rarities.filter((r) => r !== 'common');
+		const remainingTotal = remaining.reduce((sum, r) => sum + raw[r], 0);
+		const redistributed: Record<string, number> = { common: 0 };
+		for (const r of remaining) {
+			redistributed[r] = remainingTotal > 0 ? raw[r] / remainingTotal : 0;
+		}
+		return redistributed;
+	});
 
 	let levelUpCards = $state<Upgrade[]>([]);
 	let chestCards = $state<Upgrade[]>([]);
@@ -36,7 +33,7 @@
 	}
 
 	function rollChest() {
-		chestCards = getRandomUpgrades(3, luckyPercent / 100, 0, 0.05, 0, 'uncommon');
+		chestCards = getRandomUpgrades(3, combinedChestLucky, 0, 0.05, 0, 'uncommon');
 	}
 </script>
 
@@ -56,109 +53,40 @@
 				<h2>Level-Up Drops</h2>
 				<button class="roll-btn" onclick={rollLevelUp}>Roll Cards</button>
 			</div>
-			<table>
-				<thead>
-					<tr>
-						<th>Rarity</th>
-						<th>Chance</th>
-						<th>Bar</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each rarities as rarity}
-						<tr>
-							<td
-								style="color: {rarityColors[
-									rarity
-								]}; font-weight: bold; text-transform: capitalize;"
-							>
-								{rarity}
-							</td>
-							<td class="chance">{formatChance(weights[rarity])}</td>
-							<td class="bar-cell">
-								<div
-									class="bar"
-									style="width: {Math.max(1, weights[rarity] * 100)}%; background: {rarityColors[
-										rarity
-									]};"
-								></div>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-			{#if levelUpCards.length > 0}
-				<div class="card-preview">
-					{#each levelUpCards as card (card.id)}
-						<UpgradeCard
-							title={card.title}
-							rarity={card.rarity}
-							image={card.image}
-							modifiers={card.modifiers}
-						/>
-					{/each}
-				</div>
-			{/if}
+			<RarityTable {weights} cards={levelUpCards} />
 		</div>
 
 		<div class="table-section">
+			<div class="input-row compact">
+				<label for="chest-lucky-input">Chest Bonus</label>
+				<input
+					id="chest-lucky-input"
+					type="number"
+					min="0"
+					max="10000"
+					step="1"
+					bind:value={chestLuckyPercent}
+				/>
+				<span class="unit">%</span>
+				<input
+					type="range"
+					min="0"
+					max="1000"
+					step="1"
+					bind:value={chestLuckyPercent}
+					class="slider"
+				/>
+				<span class="combined">= {luckyPercent + chestLuckyPercent}% total</span>
+			</div>
 			<div class="section-header">
 				<h2>Chest Drops <span class="subtitle">(uncommon min)</span></h2>
 				<button class="roll-btn" onclick={rollChest}>Roll Cards</button>
 			</div>
-			<table>
-				<thead>
-					<tr>
-						<th>Rarity</th>
-						<th>Chance</th>
-						<th>Bar</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each rarities as rarity}
-						{@const isFiltered = rarity === 'common'}
-						<tr class:filtered={isFiltered}>
-							<td
-								style="color: {rarityColors[
-									rarity
-								]}; font-weight: bold; text-transform: capitalize;"
-							>
-								{rarity}
-							</td>
-							<td class="chance">
-								{isFiltered ? 'filtered' : formatChance(chestWeights[rarity])}
-							</td>
-							<td class="bar-cell">
-								{#if !isFiltered}
-									<div
-										class="bar"
-										style="width: {Math.max(
-											1,
-											chestWeights[rarity] * 100
-										)}%; background: {rarityColors[rarity]};"
-									></div>
-								{/if}
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-			{#if chestCards.length > 0}
-				<div class="card-preview">
-					{#each chestCards as card (card.id)}
-						<UpgradeCard
-							title={card.title}
-							rarity={card.rarity}
-							image={card.image}
-							modifiers={card.modifiers}
-						/>
-					{/each}
-				</div>
-			{/if}
+			<RarityTable weights={chestWeights} cards={chestCards} filteredRarity="common" />
 		</div>
 	</div>
 
-	<a href="/" class="back-link">Back to game</a>
+	<a href={resolve('/')} class="back-link">Back to game</a>
 </div>
 
 <style>
@@ -225,6 +153,19 @@
 		accent-color: #a855f7;
 	}
 
+	.input-row.compact {
+		margin-bottom: 12px;
+		padding: 10px 16px;
+		background: #0f0f1a;
+		border-radius: 8px;
+	}
+
+	.combined {
+		color: #71717a;
+		font-size: 0.85rem;
+		white-space: nowrap;
+	}
+
 	.tables {
 		display: flex;
 		flex-direction: column;
@@ -265,53 +206,6 @@
 
 	.roll-btn:active {
 		transform: scale(0.97);
-	}
-
-	table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-
-	th {
-		text-align: left;
-		padding: 8px 12px;
-		color: #71717a;
-		font-size: 0.85rem;
-		border-bottom: 1px solid #2a2a3e;
-	}
-
-	td {
-		padding: 10px 12px;
-	}
-
-	.chance {
-		font-family: monospace;
-		text-align: right;
-		white-space: nowrap;
-	}
-
-	.bar-cell {
-		width: 50%;
-	}
-
-	.bar {
-		height: 20px;
-		border-radius: 4px;
-		min-width: 2px;
-		transition: width 150ms ease-out;
-	}
-
-	.filtered td {
-		opacity: 0.3;
-	}
-
-	.card-preview {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 12px;
-		margin-top: 16px;
-		padding-top: 16px;
-		border-top: 1px solid #2a2a3e;
 	}
 
 	.back-link {

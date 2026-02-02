@@ -862,10 +862,17 @@ const TIER_INDEX: Record<string, number> = {
 	legendary: 4
 };
 
-const GAUSSIAN_SIGMA = 0.8;
+// DECISION: Sigma=0.55 gives ~84% common / ~16% uncommon / <1% rare at 0% Lucky.
+// Tighter than sigma=0.8 (which gave ~30% uncommon), making Lucky investment
+// more meaningful to reach higher tiers.
+const GAUSSIAN_SIGMA = 0.55;
 
+// DECISION: Divisor of 7 makes 100% Lucky ≈ equal common/uncommon chance.
+// At 0% Lucky, focusPoint=0 (peaked on common).
+// At 100% Lucky, focusPoint=0.5 (midpoint between common and uncommon).
+// Very high Lucky (700%+) is needed to push focus toward legendary.
 function getFocusPoint(luckyChance: number): number {
-	return 4 * (1 - 1 / (1 + luckyChance / 2));
+	return 4 * (1 - 1 / (1 + luckyChance / 7));
 }
 
 function gaussianWeight(tierIndex: number, focusPoint: number): number {

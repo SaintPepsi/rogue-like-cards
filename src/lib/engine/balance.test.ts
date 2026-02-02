@@ -6,11 +6,9 @@ import {
 	getXpToNextLevel,
 	getStageMultiplier,
 	KILLS_PER_WAVE,
-	XP_PER_HEALTH,
 	BOSS_XP_MULTIPLIER,
 	getEnemyGoldReward,
-	getBossGoldReward,
-	getChestHealth
+	getBossGoldReward
 } from './waves';
 import { getEffectiveAttackSpeed, getAttackIntervalMs } from './attackSpeed';
 import { createDefaultStats, BASE_STATS } from './stats';
