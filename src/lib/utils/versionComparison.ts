@@ -1,3 +1,5 @@
+import type { ChangelogEntry } from '$lib/changelog';
+
 /**
  * Compares two semantic version strings (major.minor.patch).
  *
@@ -18,4 +20,42 @@ export function isVersionGreaterThan(version1: string, version2: string): boolea
 	}
 
 	return patch1 > patch2;
+}
+
+/**
+ * Filters changelog entries to only those newer than a given version.
+ *
+ * @param changelog - Array of changelog entries to filter
+ * @param lastSeenVersion - The last version the user has seen
+ * @returns Array of changelog entries with version > lastSeenVersion
+ */
+export function getNewChangelogEntries(
+	changelog: ChangelogEntry[],
+	lastSeenVersion: string
+): ChangelogEntry[] {
+	return changelog.filter((entry) => isVersionGreaterThan(entry.version, lastSeenVersion));
+}
+
+/**
+ * Calculates the previous minor version (e.g., 0.5.0 -> 0.4.0).
+ * Returns 0.0.0 when the input version is already 0.0.0.
+ *
+ * @param currentVersion - The current version string
+ * @returns The previous minor version string with patch set to 0
+ */
+export function getPreviousMinorVersion(currentVersion: string): string {
+	const [major, minor] = currentVersion.split('.').map(Number);
+
+	// Edge case: already at minimum version
+	if (major === 0 && minor === 0) {
+		return '0.0.0';
+	}
+
+	// If minor is 0, decrement major and reset minor to 0
+	if (minor === 0) {
+		return `${major - 1}.0.0`;
+	}
+
+	// Normal case: decrement minor
+	return `${major}.${minor - 1}.0`;
 }
