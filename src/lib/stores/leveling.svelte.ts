@@ -66,9 +66,11 @@ export function createLeveling() {
 		if (wasBossChest) {
 			choices = getRandomLegendaryUpgrades(3);
 		} else {
+			// Chest loot: 2x current luck with a base of 100% (1.0)
+			const chestLucky = Math.max(1.0, ctx.luckyChance) * 2;
 			choices = getRandomUpgrades(
 				3,
-				ctx.luckyChance + 0.5,
+				chestLucky,
 				ctx.executeChance,
 				ctx.executeCap,
 				ctx.poison,
