@@ -12,8 +12,7 @@
 		show: boolean;
 		gold: number;
 		choices: Upgrade[];
-		executeCapLevel: number;
-		goldPerKillLevel: number;
+		getUpgradeLevel: (upgrade: Upgrade) => number;
 		rerollCost: number;
 		getPrice: (upgrade: Upgrade) => number;
 		onBuy: (upgrade: Upgrade) => boolean;
@@ -27,8 +26,7 @@
 		show,
 		gold,
 		choices,
-		executeCapLevel,
-		goldPerKillLevel,
+		getUpgradeLevel,
 		rerollCost,
 		getPrice,
 		onBuy,
@@ -82,9 +80,9 @@
 	}
 
 	function getTitle(upgrade: Upgrade): string {
-		if (upgrade.id === 'execute_cap') return `${upgrade.title} (Lv.${executeCapLevel})`;
-		if (upgrade.id === 'gold_per_kill') return `${upgrade.title} (Lv.${goldPerKillLevel})`;
-		return upgrade.title;
+		const level = getUpgradeLevel(upgrade);
+		if (level === 0) return upgrade.title;
+		return `${upgrade.title} (Lv.${level})`;
 	}
 
 	let transitioning = $derived(
@@ -279,7 +277,7 @@
 
 	.upgrade-choices {
 		display: grid;
-		grid-template-columns: repeat(3, 180px);
+		grid-template-columns: repeat(3, 200px);
 		justify-content: center;
 		align-items: center;
 		gap: 16px;

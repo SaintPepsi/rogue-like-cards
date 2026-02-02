@@ -35,6 +35,16 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		return calculateCardPrice(upgrade.rarity, purchasedUpgradeCounts.get(upgrade.id) ?? 0);
 	}
 
+	function getUpgradeLevel(upgrade: Upgrade): number {
+		if (upgrade.id === 'execute_cap') {
+			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+		}
+		if (upgrade.id === 'gold_per_kill') {
+			return Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
+		}
+		return purchasedUpgradeCounts.get(upgrade.id) ?? 0;
+	}
+
 	const SHOP_CARD_SLOTS = 3;
 
 	function generateChoices(stats: PlayerStats): Upgrade[] {
@@ -185,6 +195,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		get shopChoices() {
 			return shopChoices;
 		},
+		getUpgradeLevel,
 		getPrice,
 		getExecuteCapValue,
 		getGoldPerKillBonus,

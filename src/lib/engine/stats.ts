@@ -106,8 +106,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '☠️',
 		label: 'Poison',
 		description: 'Damage dealt per poison stack per tick.',
-		format: (v) => `${formatNumber(v as number)}/stack`,
-		formatMod: (v) => `+${formatNumber(v as number)}/stack`,
+		format: (v) => `${formatNumber(v as number)}/stk`,
+		formatMod: (v) => `+${formatNumber(v as number)}/stk`,
 		colorClass: 'poison'
 	},
 	{
@@ -142,7 +142,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '⚡',
 		label: 'Multi-Strike',
 		description: 'Extra attacks dealt per click.',
-		format: asPlusNumber
+		format: asNumber,
+		formatMod: asPlusNumber
 	},
 	{
 		key: 'executeChance',
@@ -166,14 +167,16 @@ export const statRegistry: StatEntry[] = [
 		icon: '⏱️',
 		label: 'Boss Time',
 		description: 'Extra seconds added to boss fight timers.',
-		format: asPlusSeconds
+		format: (v) => `${v}s`,
+		formatMod: asPlusSeconds
 	},
 	{
 		key: 'luckyChance',
 		icon: '🍀',
 		label: 'Lucky',
 		description: 'Bonus chance to be offered rare upgrades.',
-		format: asPlusPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'chestChance',
@@ -205,7 +208,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '💵',
 		label: 'Gold/Kill',
 		description: 'Flat gold earned per enemy killed.',
-		format: asPlusNumber,
+		format: asNumber,
+		formatMod: asPlusNumber,
 		colorClass: 'gold'
 	},
 	{
@@ -222,7 +226,8 @@ export const statRegistry: StatEntry[] = [
 		icon: '💰',
 		label: 'Greed',
 		description: 'Increases gold earned but also increases enemy health.',
-		format: asPlusPercent,
+		format: asPercent,
+		formatMod: asPlusPercent,
 		colorClass: 'greed'
 	},
 	{
@@ -239,14 +244,16 @@ export const statRegistry: StatEntry[] = [
 		icon: '✨',
 		label: 'Frenzy Bonus',
 		description: 'Attack speed bonus gained per frenzy tap.',
-		format: asPlusPercent
+		format: asPercent,
+		formatMod: asPlusPercent
 	},
 	{
 		key: 'tapFrenzyDuration',
 		icon: '⏳',
 		label: 'Frenzy Duration',
 		description: 'How long the frenzy effect lasts.',
-		format: asPlusSeconds
+		format: (v) => `${v}s`,
+		formatMod: asPlusSeconds
 	},
 	{
 		key: 'tapFrenzyStackMultiplier',
