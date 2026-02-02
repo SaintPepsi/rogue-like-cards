@@ -47,6 +47,7 @@ export type StatEntry = {
 	key: keyof PlayerStats;
 	icon: string;
 	label: string;
+	description: string; // mechanical tooltip text
 	// format: displays the total stat value (e.g. 1.5 → "+50%")
 	format: (value: number | boolean) => string;
 	// formatMod: displays the modifier delta on upgrade cards (e.g. 0.5 → "+50%")
@@ -67,19 +68,34 @@ const asPlusSeconds = (v: number | boolean) => `+${v}s`;
 
 // UI display concern colocated with stat defaults for convenience — both change together when stats are added/removed.
 export const statRegistry: StatEntry[] = [
-	{ key: 'damage', icon: '⚔️', label: 'Damage', format: asNumber, alwaysShow: true },
+	{
+		key: 'damage',
+		icon: '⚔️',
+		label: 'Damage',
+		description: 'Base damage dealt per attack.',
+		format: asNumber,
+		alwaysShow: true
+	},
 	{
 		key: 'damageMultiplier',
 		icon: '⚔️',
 		label: 'Damage Bonus',
+		description: 'Percentage bonus applied to all damage.',
 		format: asBonusPercent,
 		formatMod: asPlusPercent
 	},
-	{ key: 'critChance', icon: '🎯', label: 'Crit Chance', format: asPercent },
+	{
+		key: 'critChance',
+		icon: '🎯',
+		label: 'Crit Chance',
+		description: 'Probability of landing a critical hit.',
+		format: asPercent
+	},
 	{
 		key: 'critMultiplier',
 		icon: '💥',
 		label: 'Crit Damage',
+		description: 'Damage multiplier applied on critical hits.',
 		format: (v) => `${(v as number).toFixed(1)}x`,
 		formatMod: (v) => `+${(v as number).toFixed(1)}x`
 	},
@@ -87,6 +103,7 @@ export const statRegistry: StatEntry[] = [
 		key: 'poison',
 		icon: '☠️',
 		label: 'Poison',
+		description: 'Damage dealt per poison stack per tick.',
 		format: (v) => `${formatNumber(v as number)}/stack`,
 		colorClass: 'poison'
 	},
@@ -94,6 +111,7 @@ export const statRegistry: StatEntry[] = [
 		key: 'poisonMaxStacks',
 		icon: '🧪',
 		label: 'Max Stacks',
+		description: 'Maximum number of concurrent poison stacks on a target.',
 		format: (v) => `${v}`,
 		colorClass: 'poison'
 	},
@@ -101,6 +119,7 @@ export const statRegistry: StatEntry[] = [
 		key: 'poisonDuration',
 		icon: '🕐',
 		label: 'Duration',
+		description: 'How long each poison stack lasts.',
 		format: (v) => `${v}s`,
 		colorClass: 'poison'
 	},
@@ -108,47 +127,121 @@ export const statRegistry: StatEntry[] = [
 		key: 'poisonCritChance',
 		icon: '💀',
 		label: 'Poison Crit',
+		description: 'Chance for poison ticks to critically strike.',
 		format: asPercent,
 		colorClass: 'poison'
 	},
-	{ key: 'multiStrike', icon: '⚡', label: 'Multi-Strike', format: asPlusNumber },
-	{ key: 'executeChance', icon: '⚰️', label: 'Execute', format: asPercent },
+	{
+		key: 'multiStrike',
+		icon: '⚡',
+		label: 'Multi-Strike',
+		description: 'Extra attacks dealt per click.',
+		format: asPlusNumber
+	},
+	{
+		key: 'executeChance',
+		icon: '⚰️',
+		label: 'Execute',
+		description: 'Chance to instantly kill an enemy. Capped at 10% against bosses.',
+		format: asPercent
+	},
 	// { key: 'overkill', icon: '💀', label: 'Overkill', format: () => 'Active' }, // disabled — needs redesign
 	{
 		key: 'xpMultiplier',
 		icon: '✨',
 		label: 'XP Bonus',
+		description: 'Percentage bonus applied to all XP gained.',
 		format: asBonusPercent,
 		formatMod: asPlusPercent
 	},
-	{ key: 'bonusBossTime', icon: '⏱️', label: 'Boss Time', format: asPlusSeconds },
-	{ key: 'luckyChance', icon: '🍀', label: 'Lucky', format: asPlusPercent },
-	{ key: 'chestChance', icon: '📦', label: 'Chest Chance', format: asPercent },
-	{ key: 'bossChestChance', icon: '👑', label: 'Mimic', format: asPercent },
-	{ key: 'goldDropChance', icon: '🪙', label: 'Gold Drop', format: asPercent, colorClass: 'gold' },
-	{ key: 'goldPerKill', icon: '💵', label: 'Gold/Kill', format: asPlusNumber, colorClass: 'gold' },
+	{
+		key: 'bonusBossTime',
+		icon: '⏱️',
+		label: 'Boss Time',
+		description: 'Extra seconds added to boss fight timers.',
+		format: asPlusSeconds
+	},
+	{
+		key: 'luckyChance',
+		icon: '🍀',
+		label: 'Lucky',
+		description: 'Bonus chance to be offered rare upgrades.',
+		format: asPlusPercent
+	},
+	{
+		key: 'chestChance',
+		icon: '📦',
+		label: 'Chest Chance',
+		description: 'Probability of a chest spawning after a kill.',
+		format: asPercent
+	},
+	{
+		key: 'bossChestChance',
+		icon: '👑',
+		label: 'Mimic',
+		description: 'Probability of a boss dropping a mimic chest.',
+		format: asPercent
+	},
+	{
+		key: 'goldDropChance',
+		icon: '🪙',
+		label: 'Gold Drop',
+		description: 'Probability of gold dropping from a kill.',
+		format: asPercent,
+		colorClass: 'gold'
+	},
+	{
+		key: 'goldPerKill',
+		icon: '💵',
+		label: 'Gold/Kill',
+		description: 'Flat gold earned per enemy killed.',
+		format: asPlusNumber,
+		colorClass: 'gold'
+	},
 	{
 		key: 'goldMultiplier',
 		icon: '🏆',
 		label: 'Gold Bonus',
+		description: 'Percentage bonus applied to all gold earned.',
 		format: asBonusPercent,
 		formatMod: asPlusPercent,
 		colorClass: 'gold'
 	},
-	{ key: 'greed', icon: '💰', label: 'Greed', format: asPlusPercent, colorClass: 'greed' },
+	{
+		key: 'greed',
+		icon: '💰',
+		label: 'Greed',
+		description: 'Increases gold earned but also increases enemy health.',
+		format: asPlusPercent,
+		colorClass: 'greed'
+	},
 	{
 		key: 'attackSpeed',
 		icon: '🗡️',
 		label: 'Attack Speed',
+		description: 'Number of automatic attacks per second.',
 		format: (v) => `${(v as number).toFixed(2)}/s`,
 		alwaysShow: true
 	},
-	{ key: 'tapFrenzyBonus', icon: '✨', label: 'Frenzy Bonus', format: asPlusPercent },
-	{ key: 'tapFrenzyDuration', icon: '⏳', label: 'Frenzy Duration', format: asPlusSeconds },
+	{
+		key: 'tapFrenzyBonus',
+		icon: '✨',
+		label: 'Frenzy Bonus',
+		description: 'Attack speed bonus gained per frenzy tap.',
+		format: asPlusPercent
+	},
+	{
+		key: 'tapFrenzyDuration',
+		icon: '⏳',
+		label: 'Frenzy Duration',
+		description: 'How long the frenzy effect lasts.',
+		format: asPlusSeconds
+	},
 	{
 		key: 'tapFrenzyStackMultiplier',
 		icon: '🔥',
 		label: 'Frenzy Stacks',
+		description: 'Multiplier applied to frenzy stack accumulation.',
 		format: (v) => `${v}x`,
 		formatMod: (v) => `+${v}x`
 	}
