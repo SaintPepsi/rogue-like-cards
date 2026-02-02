@@ -171,6 +171,7 @@
 										rarity={upgrade.rarity}
 										image={upgrade.image}
 										modifiers={getModifiers(upgrade)}
+										{currentStats}
 									/>
 									<div
 										class="buy-label"
@@ -429,6 +430,7 @@
 
 	.carousel-fade {
 		transition: opacity 300ms ease-out;
+		margin-bottom: 24px;
 	}
 
 	.carousel-fade.cards-fading {
