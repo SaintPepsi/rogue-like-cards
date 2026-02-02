@@ -13,7 +13,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
-		version: '0.34.0',
+		version: '0.37.0',
+		date: '2026-02-02',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added interactive hover/tap tooltips to all stats in the panel showing mechanical descriptions and base values'
+			}
+		]
+	},
+	{
+		version: '0.36.0',
 		date: '2026-02-01',
 		changes: [
 			{
