@@ -124,8 +124,10 @@ describe('createShop', () => {
 		const stats = createDefaultStats();
 		shop.open(stats);
 
-		const upgrade = shop.shopChoices[0];
-		if (upgrade.id.startsWith('execute_cap') || upgrade.id === 'gold_per_kill') return;
+		const upgrade = shop.shopChoices.find(
+			(u) => !u.id.startsWith('execute_cap') && u.id !== 'gold_per_kill'
+		);
+		if (!upgrade) return;
 
 		const firstPrice = shop.getPrice(upgrade);
 		shop.buy(upgrade, stats);

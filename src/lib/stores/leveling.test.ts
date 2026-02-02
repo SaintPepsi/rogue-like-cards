@@ -7,7 +7,8 @@ const defaultCtx: UpgradeContext = {
 	luckyChance: 0,
 	executeChance: 0,
 	executeCap: 0.3,
-	poison: 0
+	poison: 0,
+	critChance: 0
 };
 
 describe('createLeveling', () => {

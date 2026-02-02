@@ -873,7 +873,7 @@ function gaussianWeight(tierIndex: number, focusPoint: number): number {
 	return Math.exp(-(distance * distance) / (2 * GAUSSIAN_SIGMA * GAUSSIAN_SIGMA));
 }
 
-function getRarityWeights(luckyChance: number): Record<string, number> {
+export function getRarityWeights(luckyChance: number): Record<string, number> {
 	const focusPoint = getFocusPoint(luckyChance);
 	const weights: Record<string, number> = {};
 
