@@ -5,6 +5,9 @@
 	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import { VERSION } from '$lib/version';
+	import { CHANGELOG, type ChangelogEntry } from '$lib/changelog';
+	import { getLastSeenVersion, setLastSeenVersion } from '$lib/utils/changelogStorage';
+	import { getNewChangelogEntries, getPreviousMinorVersion } from '$lib/utils/versionComparison';
 	import StatsPanel from '$lib/components/StatsPanel.svelte';
 	import BattleArea from '$lib/components/BattleArea.svelte';
 	import LevelUpModal from '$lib/components/LevelUpModal.svelte';
@@ -18,8 +21,34 @@
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
+	let changelogEntries = $state<ChangelogEntry[]>(CHANGELOG);
 	let showSettingsModal = $state(false);
 	let showGiveUpConfirm = $state(false);
+
+	// Auto-show changelog on version change
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+
+		const lastSeenVersion = getLastSeenVersion();
+		const currentVersion = VERSION;
+
+		if (!lastSeenVersion) {
+			// New user: show only current version
+			const previousMinor = getPreviousMinorVersion(currentVersion);
+			const newEntries = getNewChangelogEntries(CHANGELOG, previousMinor);
+			if (newEntries.length > 0) {
+				changelogEntries = newEntries;
+				showChangelogModal = true;
+			}
+		} else if (lastSeenVersion !== currentVersion) {
+			// Returning user: show all new versions since last seen
+			const newEntries = getNewChangelogEntries(CHANGELOG, lastSeenVersion);
+			if (newEntries.length > 0) {
+				changelogEntries = newEntries;
+				showChangelogModal = true;
+			}
+		}
+	});
 
 	// Upgrade slot management for crossfade transitions
 	interface UpgradeSlot {
@@ -270,12 +299,23 @@
 		onClose={() => (showUpgradesModal = false)}
 	/>
 
-	<ChangelogModal show={showChangelogModal} onClose={() => (showChangelogModal = false)} />
+	<ChangelogModal
+		show={showChangelogModal}
+		entries={changelogEntries}
+		onClose={() => {
+			showChangelogModal = false;
+			setLastSeenVersion(VERSION);
+			changelogEntries = CHANGELOG;
+		}}
+	/>
 
 	<SettingsModal
 		show={showSettingsModal}
 		onClose={() => (showSettingsModal = false)}
-		onOpenChangelog={() => (showChangelogModal = true)}
+		onOpenChangelog={() => {
+			changelogEntries = CHANGELOG;
+			showChangelogModal = true;
+		}}
 		onReset={gameState.fullReset}
 	/>
 
