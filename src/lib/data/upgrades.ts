@@ -7,7 +7,7 @@ import axeImg from '$lib/assets/images/cards/axe.png';
 import attackImg from '$lib/assets/images/cards/attack.png';
 import fireImg from '$lib/assets/images/cards/fire.png';
 import bookImg from '$lib/assets/images/cards/book.png';
-import chestImg from '$lib/assets/images/cards/chest.png';
+import chestImg from '$lib/assets/images/chest-closed.png';
 import poisonImg from '$lib/assets/images/cards/poison.png';
 import timerImg from '$lib/assets/images/cards/timer.png';
 import coinsImg from '$lib/assets/images/cards/coins.png';
