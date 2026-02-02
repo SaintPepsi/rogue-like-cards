@@ -23,8 +23,8 @@
 		return `${pct.toExponential(2)}%`;
 	}
 
-	// Chest lucky: max(1.0, lucky) * 2
-	let chestWeights = $derived(getRarityWeights(Math.max(1.0, luckyPercent / 100) * 2));
+	// Chest uses same Lucky as level-ups (uncommon min filter only)
+	let chestWeights = $derived(getRarityWeights(luckyPercent / 100));
 </script>
 
 <div class="page">
