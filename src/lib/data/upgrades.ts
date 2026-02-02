@@ -910,7 +910,8 @@ export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number
 	for (const [rarity, weight] of Object.entries(tierWeights)) {
 		const cards = tiers[rarity];
 		if (!cards || cards.length === 0) continue;
-		const totalTickets = Math.max(1, Math.round(weight));
+		const totalTickets = Math.round(weight);
+		if (totalTickets <= 0) continue;
 		for (let t = 0; t < totalTickets; t++) {
 			carousel.push(cards[t % cards.length]);
 		}
