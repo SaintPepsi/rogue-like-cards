@@ -96,12 +96,15 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	}
 
 	function save() {
+		const existing = persistence.loadPersistent();
 		persistence.savePersistent({
 			gold: persistentGold,
 			purchasedUpgradeCounts: Object.fromEntries(purchasedUpgradeCounts),
 			executeCapBonus,
 			shopChoiceIds: shopChoices.map((u) => u.id),
-			rerollCost
+			rerollCost,
+			// Preserve hasCompletedFirstRun from existing data (defaults to false for new saves)
+			hasCompletedFirstRun: existing?.hasCompletedFirstRun ?? false
 		});
 	}
 
