@@ -22,7 +22,7 @@ import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
 import { sfx } from '$lib/audio';
-import { getRandomLegendaryUpgrades } from '$lib/data/upgrades';
+import { allUpgrades, getRandomLegendaryUpgrades } from '$lib/data/upgrades';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -371,6 +371,20 @@ function createGameState() {
 		// Close modal and clear choices (whether upgrade was selected or skipped)
 		showLegendarySelection = false;
 		legendaryChoices = [];
+
+		// Mark that user has made their one-time selection
+		hasSelectedStartingLegendary = true;
+
+		// Save persistent data to persist the flag
+		persistence.savePersistent({
+			gold: shop.persistentGold,
+			purchasedUpgradeCounts: shop.purchasedCounts,
+			executeCapBonus: pipeline.getExecuteCapBonus(),
+			shopChoiceIds: shop.currentChoiceIds,
+			rerollCost: shop.rerollCost,
+			hasCompletedFirstRun: true,
+			hasSelectedStartingLegendary: true
+		});
 
 		// Resume game loop
 		gameLoop.resume();
