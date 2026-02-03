@@ -635,6 +635,9 @@ function createGameState() {
 		get hasCompletedFirstRun() {
 			return hasCompletedFirstRun;
 		},
+		get hasSelectedStartingLegendary() {
+			return hasSelectedStartingLegendary;
+		},
 		get upgradeChoices() {
 			return leveling.upgradeChoices;
 		},
