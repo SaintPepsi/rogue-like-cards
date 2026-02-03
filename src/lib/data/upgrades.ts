@@ -871,6 +871,37 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
+export function getFilteredLegendaryUpgrades(
+	count: number,
+	currentStats: Record<string, number>
+): Upgrade[] {
+	const legendaries = allUpgrades.filter((u) => u.rarity === 'legendary');
+
+	// Filter out legendaries with unmet dependencies
+	const available = legendaries.filter((upgrade) => {
+		// Check if upgrade has poison modifiers but player has no poison
+		const hasPoison = upgrade.modifiers.some(
+			(m) => m.stat === 'poison' || m.stat === 'poisonDamage'
+		);
+		if (hasPoison && (!currentStats.poison || currentStats.poison <= 0)) {
+			return false;
+		}
+
+		// Check if upgrade has crit modifiers but player has no crit
+		const hasCrit = upgrade.modifiers.some(
+			(m) => m.stat === 'critChance' || m.stat === 'critMultiplier'
+		);
+		if (hasCrit && (!currentStats.critChance || currentStats.critChance <= 0)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const shuffled = [...available].sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, count);
+}
+
 // DECISION: Gaussian rarity distribution centered on a lucky-driven focus point.
 // At 0 lucky, focusPoint=0 (common). Lucky pushes it asymptotically toward 4 (legendary).
 // The sigma=0.8 gaussian spread means tiers ±1 from focus get significant weight,

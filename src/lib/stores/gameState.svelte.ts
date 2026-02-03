@@ -22,7 +22,7 @@ import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
 import { sfx } from '$lib/audio';
-import { getRandomLegendaryUpgrades } from '$lib/data/upgrades';
+import { getFilteredLegendaryUpgrades } from '$lib/data/upgrades';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -377,8 +377,16 @@ function createGameState() {
 
 	function startNewRunWithLegendary(): void {
 		if (hasCompletedFirstRun) {
-			// Get 3 random legendary upgrades
-			legendaryChoices = getRandomLegendaryUpgrades(3);
+			// Get current stats for filtering
+			const currentStats = {
+				poison: statPipeline.get('poison'),
+				critChance: statPipeline.get('critChance'),
+				poisonDamage: statPipeline.get('poisonDamage'),
+				critMultiplier: statPipeline.get('critMultiplier')
+			};
+
+			// Get 3 filtered legendary upgrades
+			legendaryChoices = getFilteredLegendaryUpgrades(3, currentStats);
 
 			// Only show modal if we have legendaries
 			if (legendaryChoices.length > 0) {
@@ -508,7 +516,15 @@ function createGameState() {
 		// If hasCompletedFirstRun, show legendary selection (game is paused until selection)
 		// Otherwise, the enemy from reset() stays and game continues
 		if (hasCompletedFirstRun) {
-			legendaryChoices = getRandomLegendaryUpgrades(3);
+			// Get current stats for filtering
+			const currentStats = {
+				poison: statPipeline.get('poison'),
+				critChance: statPipeline.get('critChance'),
+				poisonDamage: statPipeline.get('poisonDamage'),
+				critMultiplier: statPipeline.get('critMultiplier')
+			};
+
+			legendaryChoices = getFilteredLegendaryUpgrades(3, currentStats);
 			if (legendaryChoices.length > 0) {
 				showLegendarySelection = true;
 				gameLoop.pause();
