@@ -25,6 +25,7 @@ export interface SessionSaveData {
 	timestamp: number;
 	bossTimeRemaining?: number;
 	legendaryChoiceIds?: string[];
+	hasSelectedStartingLegendary?: boolean;
 }
 
 export interface PersistentSaveData {
@@ -34,7 +35,6 @@ export interface PersistentSaveData {
 	shopChoiceIds?: string[];
 	rerollCost?: number;
 	hasCompletedFirstRun: boolean;
-	hasSelectedStartingLegendary?: boolean;
 }
 
 export function createPersistence(sessionKey: string, persistentKey: string) {
@@ -96,8 +96,7 @@ export function createPersistence(sessionKey: string, persistentKey: string) {
 					executeCapBonus: parsed.executeCapBonus ?? 0,
 					shopChoiceIds: parsed.shopChoiceIds,
 					rerollCost: parsed.rerollCost,
-					hasCompletedFirstRun: parsed.hasCompletedFirstRun ?? false,
-					hasSelectedStartingLegendary: parsed.hasSelectedStartingLegendary ?? false
+					hasCompletedFirstRun: parsed.hasCompletedFirstRun ?? false
 				};
 			},
 			null,

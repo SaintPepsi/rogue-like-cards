@@ -134,10 +134,7 @@ function createGameState() {
 			persistence.savePersistent({
 				...persistentData,
 				// Only update hasCompletedFirstRun if this is a natural death
-				hasCompletedFirstRun: isNaturalDeath
-					? true
-					: (persistentData.hasCompletedFirstRun ?? false),
-				hasSelectedStartingLegendary: hasSelectedStartingLegendary
+				hasCompletedFirstRun: isNaturalDeath ? true : (persistentData.hasCompletedFirstRun ?? false)
 			});
 		}
 
@@ -378,21 +375,10 @@ function createGameState() {
 		showLegendarySelection = false;
 		legendaryChoices = [];
 
-		// Mark that user has made their one-time selection
+		// Mark that user has made their selection for this run
 		hasSelectedStartingLegendary = true;
 
-		// Save persistent data to persist the flag
-		persistence.savePersistent({
-			gold: shop.persistentGold,
-			purchasedUpgradeCounts: Object.fromEntries(shop.purchasedUpgradeCounts),
-			executeCapBonus: shop.executeCapBonus,
-			shopChoiceIds: shop.shopChoices.map((u) => u.id),
-			rerollCost: shop.rerollCost,
-			hasCompletedFirstRun: true,
-			hasSelectedStartingLegendary: true
-		});
-
-		// Update session data to clear legendary choices
+		// Update session data to persist the flag and clear legendary choices
 		saveGame();
 
 		// Resume game loop
@@ -451,7 +437,8 @@ function createGameState() {
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
 			timestamp: Date.now(),
 			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined,
-			legendaryChoiceIds: legendaryChoices.map((u) => u.id)
+			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
+			hasSelectedStartingLegendary
 		});
 	}
 
@@ -493,6 +480,9 @@ function createGameState() {
 			isBossChest: data.isBossChest ?? false
 		});
 
+		// Restore hasSelectedStartingLegendary flag from session
+		hasSelectedStartingLegendary = data.hasSelectedStartingLegendary ?? false;
+
 		// Restore legendary choices if they exist AND user hasn't already selected
 		if (
 			data.legendaryChoiceIds &&
@@ -532,6 +522,7 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
+		hasSelectedStartingLegendary = false; // Reset for new run
 		ui.reset();
 		leveling.reset();
 		showGameOver = false;
@@ -578,7 +569,6 @@ function createGameState() {
 		const persistentData = persistence.loadPersistent();
 		if (persistentData) {
 			hasCompletedFirstRun = persistentData.hasCompletedFirstRun;
-			hasSelectedStartingLegendary = persistentData.hasSelectedStartingLegendary ?? false;
 		}
 
 		if (!loadGame()) {
