@@ -537,6 +537,7 @@ function createGameState() {
 		const persistentData = persistence.loadPersistent();
 		if (persistentData) {
 			hasCompletedFirstRun = persistentData.hasCompletedFirstRun;
+			hasSelectedStartingLegendary = persistentData.hasSelectedStartingLegendary ?? false;
 		}
 
 		if (!loadGame()) {
