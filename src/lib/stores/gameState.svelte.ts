@@ -39,6 +39,11 @@ function createGameState() {
 	// UI state
 	let showGameOver = $state(false);
 
+	// Legendary start selection
+	let hasCompletedFirstRun = $state(false);
+	let showLegendarySelection = $state(false);
+	let legendaryChoices = $state<Upgrade[]>([]);
+
 	// Reactive poison stack count — pipeline.getSystemState() reads from a plain Map
 	// which Svelte can't track, so we sync this after every pipeline mutation.
 	let poisonStackCount = $state(0);
@@ -503,6 +508,15 @@ function createGameState() {
 		},
 		get showGameOver() {
 			return showGameOver;
+		},
+		get showLegendarySelection() {
+			return showLegendarySelection;
+		},
+		get legendaryChoices() {
+			return legendaryChoices;
+		},
+		get hasCompletedFirstRun() {
+			return hasCompletedFirstRun;
 		},
 		get upgradeChoices() {
 			return leveling.upgradeChoices;
