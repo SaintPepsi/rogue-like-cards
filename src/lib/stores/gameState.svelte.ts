@@ -128,7 +128,7 @@ function createGameState() {
 
 	// Centralized check: is the game currently paused by a modal?
 	function isModalOpen() {
-		return showGameOver || leveling.hasActiveEvent;
+		return showGameOver || leveling.hasActiveEvent || showLegendarySelection;
 	}
 
 	function syncPoisonStacks() {
