@@ -13,6 +13,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.45.0',
+		date: '2026-02-03',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added legendary upgrade selection at the start of each run after completing your first run'
+			},
+			{
+				category: 'new',
+				description:
+					'Legendary choices are intelligently filtered based on your current build synergies'
+			}
+		]
+	},
+	{
 		version: '0.44.0',
 		date: '2026-02-03',
 		changes: [
