@@ -499,9 +499,21 @@ function createGameState() {
 		persistence.clearSession();
 
 		applyShopUpgrades();
+
+		// Reset enemy state (this spawns an initial enemy)
 		enemy.reset(statPipeline.get('greed'));
 
 		gameLoop.start(buildGameLoopCallbacks());
+
+		// If hasCompletedFirstRun, show legendary selection (game is paused until selection)
+		// Otherwise, the enemy from reset() stays and game continues
+		if (hasCompletedFirstRun) {
+			legendaryChoices = getRandomLegendaryUpgrades(3);
+			if (legendaryChoices.length > 0) {
+				showLegendarySelection = true;
+				gameLoop.pause();
+			}
+		}
 	}
 
 	function fullReset() {
