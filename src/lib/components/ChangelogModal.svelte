@@ -51,8 +51,8 @@
 				displayContent = content.slice(1);
 			}
 			// Check for rarity names
-			else if (rarities.includes(content.toLowerCase() as any)) {
-				variant = content.toLowerCase() as any;
+			else if (rarities.includes(content.toLowerCase() as (typeof rarities)[number])) {
+				variant = content.toLowerCase() as (typeof rarities)[number];
 			}
 
 			parts.push({ type: 'code', content: displayContent, variant });
@@ -98,7 +98,7 @@
 								<li>
 									<span class="tag tag-{change.category}">{tagLabel[change.category]}</span>
 									<span class="change-description">
-										{#each parseDescription(change.description) as part}
+										{#each parseDescription(change.description) as part, j (j)}
 											{#if part.type === 'code'}
 												<code class="stat-value stat-value-{part.variant}">{part.content}</code>
 											{:else}

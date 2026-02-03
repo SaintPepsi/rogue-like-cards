@@ -10,7 +10,7 @@
 
 	let { choices, onSelect, currentStats }: Props = $props();
 
-	function handleSelect(card: Upgrade, _index: number) {
+	function handleSelect(card: Upgrade) {
 		onSelect(card);
 	}
 

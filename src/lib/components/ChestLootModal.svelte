@@ -14,7 +14,7 @@
 
 	let { show, gold, choices, onSelect, exiting = false, currentStats }: Props = $props();
 
-	function handleSelect(card: Upgrade, _index: number) {
+	function handleSelect(card: Upgrade) {
 		onSelect(card);
 	}
 </script>

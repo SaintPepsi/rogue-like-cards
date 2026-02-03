@@ -35,7 +35,6 @@
 	}: Props = $props();
 
 	let rerolling = $state(false);
-	let rerollGeneration = $state(0);
 	let priceSnapshot = $state<number[]>([]);
 	let lastChoiceIds = '';
 
@@ -44,7 +43,6 @@
 		const currentIds = choices.map((c) => c.id).join(',');
 		if (show && currentIds && currentIds !== lastChoiceIds) {
 			lastChoiceIds = currentIds;
-			rerollGeneration++;
 			priceSnapshot = choices.map((c) => untrack(() => getPrice(c)));
 		}
 		if (!show) {
@@ -82,7 +80,7 @@
 		return gold < price || rerolling;
 	}
 
-	function handleBuy(card: Upgrade, _index: number) {
+	function handleBuy(card: Upgrade) {
 		onBuy(card);
 	}
 </script>
@@ -103,7 +101,8 @@
 			<p class="shop-info">Purchased cards give permanent bonuses each run!</p>
 		{/snippet}
 
-		{#snippet cardOverlay(card, i)}
+		<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
+		{#snippet cardOverlay(_card, i)}
 			{@const price = priceSnapshot[i] ?? 0}
 			{@const canAfford = gold >= price}
 			<div class="buy-label" class:affordable={canAfford} class:too-expensive={!canAfford}>
