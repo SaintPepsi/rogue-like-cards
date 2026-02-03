@@ -392,7 +392,7 @@ function createGameState() {
 	}
 
 	function startNewRunWithLegendary(): void {
-		if (hasCompletedFirstRun) {
+		if (hasCompletedFirstRun && !hasSelectedStartingLegendary) {
 			// Get 3 random legendary upgrades
 			legendaryChoices = getRandomLegendaryUpgrades(3);
 
@@ -405,7 +405,7 @@ function createGameState() {
 				enemy.spawnEnemy(statPipeline.get('greed'));
 			}
 		} else {
-			// First run ever - spawn enemy immediately
+			// First run ever OR already selected - spawn enemy immediately
 			enemy.spawnEnemy(statPipeline.get('greed'));
 		}
 	}
