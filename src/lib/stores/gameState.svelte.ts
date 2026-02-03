@@ -379,9 +379,9 @@ function createGameState() {
 		// Save persistent data to persist the flag
 		persistence.savePersistent({
 			gold: shop.persistentGold,
-			purchasedUpgradeCounts: shop.purchasedCounts,
-			executeCapBonus: pipeline.getExecuteCapBonus(),
-			shopChoiceIds: shop.currentChoiceIds,
+			purchasedUpgradeCounts: Object.fromEntries(shop.purchasedUpgradeCounts),
+			executeCapBonus: shop.executeCapBonus,
+			shopChoiceIds: shop.shopChoices.map((u) => u.id),
 			rerollCost: shop.rerollCost,
 			hasCompletedFirstRun: true,
 			hasSelectedStartingLegendary: true
