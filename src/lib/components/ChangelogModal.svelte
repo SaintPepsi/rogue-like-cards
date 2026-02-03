@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
-	import { CHANGELOG, type ChangeCategory } from '$lib/changelog';
+	import { CHANGELOG, type ChangeCategory, type ChangelogEntry } from '$lib/changelog';
 
 	type Props = {
 		show: boolean;
 		onClose: () => void;
+		entries?: ChangelogEntry[];
 	};
 
-	let { show, onClose }: Props = $props();
+	let { show, onClose, entries }: Props = $props();
+
+	const displayEntries = $derived(entries ?? CHANGELOG);
 
 	const tagLabel: Record<ChangeCategory, string> = {
 		new: 'New',
@@ -39,7 +42,7 @@
 				>
 			</div>
 			<div class="modal-content">
-				{#each CHANGELOG as entry (entry.version)}
+				{#each displayEntries as entry (entry.version)}
 					<div class="version-entry">
 						<h3>v{entry.version} <span class="version-date">{entry.date}</span></h3>
 						<ul>
