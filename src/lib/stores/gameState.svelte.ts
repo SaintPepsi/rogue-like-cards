@@ -22,6 +22,7 @@ import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
 import { sfx } from '$lib/audio';
+import { getRandomLegendaryUpgrades } from '$lib/data/upgrades';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -357,6 +358,25 @@ function createGameState() {
 
 		// Resume game loop
 		gameLoop.resume();
+	}
+
+	function startNewRunWithLegendary(): void {
+		if (hasCompletedFirstRun) {
+			// Get 3 random legendary upgrades
+			legendaryChoices = getRandomLegendaryUpgrades(3);
+
+			// Only show modal if we have legendaries
+			if (legendaryChoices.length > 0) {
+				showLegendarySelection = true;
+				gameLoop.pause();
+			} else {
+				// No legendaries available (edge case)
+				enemy.spawnEnemy(statPipeline.get('greed'));
+			}
+		} else {
+			// First run ever - spawn enemy immediately
+			enemy.spawnEnemy(statPipeline.get('greed'));
+		}
 	}
 
 	function openNextUpgrade() {
