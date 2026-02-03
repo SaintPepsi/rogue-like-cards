@@ -505,9 +505,9 @@ function createGameState() {
 
 		gameLoop.start(buildGameLoopCallbacks());
 
-		// If hasCompletedFirstRun, show legendary selection (game is paused until selection)
+		// If hasCompletedFirstRun AND user hasn't already selected, show legendary selection
 		// Otherwise, the enemy from reset() stays and game continues
-		if (hasCompletedFirstRun) {
+		if (hasCompletedFirstRun && !hasSelectedStartingLegendary) {
 			legendaryChoices = getRandomLegendaryUpgrades(3);
 			if (legendaryChoices.length > 0) {
 				showLegendarySelection = true;
