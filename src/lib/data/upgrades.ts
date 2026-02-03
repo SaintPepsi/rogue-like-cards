@@ -779,7 +779,7 @@ export const goldPerKillUpgrade: Upgrade = {
 	title: "Prospector's Pick",
 	rarity: 'uncommon',
 	image: coinsImg,
-	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
+	modifiers: [{ stat: 'goldPerKill', value: 1 }]
 };
 
 // DECISION: Base cap reduced from 10% to 5%. Execute is instant kill, so even 5% is very strong.

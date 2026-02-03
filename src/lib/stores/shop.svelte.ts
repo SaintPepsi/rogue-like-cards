@@ -13,13 +13,10 @@ import {
 import { getCardPrice as calculateCardPrice } from '$lib/engine/shop';
 import type { createPersistence } from './persistence.svelte';
 
-const GOLD_PER_KILL_BONUS_PER_LEVEL = 1;
-
 export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let persistentGold = $state(0);
 	let purchasedUpgradeCounts = new SvelteMap<string, number>();
 	let executeCapBonus = $state(0);
-	let goldPerKillBonus = $state(0);
 	let showShop = $state(false);
 	let shopChoices = $state<Upgrade[]>([]);
 	let rerollCost = $state(1);
@@ -30,19 +27,12 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 			const level = bonusPerLevel > 0 ? Math.round(executeCapBonus / bonusPerLevel) : 0;
 			return calculateCardPrice(upgrade.rarity, level);
 		}
-		if (upgrade.id === 'gold_per_kill') {
-			const level = Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
-			return calculateCardPrice(upgrade.rarity, level);
-		}
 		return calculateCardPrice(upgrade.rarity, purchasedUpgradeCounts.get(upgrade.id) ?? 0);
 	}
 
 	function getUpgradeLevel(upgrade: Upgrade): number {
 		if (upgrade.id === 'execute_cap') {
 			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
-		}
-		if (upgrade.id === 'gold_per_kill') {
-			return Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
 		}
 		return purchasedUpgradeCounts.get(upgrade.id) ?? 0;
 	}
@@ -82,8 +72,6 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 
 		if (executeCapIds.has(upgrade.id)) {
 			executeCapBonus += EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005;
-		} else if (upgrade.id === 'gold_per_kill') {
-			goldPerKillBonus += GOLD_PER_KILL_BONUS_PER_LEVEL;
 		} else {
 			const prev = purchasedUpgradeCounts.get(upgrade.id) ?? 0;
 			purchasedUpgradeCounts = new SvelteMap([...purchasedUpgradeCounts, [upgrade.id, prev + 1]]);
@@ -107,16 +95,11 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		return getExecuteCap(executeCapBonus);
 	}
 
-	function getGoldPerKillBonus(): number {
-		return goldPerKillBonus;
-	}
-
 	function save() {
 		persistence.savePersistent({
 			gold: persistentGold,
 			purchasedUpgradeCounts: Object.fromEntries(purchasedUpgradeCounts),
 			executeCapBonus,
-			goldPerKillBonus,
 			shopChoiceIds: shopChoices.map((u) => u.id),
 			rerollCost
 		});
@@ -128,7 +111,6 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		persistentGold = data.gold || 0;
 		purchasedUpgradeCounts = new SvelteMap(Object.entries(data.purchasedUpgradeCounts || {}));
 		executeCapBonus = data.executeCapBonus || 0;
-		goldPerKillBonus = data.goldPerKillBonus || 0;
 		rerollCost = data.rerollCost ?? 1;
 
 		if (data.shopChoiceIds) {
@@ -158,7 +140,6 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		persistentGold = 0;
 		purchasedUpgradeCounts = new SvelteMap();
 		executeCapBonus = 0;
-		goldPerKillBonus = 0;
 		shopChoices = [];
 		rerollCost = 1;
 		persistence.clearPersistent();
@@ -181,15 +162,12 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		get executeCapBonus() {
 			return executeCapBonus;
 		},
-		get goldPerKillBonus() {
-			return goldPerKillBonus;
-		},
 		get executeCapLevel() {
 			// Use the middle tier (0.005) as the reference for level display
 			return Math.round(executeCapBonus / 0.005);
 		},
 		get goldPerKillLevel() {
-			return Math.round(goldPerKillBonus / GOLD_PER_KILL_BONUS_PER_LEVEL);
+			return purchasedUpgradeCounts.get('gold_per_kill') ?? 0;
 		},
 		get rerollCost() {
 			return rerollCost;
@@ -203,7 +181,6 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		getUpgradeLevel,
 		getPrice,
 		getExecuteCapValue,
-		getGoldPerKillBonus,
 		open,
 		close,
 		buy,

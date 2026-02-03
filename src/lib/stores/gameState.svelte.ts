@@ -237,11 +237,10 @@ function createGameState() {
 
 			enemy.advanceWave();
 
-			const effectiveGoldPerKill = playerStats.goldPerKill + shop.getGoldPerKillBonus();
 			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
 				const goldReward = enemy.isBoss
-					? getBossGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier)
-					: getEnemyGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier);
+					? getBossGoldReward(enemy.stage, playerStats.goldPerKill, playerStats.goldMultiplier)
+					: getEnemyGoldReward(enemy.stage, playerStats.goldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
 				ui.addGoldDrop(goldReward);
 				sfx.play('gold:drop');

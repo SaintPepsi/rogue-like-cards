@@ -31,7 +31,6 @@ export interface PersistentSaveData {
 	gold: number;
 	purchasedUpgradeCounts: Record<string, number>;
 	executeCapBonus: number;
-	goldPerKillBonus: number;
 	shopChoiceIds?: string[];
 	rerollCost?: number;
 }
