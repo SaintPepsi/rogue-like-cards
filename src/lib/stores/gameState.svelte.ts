@@ -42,6 +42,7 @@ function createGameState() {
 
 	// Legendary start selection
 	let hasCompletedFirstRun = $state(false);
+	let hasSelectedStartingLegendary = $state(false);
 	let showLegendarySelection = $state(false);
 	let legendaryChoices = $state<Upgrade[]>([]);
 
