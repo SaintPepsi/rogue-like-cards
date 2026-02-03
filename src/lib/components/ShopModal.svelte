@@ -95,6 +95,7 @@
 		getCardTitle={getTitle}
 		getCardModifiers={getModifiers}
 		isCardDisabled={isDisabled}
+		choicesClass={rerolling ? 'cards-fading' : ''}
 	>
 		{#snippet header()}
 			<h2>Card Shop</h2>
@@ -216,5 +217,10 @@
 		display: flex;
 		justify-content: center;
 		gap: 16px;
+	}
+
+	:global(.upgrade-choices.cards-fading) {
+		opacity: 0;
+		transition: opacity 300ms ease-out;
 	}
 </style>
