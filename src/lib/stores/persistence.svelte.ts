@@ -7,7 +7,6 @@ export interface SavedUpgradeEvent {
 }
 
 export interface SessionSaveData {
-	playerStats: PlayerStats;
 	effects: Effect[];
 	unlockedUpgradeIds: string[];
 	xp: number;

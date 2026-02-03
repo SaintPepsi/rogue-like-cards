@@ -409,7 +409,6 @@ function createGameState() {
 
 	function saveGame() {
 		persistence.saveSession({
-			playerStats: getEffectiveStats(),
 			effects: [...effects],
 			unlockedUpgradeIds: [...unlockedUpgrades],
 			xp: leveling.xp,
