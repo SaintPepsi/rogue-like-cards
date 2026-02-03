@@ -387,6 +387,9 @@ function createGameState() {
 			hasSelectedStartingLegendary: true
 		});
 
+		// Update session data to clear legendary choices
+		saveGame();
+
 		// Resume game loop
 		gameLoop.resume();
 	}
@@ -485,8 +488,12 @@ function createGameState() {
 			isBossChest: data.isBossChest ?? false
 		});
 
-		// Restore legendary choices if they exist
-		if (data.legendaryChoiceIds && data.legendaryChoiceIds.length > 0) {
+		// Restore legendary choices if they exist AND user hasn't already selected
+		if (
+			data.legendaryChoiceIds &&
+			data.legendaryChoiceIds.length > 0 &&
+			!hasSelectedStartingLegendary
+		) {
 			legendaryChoices = data.legendaryChoiceIds
 				.map((id) => allUpgrades.find((u) => u.id === id))
 				.filter((u): u is Upgrade => u !== undefined);
