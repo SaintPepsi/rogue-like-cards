@@ -6,9 +6,9 @@
 	let { children } = $props();
 
 	const devPages = [
-		{ href: '/rarity-simulator', label: 'Rarity Simulator' },
-		{ href: '/economy-simulation', label: 'Economy Sim' }
-	];
+		{ href: '/rarity-simulator' as const, label: 'Rarity Simulator' },
+		{ href: '/economy-simulation' as const, label: 'Economy Sim' }
+	] as const;
 </script>
 
 <svelte:head>

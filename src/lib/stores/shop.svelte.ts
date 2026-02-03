@@ -32,7 +32,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 
 	function getUpgradeLevel(upgrade: Upgrade): number {
 		if (upgrade.id === 'execute_cap') {
-			return Math.round(executeCapBonus / EXECUTE_CAP_BONUS_PER_LEVEL);
+			return Math.round(executeCapBonus / (EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005));
 		}
 		return purchasedUpgradeCounts.get(upgrade.id) ?? 0;
 	}

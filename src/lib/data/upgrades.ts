@@ -880,9 +880,7 @@ export function getFilteredLegendaryUpgrades(
 	// Filter out legendaries with unmet dependencies
 	const available = legendaries.filter((upgrade) => {
 		// Check if upgrade has poison modifiers but player has no poison
-		const hasPoison = upgrade.modifiers.some(
-			(m) => m.stat === 'poison' || m.stat === 'poisonDamage'
-		);
+		const hasPoison = upgrade.modifiers.some((m) => m.stat === 'poison');
 		if (hasPoison && (!currentStats.poison || currentStats.poison <= 0)) {
 			return false;
 		}

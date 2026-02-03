@@ -1,5 +1,6 @@
 <script lang="ts">
-	import type { PlayerStats, Snippet, StatModifier, Upgrade } from '$lib/types';
+	import type { Snippet } from 'svelte';
+	import type { PlayerStats, StatModifier, Upgrade } from '$lib/types';
 	import { Button } from 'bits-ui';
 	import CardCarousel from './CardCarousel.svelte';
 	import UpgradeCard from './UpgradeCard.svelte';

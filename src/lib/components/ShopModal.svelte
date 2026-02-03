@@ -102,7 +102,7 @@
 		{/snippet}
 
 		<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
-		{#snippet cardOverlay(_card, i)}
+		{#snippet cardOverlay(_card: Upgrade, i: number)}
 			{@const price = priceSnapshot[i] ?? 0}
 			{@const canAfford = gold >= price}
 			<div class="buy-label" class:affordable={canAfford} class:too-expensive={!canAfford}>

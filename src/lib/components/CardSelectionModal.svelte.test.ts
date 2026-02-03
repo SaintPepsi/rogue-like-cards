@@ -85,7 +85,7 @@ describe('CardSelectionModal', () => {
 			await vi.advanceTimersByTimeAsync(1000);
 
 			const buttons = screen.container.querySelectorAll('.card-wrapper');
-			await buttons[0].click();
+			await (buttons[0] as HTMLElement).click();
 
 			// Wait for selection animation
 			await vi.advanceTimersByTimeAsync(500);
