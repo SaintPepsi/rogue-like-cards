@@ -400,6 +400,7 @@ function createGameState() {
 			if (legendaryChoices.length > 0) {
 				showLegendarySelection = true;
 				gameLoop.pause();
+				saveGame(); // Persist legendary choices so they survive refresh
 			} else {
 				// No legendaries available (edge case)
 				enemy.spawnEnemy(statPipeline.get('greed'));
@@ -539,6 +540,7 @@ function createGameState() {
 			if (legendaryChoices.length > 0) {
 				showLegendarySelection = true;
 				gameLoop.pause();
+				saveGame(); // Persist legendary choices so they survive refresh
 			}
 		}
 	}
