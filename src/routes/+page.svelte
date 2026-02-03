@@ -273,6 +273,7 @@
 		<LegendarySelectionModal
 			choices={gameState.legendaryChoices}
 			onSelect={gameState.selectLegendaryUpgrade}
+			currentStats={gameState.playerStats}
 		/>
 	{/if}
 
