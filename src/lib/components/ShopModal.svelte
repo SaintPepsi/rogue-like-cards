@@ -98,7 +98,7 @@
 		choicesClass={rerolling ? 'cards-fading' : ''}
 	>
 		{#snippet header()}
-			<h2>Card Shop</h2>
+			<h2 class="m-0 mb-2 text-[1.8rem] text-[#a78bfa]">Card Shop</h2>
 			<p class="gold-display">Your Gold: <span class="gold-amount">{formatNumber(gold)}</span></p>
 			<p class="shop-info">Purchased cards give permanent bonuses each run!</p>
 		{/snippet}
@@ -137,12 +137,6 @@
 {/if}
 
 <style>
-	:global(.modal h2) {
-		margin: 0 0 8px;
-		font-size: 1.8rem;
-		color: #a78bfa;
-	}
-
 	.gold-display {
 		font-size: 1.2rem;
 		color: rgba(255, 255, 255, 0.8);

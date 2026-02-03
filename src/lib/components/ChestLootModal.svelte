@@ -27,29 +27,18 @@
 		class={exiting ? 'exiting' : ''}
 	>
 		{#snippet header()}
-			<h2>Treasure Found!</h2>
+			<h2 class="m-0 mb-2 text-[1.8rem] text-[#fbbf24]">Treasure Found!</h2>
 			<p class="gold-reward">+{formatNumber(gold)} Gold</p>
-			<p>Choose a reward:</p>
+			<p class="m-0 mb-6 text-white/70">Choose a reward:</p>
 		{/snippet}
 	</CardSelectionModal>
 {/if}
 
 <style>
-	:global(.modal h2) {
-		margin: 0 0 8px;
-		font-size: 1.8rem;
-		color: #fbbf24;
-	}
-
 	.gold-reward {
 		font-size: 1.4rem;
 		color: #fbbf24;
 		font-weight: bold;
 		margin: 0 0 16px;
-	}
-
-	:global(.modal p) {
-		margin: 0 0 24px;
-		color: rgba(255, 255, 255, 0.7);
 	}
 </style>

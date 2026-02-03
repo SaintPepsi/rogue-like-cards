@@ -21,8 +21,10 @@
 
 <CardSelectionModal cards={choices} onSelect={handleSelect} {currentStats} theme="legendary">
 	{#snippet header()}
-		<h2>Choose Your Starting Legendary</h2>
-		<p>Select one legendary upgrade to begin your run:</p>
+		<h2 class="m-0 mb-2 text-[1.8rem] text-[#ffd700] [text-shadow:0_0_10px_rgba(255,215,0,0.5)]">
+			Choose Your Starting Legendary
+		</h2>
+		<p class="m-0 mb-6 text-white/70">Select one legendary upgrade to begin your run:</p>
 	{/snippet}
 
 	{#snippet footer()}
@@ -33,18 +35,6 @@
 </CardSelectionModal>
 
 <style>
-	:global(.modal h2) {
-		margin: 0 0 8px;
-		font-size: 1.8rem;
-		color: #ffd700;
-		text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-	}
-
-	:global(.modal p) {
-		margin: 0 0 24px;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
 	.skip-section {
 		margin-top: 24px;
 	}

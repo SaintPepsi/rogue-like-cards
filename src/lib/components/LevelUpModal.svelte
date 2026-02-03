@@ -30,24 +30,13 @@
 			{#if pendingCount > 1}
 				<div class="pending-badge">+{pendingCount - 1} more</div>
 			{/if}
-			<h2>Level Up!</h2>
-			<p>Choose an upgrade:</p>
+			<h2 class="m-0 mb-2 text-[1.8rem] text-[#fbbf24]">Level Up!</h2>
+			<p class="m-0 mb-6 text-white/70">Choose an upgrade:</p>
 		{/snippet}
 	</CardSelectionModal>
 {/if}
 
 <style>
-	:global(.modal h2) {
-		margin: 0 0 8px;
-		font-size: 1.8rem;
-		color: #fbbf24;
-	}
-
-	:global(.modal p) {
-		margin: 0 0 24px;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
 	.pending-badge {
 		position: absolute;
 		top: 12px;
