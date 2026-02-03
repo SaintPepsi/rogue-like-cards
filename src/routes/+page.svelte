@@ -333,6 +333,7 @@
 			<div class="confirm-dialog">
 				<h3>Give Up?</h3>
 				<p>Your current run will end and gold will be deposited to the shop.</p>
+				<p class="warning-text">Legendary starting options are only earned by completing runs.</p>
 				<div class="confirm-buttons">
 					<Button.Root
 						class="py-2.5 px-6 bg-[#374151] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]"
@@ -584,6 +585,11 @@
 		margin: 0 0 24px;
 		color: rgba(255, 255, 255, 0.7);
 		font-size: 0.95rem;
+	}
+
+	.confirm-dialog p.warning-text {
+		margin-top: 8px;
+		color: #fbbf24;
 	}
 
 	.confirm-buttons {

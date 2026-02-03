@@ -522,6 +522,7 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
+		hasCompletedFirstRun = false; // Reset for new run
 		hasSelectedStartingLegendary = false; // Reset for new run
 		ui.reset();
 		leveling.reset();
