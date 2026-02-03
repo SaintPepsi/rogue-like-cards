@@ -483,6 +483,17 @@ function createGameState() {
 			isBossChest: data.isBossChest ?? false
 		});
 
+		// Restore legendary choices if they exist
+		if (data.legendaryChoiceIds && data.legendaryChoiceIds.length > 0) {
+			legendaryChoices = data.legendaryChoiceIds
+				.map((id) => allUpgrades.find((u) => u.id === id))
+				.filter((u): u is Upgrade => u !== undefined);
+
+			if (legendaryChoices.length > 0) {
+				showLegendarySelection = true;
+			}
+		}
+
 		return true;
 	}
 
