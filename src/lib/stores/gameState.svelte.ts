@@ -116,9 +116,24 @@ function createGameState() {
 
 	function handleBossExpired() {
 		gameLoop.reset();
-		shop.depositGold(gold);
+		shop.depositGold(gold); // This calls shop.save() which saves persistent data
 		sfx.play('game:over');
 		showGameOver = true;
+
+		// Set meta-progression flag
+		hasCompletedFirstRun = true;
+
+		// Save persistent data again to include hasCompletedFirstRun
+		// DECISION: We save twice (shop.save inside depositGold, then here) to ensure
+		// hasCompletedFirstRun is persisted. This is acceptable since it only happens on game over.
+		const persistentData = persistence.loadPersistent();
+		if (persistentData) {
+			persistence.savePersistent({
+				...persistentData,
+				hasCompletedFirstRun: true
+			});
+		}
+
 		persistence.clearSession();
 	}
 
