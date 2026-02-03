@@ -440,7 +440,8 @@ function createGameState() {
 			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
 			timestamp: Date.now(),
-			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined
+			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined,
+			legendaryChoiceIds: legendaryChoices.map((u) => u.id)
 		});
 	}
 
