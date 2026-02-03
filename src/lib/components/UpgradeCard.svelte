@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { AspectRatio } from 'bits-ui';
-	import type { StatModifier, PlayerStats } from '$lib/types';
 	import { getModifierDisplay, getModifierDisplayWithTotal } from '$lib/data/upgrades';
-
+	import type { PlayerStats, StatModifier } from '$lib/types';
+	import { AspectRatio } from 'bits-ui';
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
-	import uncommonGem from '$lib/assets/images/rarity/uncommon.png';
-	import rareGem from '$lib/assets/images/rarity/rare.png';
 	import epicGem from '$lib/assets/images/rarity/epic.png';
 	import legendaryGem from '$lib/assets/images/rarity/legendary.png';
+	import rareGem from '$lib/assets/images/rarity/rare.png';
+	import uncommonGem from '$lib/assets/images/rarity/uncommon.png';
 
 	type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
@@ -179,6 +178,7 @@
 			flex-direction: column;
 			align-items: center;
 			flex: 1;
+			line-height: 1.1;
 		}
 
 		.stat-label {
