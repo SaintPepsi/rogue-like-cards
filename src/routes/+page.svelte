@@ -18,6 +18,7 @@
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import UpgradeBadge from '$lib/components/UpgradeBadge.svelte';
+	import LegendarySelectionModal from '$lib/components/LegendarySelectionModal.svelte';
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
@@ -267,6 +268,13 @@
 			/>
 		{/if}
 	{/each}
+
+	{#if gameState.showLegendarySelection}
+		<LegendarySelectionModal
+			choices={gameState.legendaryChoices}
+			onSelect={gameState.selectLegendaryUpgrade}
+		/>
+	{/if}
 
 	<GameOverModal
 		show={gameState.showGameOver && !gameState.showShop}
