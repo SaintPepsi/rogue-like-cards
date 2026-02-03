@@ -1,8 +1,8 @@
 <script lang="ts">
+	import type { PlayerStats, Snippet, StatModifier, Upgrade } from '$lib/types';
 	import { Button } from 'bits-ui';
-	import type { Upgrade, PlayerStats, StatModifier, Snippet } from '$lib/types';
-	import UpgradeCard from './UpgradeCard.svelte';
 	import CardCarousel from './CardCarousel.svelte';
+	import UpgradeCard from './UpgradeCard.svelte';
 	import { useCardFlip } from './useCardFlip.svelte';
 	import { useCardSelect } from './useCardSelect.svelte';
 
@@ -120,7 +120,7 @@
 			{/each}
 		</CardCarousel>
 
-		<div class="modal-footer" class:content-fade-out={cardSelect.selecting}>
+		<div class="modal-footer mt-4" class:content-fade-out={cardSelect.selecting}>
 			{@render footer?.()}
 		</div>
 	</div>
