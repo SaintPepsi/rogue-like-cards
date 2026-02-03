@@ -76,7 +76,8 @@
 						<span class="stat-change">
 							<span class="stat-value">{stat.value}</span>
 							{#if 'total' in stat && stat.total}
-								<span class="stat-total">→ {stat.total}</span>
+								<span class="stat-arrow">→</span>
+								<span class="stat-total">{stat.total}</span>
 							{/if}
 						</span>
 					</div>
@@ -195,9 +196,14 @@
 			color: #4ade80;
 		}
 
+		.stat-arrow {
+			font-size: 0.75rem;
+			color: rgba(255, 255, 255, 0.4);
+		}
+
 		.stat-total {
 			font-size: 0.75rem;
-			color: #facc15;
+			color: #fbbf24;
 			font-weight: 400;
 		}
 	}
