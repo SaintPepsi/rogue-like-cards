@@ -131,7 +131,8 @@ function createGameState() {
 		if (persistentData) {
 			persistence.savePersistent({
 				...persistentData,
-				hasCompletedFirstRun: true
+				hasCompletedFirstRun: true,
+				hasSelectedStartingLegendary: hasSelectedStartingLegendary
 			});
 		}
 
