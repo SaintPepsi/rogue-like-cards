@@ -324,6 +324,41 @@ function createGameState() {
 		saveGame();
 	}
 
+	function selectLegendaryUpgrade(upgrade: Upgrade | null): void {
+		if (upgrade !== null) {
+			// Acquire upgrade via pipeline
+			statPipeline.acquireUpgrade(upgrade.id);
+			if (upgrade.onAcquire) upgrade.onAcquire();
+
+			// Track unlocked upgrades for collection
+			unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+
+			// Track special effects — same pattern as selectUpgrade
+			if (upgrade.modifiers.length > 0) {
+				const effectName = upgrade.title;
+				if (!effects.find((e) => e.name === effectName)) {
+					effects.push({
+						name: effectName,
+						description: upgrade.modifiers
+							.map((m) => {
+								const entry = statRegistry.find((s) => s.key === m.stat);
+								const fmt = entry ? (entry.formatMod ?? entry.format) : null;
+								return fmt ? `${entry!.label} ${fmt(m.value)}` : `${m.stat} +${m.value}`;
+							})
+							.join(', ')
+					});
+				}
+			}
+		}
+
+		// Close modal and clear choices (whether upgrade was selected or skipped)
+		showLegendarySelection = false;
+		legendaryChoices = [];
+
+		// Resume game loop
+		gameLoop.resume();
+	}
+
 	function openNextUpgrade() {
 		if (!leveling.openNextUpgrade()) return;
 		gameLoop.pause();
@@ -584,6 +619,7 @@ function createGameState() {
 		},
 		pointerUp: () => gameLoop.pointerUp(),
 		selectUpgrade,
+		selectLegendaryUpgrade,
 		openNextUpgrade,
 		resetGame,
 		fullReset,
