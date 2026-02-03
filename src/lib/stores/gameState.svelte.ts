@@ -533,9 +533,16 @@ function createGameState() {
 	function init() {
 		shop.load();
 
+		// Load persistent data (includes hasCompletedFirstRun)
+		const persistentData = persistence.loadPersistent();
+		if (persistentData) {
+			hasCompletedFirstRun = persistentData.hasCompletedFirstRun;
+		}
+
 		if (!loadGame()) {
 			applyShopUpgrades();
-			enemy.spawnEnemy(statPipeline.get('greed'));
+			// Start new run with legendary selection (or spawn enemy immediately)
+			startNewRunWithLegendary();
 		} else {
 			pipeline.refreshSystems(getEffectiveStats());
 			if (enemy.isBoss) {
