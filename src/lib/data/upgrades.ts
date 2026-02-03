@@ -1,18 +1,18 @@
-import type { Upgrade, StatModifier } from '$lib/types';
 import { statRegistry } from '$lib/engine/stats';
+import type { StatModifier, Upgrade } from '$lib/types';
 
 // Card images
-import swordImg from '$lib/assets/images/cards/sword.png';
-import axeImg from '$lib/assets/images/cards/axe.png';
 import attackImg from '$lib/assets/images/cards/attack.png';
-import fireImg from '$lib/assets/images/cards/fire.png';
+import axeImg from '$lib/assets/images/cards/axe.png';
 import bookImg from '$lib/assets/images/cards/book.png';
-import chestImg from '$lib/assets/images/chest-closed.png';
-import poisonImg from '$lib/assets/images/cards/poison.png';
-import timerImg from '$lib/assets/images/cards/timer.png';
 import coinsImg from '$lib/assets/images/cards/coins.png';
+import fireImg from '$lib/assets/images/cards/fire.png';
 import hammerImg from '$lib/assets/images/cards/hammer.png';
 import pickaxeImg from '$lib/assets/images/cards/pickaxe.png';
+import poisonImg from '$lib/assets/images/cards/poison.png';
+import swordImg from '$lib/assets/images/cards/sword.png';
+import timerImg from '$lib/assets/images/cards/timer.png';
+import chestImg from '$lib/assets/images/chest-closed.png';
 import mimicImg from '$lib/assets/images/mimic-closed.png';
 
 const _allUpgrades = [
@@ -626,35 +626,35 @@ const _allUpgrades = [
 		title: 'Quick Hands',
 		rarity: 'common',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeedBonus', value: 0.005 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.05 }]
 	},
 	{
 		id: 'attack_speed_2',
 		title: 'Swift Strikes',
 		rarity: 'uncommon',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeedBonus', value: 0.01 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.1 }]
 	},
 	{
 		id: 'attack_speed_3',
 		title: 'Rapid Assault',
 		rarity: 'rare',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeedBonus', value: 0.025 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.25 }]
 	},
 	{
 		id: 'attack_speed_4',
 		title: 'Lightning Reflexes',
 		rarity: 'epic',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeedBonus', value: 0.05 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.5 }]
 	},
 	{
 		id: 'attack_speed_5',
 		title: 'Blade Storm',
 		rarity: 'legendary',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeedBonus', value: 0.25 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 1.5 }]
 	},
 
 	// === FRENZY ===
