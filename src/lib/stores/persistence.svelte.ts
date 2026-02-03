@@ -24,6 +24,7 @@ export interface SessionSaveData {
 	activeEvent?: SavedUpgradeEvent | null;
 	timestamp: number;
 	bossTimeRemaining?: number;
+	legendaryChoiceIds?: string[];
 }
 
 export interface PersistentSaveData {
