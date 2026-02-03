@@ -48,7 +48,10 @@
 			"Bash(npm test:*)",
 			"Skill(superpowers:brainstorming)",
 			"Bash(npm run check:*)",
-			"Bash(npm run build:*)"
+			"Bash(npm run build:*)",
+			"Skill(superpowers:writing-plans)",
+			"Skill(superpowers:systematic-debugging)",
+			"Skill(superpowers:executing-plans)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
