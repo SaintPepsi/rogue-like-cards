@@ -42,17 +42,12 @@
 			"mcp__ide__getDiagnostics",
 			"mcp__svelte__list-sections",
 			"mcp__svelte__svelte-autofixer",
-			"Skill(sancoca-skills:brainstorming)",
-			"Skill(sancoca-skills:executing-plans)",
-			"Skill(sancoca-skills:finishing-a-development-branch)",
-			"Skill(sancoca-skills:systematic-debugging)",
-			"Skill(sancoca-skills:using-git-worktrees)",
-			"Skill(sancoca-skills:writing-plans)",
-			"Skill(sancoca-skills:writing-plans)",
-			"Skill(sancoca-skills:writing-skills)",
-			"Skill(writing-plans)",
 			"WebFetch(domain:bits-ui.com)",
-			"WebFetch(domain:github.com)"
+			"WebFetch(domain:github.com)",
+			"Bash(ls:*)",
+			"Bash(npm test:*)",
+			"Skill(superpowers:brainstorming)",
+			"Bash(npm run check:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
