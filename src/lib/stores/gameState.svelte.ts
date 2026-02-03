@@ -115,14 +115,16 @@ function createGameState() {
 		};
 	}
 
-	function handleBossExpired() {
+	function handleBossExpired(isNaturalDeath: boolean = true) {
 		gameLoop.reset();
 		shop.depositGold(gold); // This calls shop.save() which saves persistent data
 		sfx.play('game:over');
 		showGameOver = true;
 
-		// Set meta-progression flag
-		hasCompletedFirstRun = true;
+		// Set meta-progression flag only on natural death (not give up)
+		if (isNaturalDeath) {
+			hasCompletedFirstRun = true;
+		}
 
 		// Save persistent data again to include hasCompletedFirstRun
 		// DECISION: We save twice (shop.save inside depositGold, then here) to ensure
@@ -131,7 +133,10 @@ function createGameState() {
 		if (persistentData) {
 			persistence.savePersistent({
 				...persistentData,
-				hasCompletedFirstRun: true,
+				// Only update hasCompletedFirstRun if this is a natural death
+				hasCompletedFirstRun: isNaturalDeath
+					? true
+					: (persistentData.hasCompletedFirstRun ?? false),
 				hasSelectedStartingLegendary: hasSelectedStartingLegendary
 			});
 		}
@@ -141,7 +146,7 @@ function createGameState() {
 
 	function giveUp() {
 		if (showGameOver) return;
-		handleBossExpired();
+		handleBossExpired(false); // Give up is not a natural death, don't unlock legendaries
 	}
 
 	// Centralized check: is the game currently paused by a modal?
