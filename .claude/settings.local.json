@@ -47,7 +47,8 @@
 			"Bash(ls:*)",
 			"Bash(npm test:*)",
 			"Skill(superpowers:brainstorming)",
-			"Bash(npm run check:*)"
+			"Bash(npm run check:*)",
+			"Bash(npm run build:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,

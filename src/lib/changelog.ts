@@ -20,11 +20,6 @@ export const CHANGELOG: ChangelogEntry[] = [
 				category: 'new',
 				description:
 					'Added legendary upgrade selection at the start of each run after completing your first run'
-			},
-			{
-				category: 'new',
-				description:
-					'Legendary choices are intelligently filtered based on your current build synergies'
 			}
 		]
 	},
