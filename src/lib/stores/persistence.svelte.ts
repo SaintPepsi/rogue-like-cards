@@ -33,6 +33,7 @@ export interface PersistentSaveData {
 	executeCapBonus: number;
 	shopChoiceIds?: string[];
 	rerollCost?: number;
+	hasCompletedFirstRun: boolean;
 }
 
 export function createPersistence(sessionKey: string, persistentKey: string) {
@@ -86,7 +87,16 @@ export function createPersistence(sessionKey: string, persistentKey: string) {
 			() => {
 				const saved = localStorage.getItem(persistentKey);
 				if (!saved) return null;
-				return JSON.parse(saved) as PersistentSaveData;
+				const parsed = JSON.parse(saved);
+				// Default hasCompletedFirstRun to false for legacy saves
+				return {
+					gold: parsed.gold ?? 0,
+					purchasedUpgradeCounts: parsed.purchasedUpgradeCounts ?? {},
+					executeCapBonus: parsed.executeCapBonus ?? 0,
+					shopChoiceIds: parsed.shopChoiceIds,
+					rerollCost: parsed.rerollCost,
+					hasCompletedFirstRun: parsed.hasCompletedFirstRun ?? false
+				};
 			},
 			null,
 			'Failed to load persistent data (corrupted data or localStorage unavailable):'
