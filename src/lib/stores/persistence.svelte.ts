@@ -1,4 +1,4 @@
-import type { PlayerStats, Effect } from '$lib/types';
+import type { Effect } from '$lib/types';
 
 export interface SavedUpgradeEvent {
 	type: 'levelup' | 'chest';
