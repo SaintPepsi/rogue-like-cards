@@ -13,6 +13,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.48.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'fixed',
+				description: 'Fixed stats comparison not showing after a version-triggered data reset'
+			}
+		]
+	},
+	{
 		version: '0.47.0',
 		date: '2026-02-04',
 		changes: [
@@ -29,10 +39,6 @@ export const CHANGELOG: ChangelogEntry[] = [
 			{
 				category: 'changed',
 				description: 'Removed custom favicon in favor of default browser behavior'
-			},
-			{
-				category: 'fixed',
-				description: 'Fixed stats comparison not showing after a version-triggered data reset'
 			}
 		]
 	},
