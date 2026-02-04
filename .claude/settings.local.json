@@ -53,7 +53,8 @@
 			"Skill(superpowers:systematic-debugging)",
 			"Skill(superpowers:executing-plans)",
 			"Bash(git restore:*)",
-			"Bash(grep:*)"
+			"Bash(grep:*)",
+			"Bash(git log:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
