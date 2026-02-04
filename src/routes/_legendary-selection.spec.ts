@@ -43,10 +43,19 @@ test.describe('Legendary Selection Modal', () => {
 		// Start second run
 		await page.locator('.enemy').waitFor({ state: 'visible' });
 
-		// Give up
-		await page.locator('button:has-text("Give Up")').click();
+		// Give up - click header button to open confirmation
+		await page.locator('button:has-text("Give Up")').first().click();
 
-		// Verify legendary modal does NOT appear
+		// Wait for confirmation dialog
+		await page.locator('.confirm-dialog').waitFor({ state: 'visible' });
+
+		// Click the actual Give Up button in the confirmation modal
+		await page.locator('.confirm-dialog button:has-text("Give Up")').click();
+
+		// Wait for game over modal to appear
+		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
+
+		// Verify legendary modal does NOT appear (only game over modal)
 		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
 		await expect(legendaryModal).not.toBeVisible();
 

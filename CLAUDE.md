@@ -50,7 +50,7 @@ function addItem(data: Omit<Item, 'id'>) {
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
 - Prefer early returns over nested `if/else` blocks. Guard clauses at the top of a function make the happy path obvious and reduce indentation depth.
-- Do not use `as any`. Use specific type assertions (`as SomeType`), generics, or restructure code to avoid the need for casts.
+- Never use the `any` type. Always use explicit types, whether in function parameters, return types, variable declarations, or type assertions. Use specific type assertions (`as SomeType`), generics, unions, or restructure code to avoid the need for `any`.
 - Use descriptive function names. Avoid cryptic abbreviations like `pct`, `num`, `fmt`. Prefer self-explanatory names like `asPercent`, `asPlusNumber`, `formatPrice`.
 
 ## Component Reuse
