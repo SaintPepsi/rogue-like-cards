@@ -21,10 +21,10 @@
 	let { weights, cards, filteredRarity }: Props = $props();
 
 	function formatChance(weight: number): string {
-		const pct = weight * 100;
-		if (pct >= 1) return `${pct.toFixed(1)}%`;
-		if (pct >= 0.01) return `${pct.toFixed(3)}%`;
-		if (pct >= 0.0001) return `${pct.toFixed(5)}%`;
+		const percent = weight * 100;
+		if (percent >= 1) return `${percent.toFixed(1)}%`;
+		if (percent >= 0.01) return `${percent.toFixed(3)}%`;
+		if (percent >= 0.0001) return `${percent.toFixed(5)}%`;
 		if (weight > 0) return `1 in ${Math.round(1 / weight).toLocaleString()}`;
 		return '0%';
 	}

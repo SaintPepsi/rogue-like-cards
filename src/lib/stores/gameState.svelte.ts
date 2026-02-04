@@ -383,8 +383,10 @@ function createGameState() {
 						description: upgrade.modifiers
 							.map((m) => {
 								const entry = statRegistry.find((s) => s.key === m.stat);
-								const fmt = entry ? (entry.formatMod ?? entry.format) : null;
-								return fmt ? `${entry!.label} ${fmt(m.value)}` : `${m.stat} +${m.value}`;
+								const formatter = entry ? (entry.formatMod ?? entry.format) : null;
+								return formatter
+									? `${entry!.label} ${formatter(m.value)}`
+									: `${m.stat} +${m.value}`;
 							})
 							.join(', ')
 					});

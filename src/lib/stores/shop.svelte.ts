@@ -31,8 +31,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	}
 
 	function getUpgradeLevel(upgrade: Upgrade): number {
-		if (upgrade.id === 'execute_cap') {
-			return Math.round(executeCapBonus / (EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005));
+		if (executeCapIds.has(upgrade.id)) {
+			const bonusPerLevel = EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005;
+			return bonusPerLevel > 0 ? Math.round(executeCapBonus / bonusPerLevel) : 0;
 		}
 		return purchasedUpgradeCounts.get(upgrade.id) ?? 0;
 	}
