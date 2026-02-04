@@ -13,6 +13,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.45.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added stats comparison on game over screen showing which stats changed during your run'
+			},
+			{
+				category: 'changed',
+				description:
+					'Enforced one-way navigation flow from game over to shop — removed back button to prevent confusion'
+			}
+		]
+	},
+	{
 		version: '0.43.0',
 		date: '2026-02-03',
 		changes: [
