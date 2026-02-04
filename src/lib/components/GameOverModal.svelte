@@ -29,6 +29,20 @@
 		onReset,
 		onOpenShop
 	}: Props = $props();
+
+	function getChangedStats(start: PlayerStats, end: PlayerStats) {
+		return statRegistry
+			.filter((entry) => {
+				const startVal = start[entry.key];
+				const endVal = end[entry.key];
+				return startVal !== endVal;
+			})
+			.map((entry) => ({
+				...entry,
+				formatStart: entry.format(start[entry.key]),
+				formatEnd: entry.format(end[entry.key])
+			}));
+	}
 </script>
 
 {#if show}
