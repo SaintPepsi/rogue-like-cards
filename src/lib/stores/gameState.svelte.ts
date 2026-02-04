@@ -126,7 +126,6 @@ function createGameState() {
 // Capture final stats BEFORE any state changes
 // Why: Ensures we capture stats from the actual run before gameLoop.reset() 
 // clears all run-based effects and upgrades, which would show incorrect stats
-endingStats = getEffectiveStats();
 		endingStats = getEffectiveStats();
 
 		gameLoop.reset();
