@@ -47,6 +47,11 @@ export const CHANGELOG: ChangelogEntry[] = [
 				category: 'new',
 				description:
 					'Added legendary upgrade selection at the start of each run after completing your first run'
+			},
+			{
+				category: 'new',
+				description:
+					'Added automatic changelog notifications showing new entries on version updates'
 			}
 		]
 	},
@@ -116,17 +121,6 @@ export const CHANGELOG: ChangelogEntry[] = [
 			{
 				category: 'new',
 				description: 'Added rarity simulator dev tool for testing upgrade drop rates'
-			}
-		]
-	},
-	{
-		version: '0.43.0',
-		date: '2026-02-03',
-		changes: [
-			{
-				category: 'new',
-				description:
-					'Added automatic changelog notifications showing new entries on version updates'
 			}
 		]
 	},
