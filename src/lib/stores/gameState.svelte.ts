@@ -120,6 +120,9 @@ function createGameState() {
 	}
 
 	function handleBossExpired(isNaturalDeath: boolean = true) {
+		// Capture final stats BEFORE any state changes
+		endingStats = getEffectiveStats();
+
 		gameLoop.reset();
 		shop.depositGold(gold); // This calls shop.save() which saves persistent data
 		sfx.play('game:over');
