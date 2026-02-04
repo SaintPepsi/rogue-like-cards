@@ -14,8 +14,15 @@ import {
 	getXpToNextLevel,
 	XP_PER_HEALTH,
 	BOSS_XP_MULTIPLIER,
-	CHEST_XP_MULTIPLIER
+	CHEST_XP_MULTIPLIER,
+	KILLS_PER_WAVE
 } from './waves';
+
+describe('KILLS_PER_WAVE', () => {
+	test('10 kills per wave', () => {
+		expect(KILLS_PER_WAVE).toBe(10);
+	});
+});
 
 describe('getStageMultiplier', () => {
 	test('stage 1 returns 1', () => {
@@ -84,33 +91,33 @@ describe('getGreedMultiplier', () => {
 
 describe('enemy health', () => {
 	test('regular enemy at stage 1, greed 0', () => {
-		expect(getEnemyHealth(1, 0)).toBe(10);
+		expect(getEnemyHealth(1, 0)).toBe(5);
 	});
 
 	test('regular enemy at stage 2, greed 0', () => {
-		expect(getEnemyHealth(2, 0)).toBe(15);
+		expect(getEnemyHealth(2, 0)).toBe(7);
 	});
 
 	test('boss at stage 1, greed 0', () => {
-		expect(getBossHealth(1, 0)).toBe(50);
+		expect(getBossHealth(1, 0)).toBe(25);
 	});
 
 	test('chest at stage 1, greed 0', () => {
-		expect(getChestHealth(1, 0)).toBe(20);
+		expect(getChestHealth(1, 0)).toBe(10);
 	});
 
 	test('boss chest at stage 1, greed 0', () => {
-		// boss(50) * 10 = 500
-		expect(getBossChestHealth(1, 0)).toBe(500);
+		// boss(25) * 10 = 250
+		expect(getBossChestHealth(1, 0)).toBe(250);
 	});
 
 	test('boss chest at stage 2, greed 0', () => {
-		// boss(75) * 10 = 750
-		expect(getBossChestHealth(2, 0)).toBe(750);
+		// boss(37) * 10 = 370
+		expect(getBossChestHealth(2, 0)).toBe(370);
 	});
 
 	test('regular enemy with greed', () => {
-		expect(getEnemyHealth(1, 0.5)).toBe(15);
+		expect(getEnemyHealth(1, 0.5)).toBe(7);
 	});
 
 	test('all health types are finite at stage 500', () => {
@@ -214,18 +221,18 @@ describe('getXpPerHealth', () => {
 
 describe('getXpReward', () => {
 	test('regular enemy at stage 1 with 1x multiplier', () => {
-		// 10hp * 1.0 xpPerHp * sqrt(1) = 10
-		expect(getXpReward(10, 1, 1)).toBe(10);
+		// 5hp * 1.0 xpPerHp * sqrt(1) = 5
+		expect(getXpReward(5, 1, 1)).toBe(5);
 	});
 
 	test('boss applies BOSS_XP_MULTIPLIER', () => {
-		// 50hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 75
-		expect(getXpReward(50, 1, 1, BOSS_XP_MULTIPLIER)).toBe(75);
+		// 25hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 37
+		expect(getXpReward(25, 1, 1, BOSS_XP_MULTIPLIER)).toBe(37);
 	});
 
 	test('chest applies CHEST_XP_MULTIPLIER', () => {
-		// 20hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 30
-		expect(getXpReward(20, 1, 1, CHEST_XP_MULTIPLIER)).toBe(30);
+		// 10hp * 1.0 xpPerHp * 1.5 * sqrt(1) = 15
+		expect(getXpReward(10, 1, 1, CHEST_XP_MULTIPLIER)).toBe(15);
 	});
 
 	test('boss xp per hp is higher than regular due to multiplier', () => {
@@ -318,21 +325,21 @@ describe('getChestGoldReward', () => {
 });
 
 describe('getXpToNextLevel', () => {
-	test('level 1 needs 25 xp', () => {
-		expect(getXpToNextLevel(1)).toBe(25);
+	test('level 1 needs 12 xp', () => {
+		expect(getXpToNextLevel(1)).toBe(12);
 	});
 
-	test('level 2 needs 37 xp', () => {
-		expect(getXpToNextLevel(2)).toBe(37);
+	test('level 2 needs 18 xp', () => {
+		expect(getXpToNextLevel(2)).toBe(18);
 	});
 
-	test('level 3 needs 56 xp', () => {
-		expect(getXpToNextLevel(3)).toBe(56);
+	test('level 3 needs 27 xp', () => {
+		expect(getXpToNextLevel(3)).toBe(27);
 	});
 
-	test('levels 1-100 match pure exponential with base 25', () => {
+	test('levels 1-100 match pure exponential with base 12', () => {
 		for (const lvl of [1, 10, 25, 50, 75, 100]) {
-			expect(getXpToNextLevel(lvl)).toBe(Math.floor(25 * Math.pow(1.5, lvl - 1)));
+			expect(getXpToNextLevel(lvl)).toBe(Math.floor(12 * Math.pow(1.5, lvl - 1)));
 		}
 	});
 
@@ -342,7 +349,7 @@ describe('getXpToNextLevel', () => {
 		// Should still increase
 		expect(level101).toBeGreaterThan(level100);
 		// But less than pure exponential would
-		const pureExponential = Math.floor(25 * Math.pow(1.5, 100));
+		const pureExponential = Math.floor(12 * Math.pow(1.5, 100));
 		expect(level101).toBeLessThan(pureExponential);
 	});
 

@@ -26,7 +26,9 @@ export function createFrenzy(pipeline: StatPipeline, timers: TimerRegistry) {
 
 	function addStack() {
 		const stacksToAdd = Math.floor(pipeline.get('tapFrenzyStackMultiplier') as number);
-		const duration = pipeline.get('tapFrenzyDuration') * 1000;
+		const baseDuration = pipeline.get('tapFrenzyDuration');
+		const durationBonus = pipeline.get('tapFrenzyDurationBonus');
+		const duration = baseDuration * (1 + durationBonus) * 1000;
 
 		nextId++;
 		count += stacksToAdd;

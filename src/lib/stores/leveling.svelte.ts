@@ -8,6 +8,7 @@ export interface UpgradeContext {
 	executeChance: number;
 	executeCap: number;
 	poison: number;
+	critChance: number;
 }
 
 export type UpgradeEventType = 'levelup' | 'chest';
@@ -48,7 +49,9 @@ export function createLeveling() {
 				ctx.luckyChance,
 				ctx.executeChance,
 				ctx.executeCap,
-				ctx.poison
+				ctx.poison,
+				'common',
+				ctx.critChance
 			);
 			upgradeQueue = [...upgradeQueue, { type: 'levelup', choices }];
 		}
@@ -63,13 +66,17 @@ export function createLeveling() {
 		if (wasBossChest) {
 			choices = getRandomLegendaryUpgrades(3);
 		} else {
+			// DECISION: Chests add a flat 100% Lucky bonus on top of the player's Lucky stat.
+			// This makes chests feel rewarding even at low Lucky, while still scaling with investment.
+			const CHEST_LUCKY_BONUS = 1.0;
 			choices = getRandomUpgrades(
 				3,
-				ctx.luckyChance + 0.5,
+				ctx.luckyChance + CHEST_LUCKY_BONUS,
 				ctx.executeChance,
 				ctx.executeCap,
 				ctx.poison,
-				'uncommon'
+				'uncommon',
+				ctx.critChance
 			);
 		}
 		upgradeQueue = [...upgradeQueue, { type: 'chest', choices, gold }];

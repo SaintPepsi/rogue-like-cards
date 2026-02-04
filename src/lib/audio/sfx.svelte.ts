@@ -4,7 +4,6 @@ import { createHitThrottle } from './hitThrottle';
 
 // Audio asset imports — Vite resolves to hashed URLs at build time
 import woodHit1Url from '$lib/assets/audio/sfx/wood-hit-1.wav';
-import batHit4Url from '$lib/assets/audio/sfx/bat-hit-4.wav';
 import bellCutUrl from '$lib/assets/audio/sfx/bell-cut.mp3';
 import bodyHitUrl from '$lib/assets/audio/sfx/body-hit-with-grunt-3.wav';
 import fish1Url from '$lib/assets/audio/sfx/fish-1.wav';

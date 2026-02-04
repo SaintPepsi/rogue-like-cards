@@ -5,6 +5,9 @@
 	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import { VERSION } from '$lib/version';
+	import { CHANGELOG, type ChangelogEntry } from '$lib/changelog';
+	import { getLastSeenVersion, setLastSeenVersion } from '$lib/utils/changelogStorage';
+	import { getNewChangelogEntries, getPreviousMinorVersion } from '$lib/utils/versionComparison';
 	import StatsPanel from '$lib/components/StatsPanel.svelte';
 	import BattleArea from '$lib/components/BattleArea.svelte';
 	import LevelUpModal from '$lib/components/LevelUpModal.svelte';
@@ -15,11 +18,38 @@
 	import ChangelogModal from '$lib/components/ChangelogModal.svelte';
 	import SettingsModal from '$lib/components/SettingsModal.svelte';
 	import UpgradeBadge from '$lib/components/UpgradeBadge.svelte';
+	import LegendarySelectionModal from '$lib/components/LegendarySelectionModal.svelte';
 
 	let showUpgradesModal = $state(false);
 	let showChangelogModal = $state(false);
+	let changelogEntries = $state<ChangelogEntry[]>(CHANGELOG);
 	let showSettingsModal = $state(false);
 	let showGiveUpConfirm = $state(false);
+
+	// Auto-show changelog on version change
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+
+		const lastSeenVersion = getLastSeenVersion();
+		const currentVersion = VERSION;
+
+		if (!lastSeenVersion) {
+			// New user: show only current version
+			const previousMinor = getPreviousMinorVersion(currentVersion);
+			const newEntries = getNewChangelogEntries(CHANGELOG, previousMinor);
+			if (newEntries.length > 0) {
+				changelogEntries = newEntries;
+				showChangelogModal = true;
+			}
+		} else if (lastSeenVersion !== currentVersion) {
+			// Returning user: show all new versions since last seen
+			const newEntries = getNewChangelogEntries(CHANGELOG, lastSeenVersion);
+			if (newEntries.length > 0) {
+				changelogEntries = newEntries;
+				showChangelogModal = true;
+			}
+		}
+	});
 
 	// Upgrade slot management for crossfade transitions
 	interface UpgradeSlot {
@@ -100,6 +130,10 @@
 	onMount(() => {
 		gameState.init();
 	});
+
+	if (typeof window !== 'undefined' && import.meta.env.DEV) {
+		window.gameState = gameState;
+	}
 </script>
 
 <svelte:head>
@@ -239,6 +273,14 @@
 		{/if}
 	{/each}
 
+	{#if gameState.showLegendarySelection}
+		<LegendarySelectionModal
+			choices={gameState.legendaryChoices}
+			onSelect={gameState.selectLegendaryUpgrade}
+			currentStats={gameState.playerStats}
+		/>
+	{/if}
+
 	<GameOverModal
 		show={gameState.showGameOver && !gameState.showShop}
 		stage={gameState.stage}
@@ -246,6 +288,9 @@
 		enemiesKilled={gameState.enemiesKilled}
 		goldEarned={gameState.gold}
 		totalGold={gameState.persistentGold}
+		startingStats={gameState.startingStats}
+		endingStats={gameState.endingStats}
+		wasDefeatNatural={gameState.wasDefeatNatural}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
 	/>
@@ -260,7 +305,6 @@
 		onBuy={gameState.buyUpgrade}
 		currentStats={gameState.playerStats}
 		onReroll={gameState.rerollShop}
-		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
 	/>
 
@@ -270,12 +314,23 @@
 		onClose={() => (showUpgradesModal = false)}
 	/>
 
-	<ChangelogModal show={showChangelogModal} onClose={() => (showChangelogModal = false)} />
+	<ChangelogModal
+		show={showChangelogModal}
+		entries={changelogEntries}
+		onClose={() => {
+			showChangelogModal = false;
+			setLastSeenVersion(VERSION);
+			changelogEntries = CHANGELOG;
+		}}
+	/>
 
 	<SettingsModal
 		show={showSettingsModal}
 		onClose={() => (showSettingsModal = false)}
-		onOpenChangelog={() => (showChangelogModal = true)}
+		onOpenChangelog={() => {
+			changelogEntries = CHANGELOG;
+			showChangelogModal = true;
+		}}
 		onReset={gameState.fullReset}
 	/>
 
@@ -284,6 +339,7 @@
 			<div class="confirm-dialog">
 				<h3>Give Up?</h3>
 				<p>Your current run will end and gold will be deposited to the shop.</p>
+				<p class="warning-text">Legendary starting options are only earned by completing runs.</p>
 				<div class="confirm-buttons">
 					<Button.Root
 						class="py-2.5 px-6 bg-[#374151] border-none rounded-lg text-white text-[0.95rem] font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]"
@@ -535,6 +591,11 @@
 		margin: 0 0 24px;
 		color: rgba(255, 255, 255, 0.7);
 		font-size: 0.95rem;
+	}
+
+	.confirm-dialog p.warning-text {
+		margin-top: 8px;
+		color: #fbbf24;
 	}
 
 	.confirm-buttons {

@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { AspectRatio } from 'bits-ui';
-	import type { StatModifier, PlayerStats } from '$lib/types';
 	import { getModifierDisplay, getModifierDisplayWithTotal } from '$lib/data/upgrades';
-
+	import type { PlayerStats, StatModifier } from '$lib/types';
+	import { AspectRatio } from 'bits-ui';
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
-	import uncommonGem from '$lib/assets/images/rarity/uncommon.png';
-	import rareGem from '$lib/assets/images/rarity/rare.png';
 	import epicGem from '$lib/assets/images/rarity/epic.png';
 	import legendaryGem from '$lib/assets/images/rarity/legendary.png';
+	import rareGem from '$lib/assets/images/rarity/rare.png';
+	import uncommonGem from '$lib/assets/images/rarity/uncommon.png';
 
 	type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
@@ -38,7 +37,7 @@
 		common: { glow: 'transparent', border: '#6b7280' },
 		uncommon: { glow: 'rgba(34, 197, 94, 0.4)', border: '#22c55e' },
 		rare: { glow: 'rgba(59, 130, 246, 0.4)', border: '#3b82f6' },
-		epic: { glow: 'rgba(192, 192, 192, 0.4)', border: '#c0c0c0' },
+		epic: { glow: 'rgba(168, 85, 247, 0.4)', border: '#a855f7' },
 		legendary: { glow: 'rgba(234, 179, 8, 0.5)', border: '#eab308' }
 	};
 
@@ -76,7 +75,8 @@
 						<span class="stat-change">
 							<span class="stat-value">{stat.value}</span>
 							{#if 'total' in stat && stat.total}
-								<span class="stat-total">→ {stat.total}</span>
+								<span class="stat-arrow">→</span>
+								<span class="stat-total">{stat.total}</span>
 							{/if}
 						</span>
 					</div>
@@ -156,6 +156,8 @@
 		display: flex;
 		flex-direction: column;
 		gap: 4px;
+		flex: 1;
+		justify-content: center;
 
 		li {
 			display: flex;
@@ -176,6 +178,7 @@
 			flex-direction: column;
 			align-items: center;
 			flex: 1;
+			line-height: 1.1;
 		}
 
 		.stat-label {
@@ -193,9 +196,14 @@
 			color: #4ade80;
 		}
 
+		.stat-arrow {
+			font-size: 0.75rem;
+			color: rgba(255, 255, 255, 0.4);
+		}
+
 		.stat-total {
 			font-size: 0.75rem;
-			color: #facc15;
+			color: #fbbf24;
 			font-weight: 400;
 		}
 	}

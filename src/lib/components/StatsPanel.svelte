@@ -20,7 +20,7 @@
 			{@const defaultValue = defaults[entry.key]}
 			{#if entry.alwaysShow || value !== defaultValue}
 				<Tooltip.Root>
-					<Tooltip.Trigger asChild>
+					<Tooltip.Trigger>
 						{#snippet child({ props })}
 							<div {...props} class="stat-row {entry.colorClass ?? ''}">
 								<span>{entry.icon} {entry.label}</span>

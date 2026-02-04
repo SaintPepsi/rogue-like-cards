@@ -1,5 +1,9 @@
 <script lang="ts">
+	import { statRegistry } from '$lib/engine/stats';
+	import { formatNumber } from '$lib/format';
+	import type { PlayerStats } from '$lib/types';
 	import { Button } from 'bits-ui';
+
 	type Props = {
 		show: boolean;
 		stage: number;
@@ -7,27 +11,73 @@
 		enemiesKilled: number;
 		goldEarned: number;
 		totalGold: number;
+		startingStats: PlayerStats | null;
+		endingStats: PlayerStats | null;
+		wasDefeatNatural: boolean;
 		onReset: () => void;
 		onOpenShop: () => void;
 	};
 
-	import { formatNumber } from '$lib/format';
+	let {
+		show,
+		stage,
+		level,
+		enemiesKilled,
+		goldEarned,
+		totalGold,
+		startingStats,
+		endingStats,
+		wasDefeatNatural,
+		onReset,
+		onOpenShop
+	}: Props = $props();
 
-	let { show, stage, level, enemiesKilled, goldEarned, totalGold, onReset, onOpenShop }: Props =
-		$props();
+	function getChangedStats(start: PlayerStats, end: PlayerStats) {
+		return statRegistry
+			.filter((entry) => {
+				const startVal = start[entry.key];
+				const endVal = end[entry.key];
+				return startVal !== endVal;
+			})
+			.map((entry) => ({
+				...entry,
+				formatStart: entry.format(start[entry.key]),
+				formatEnd: entry.format(end[entry.key])
+			}));
+	}
 </script>
 
 {#if show}
 	<div class="modal-overlay">
 		<div class="modal game-over">
 			<h2>Game Over</h2>
-			<p>The boss defeated you!</p>
+			<p>{wasDefeatNatural ? 'The boss defeated you!' : 'You gave up!'}</p>
 			<div class="game-over-stats">
 				<p>Stage Reached: <strong>{stage}</strong></p>
 				<p>Level: <strong>{level}</strong></p>
 				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
 				<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
 			</div>
+
+			<!-- Stats progression section -->
+			{#if startingStats && endingStats}
+				{@const changedStats = getChangedStats(startingStats, endingStats)}
+				{#if changedStats.length > 0}
+					<div class="stats-comparison">
+						<h3>Run Progression</h3>
+						{#each changedStats as stat (stat.key)}
+							<div class="stat-row">
+								<span class="stat-icon">{stat.icon}</span>
+								<span class="stat-label">{stat.label}</span>
+								<span class="stat-change">
+									{stat.formatStart} → {stat.formatEnd}
+								</span>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{/if}
+
 			<p class="gold-display">
 				Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span>
 			</p>
@@ -107,5 +157,46 @@
 		display: flex;
 		justify-content: center;
 		gap: 12px;
+	}
+
+	.stats-comparison {
+		background: rgba(0, 0, 0, 0.3);
+		padding: 16px;
+		border-radius: 8px;
+		margin: 16px 0;
+		max-height: 300px;
+		overflow-y: auto;
+	}
+
+	.stats-comparison h3 {
+		color: #a78bfa;
+		margin: 0 0 12px;
+		font-size: 1.2rem;
+		text-align: center;
+	}
+
+	.stat-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 4px 0;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.stat-icon {
+		font-size: 1.1rem;
+		width: 24px;
+	}
+
+	.stat-label {
+		flex: 1;
+		text-align: left;
+		font-weight: 500;
+	}
+
+	.stat-change {
+		color: #fbbf24;
+		font-weight: bold;
+		font-family: monospace;
 	}
 </style>

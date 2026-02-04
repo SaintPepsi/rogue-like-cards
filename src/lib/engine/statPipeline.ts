@@ -14,6 +14,10 @@ export const clampMin =
 	(min: number): StatStep =>
 	(v) =>
 		Math.max(min, v);
+export const clampMax =
+	(max: number): StatStep =>
+	(v) =>
+		Math.min(max, v);
 export const conditionalAdd = (n: number, condition: boolean): StatStep =>
 	condition ? (v) => v + n : (v) => v;
 

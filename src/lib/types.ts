@@ -32,8 +32,10 @@ export type PlayerStats = {
 	goldDropChance: number; // Chance for mobs to drop gold on kill
 	goldPerKill: number; // Bonus flat gold per kill drop
 	attackSpeed: number;
+	attackSpeedBonus: number; // Percentage bonus to attack speed (additive, then multiplied with base)
 	tapFrenzyBonus: number;
 	tapFrenzyDuration: number;
+	tapFrenzyDurationBonus: number; // Percentage bonus to frenzy duration
 	tapFrenzyStackMultiplier: number; // Multiplier on frenzy stacks per tap (legendary-only)
 	executeCap: number; // Max execute chance (from shop upgrades)
 };

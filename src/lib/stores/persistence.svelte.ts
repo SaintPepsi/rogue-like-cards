@@ -1,4 +1,4 @@
-import type { PlayerStats, Effect } from '$lib/types';
+import type { Effect, PlayerStats } from '$lib/types';
 
 export interface SavedUpgradeEvent {
 	type: 'levelup' | 'chest';
@@ -7,7 +7,6 @@ export interface SavedUpgradeEvent {
 }
 
 export interface SessionSaveData {
-	playerStats: PlayerStats;
 	effects: Effect[];
 	unlockedUpgradeIds: string[];
 	xp: number;
@@ -25,15 +24,19 @@ export interface SessionSaveData {
 	activeEvent?: SavedUpgradeEvent | null;
 	timestamp: number;
 	bossTimeRemaining?: number;
+	legendaryChoiceIds?: string[];
+	hasSelectedStartingLegendary?: boolean;
+	startingStats?: PlayerStats;
+	endingStats?: PlayerStats;
 }
 
 export interface PersistentSaveData {
 	gold: number;
 	purchasedUpgradeCounts: Record<string, number>;
 	executeCapBonus: number;
-	goldPerKillBonus: number;
 	shopChoiceIds?: string[];
 	rerollCost?: number;
+	hasCompletedFirstRun: boolean;
 }
 
 export function createPersistence(sessionKey: string, persistentKey: string) {
@@ -87,7 +90,16 @@ export function createPersistence(sessionKey: string, persistentKey: string) {
 			() => {
 				const saved = localStorage.getItem(persistentKey);
 				if (!saved) return null;
-				return JSON.parse(saved) as PersistentSaveData;
+				const parsed = JSON.parse(saved);
+				// Default hasCompletedFirstRun to false for legacy saves
+				return {
+					gold: parsed.gold ?? 0,
+					purchasedUpgradeCounts: parsed.purchasedUpgradeCounts ?? {},
+					executeCapBonus: parsed.executeCapBonus ?? 0,
+					shopChoiceIds: parsed.shopChoiceIds,
+					rerollCost: parsed.rerollCost,
+					hasCompletedFirstRun: parsed.hasCompletedFirstRun ?? false
+				};
 			},
 			null,
 			'Failed to load persistent data (corrupted data or localStorage unavailable):'

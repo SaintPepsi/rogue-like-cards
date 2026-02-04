@@ -13,6 +13,118 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.47.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added stats comparison on game over screen showing which stats changed during your run'
+			},
+			{
+				category: 'changed',
+				description:
+					'Enforced one-way navigation flow from game over to shop — removed back button to prevent confusion'
+			}
+		]
+	},
+	{
+		version: '0.46.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added automatic save data reset system for major beta updates to ensure clean testing of new game flows'
+			}
+		]
+	},
+	{
+		version: '0.43.0',
+		date: '2026-02-03',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added legendary upgrade selection at the start of each run after completing your first run'
+			},
+			{
+				category: 'new',
+				description:
+					'Added automatic changelog notifications showing new entries on version updates'
+			}
+		]
+	},
+	{
+		version: '0.44.0',
+		date: '2026-02-03',
+		changes: [
+			{
+				category: 'changed',
+				description:
+					'Redesigned critical hit system with `5` progression tiers and a `25%` hard cap'
+			},
+			{
+				category: 'changed',
+				description:
+					'Redesigned execute mechanic with `5` progression tiers and reduced base cap from `-10%` to `+5%`'
+			},
+			{
+				category: 'changed',
+				description: 'Converted attack speed to percentage-based bonus system'
+			},
+			{
+				category: 'changed',
+				description:
+					'Redesigned frenzy duration with base `-3s` reduced to `+1s` and separate flat/percentage upgrade paths'
+			},
+			{
+				category: 'changed',
+				description:
+					'Replaced linear lucky bonus with gaussian focus-point rarity system for more strategic upgrade selection'
+			},
+			{
+				category: 'new',
+				description: 'Added separate flat and percentage upgrade paths for gold per kill bonuses'
+			},
+			{
+				category: 'changed',
+				description:
+					'Spread XP multiplier upgrades across all `5` rarity tiers for better progression'
+			},
+			{
+				category: 'changed',
+				description: 'Increased rarity tier for multi-strike upgrades'
+			},
+			{
+				category: 'changed',
+				description:
+					'Halved base HP (enemy `-10` → `+5`, boss `-50` → `+25`) and doubled kills per wave (`-5` → `+10`) for faster combat pacing'
+			},
+			{
+				category: 'changed',
+				description: 'Halved base XP requirement from `-25` to `+12` for faster first level-up'
+			},
+			{
+				category: 'new',
+				description:
+					'Added tiered execute cap shop cards across `uncommon`, `rare`, and `epic` rarities'
+			},
+			{
+				category: 'changed',
+				description: 'Chest loot now uses actual lucky stat without artificial boosts'
+			},
+			{
+				category: 'fixed',
+				description: 'Tightened rarity curve to reduce excessive high-rarity card drops'
+			},
+			{
+				category: 'new',
+				description: 'Added rarity simulator dev tool for testing upgrade drop rates'
+			}
+		]
+	},
+	{
 		version: '0.42.0',
 		date: '2026-02-02',
 		changes: [
@@ -73,7 +185,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{
 				category: 'fixed',
-				description: 'Fixed chest chance cards displaying "+0%" instead of the actual value'
+				description: 'Fixed chest chance cards displaying "`+0%`" instead of the actual value'
 			},
 			{
 				category: 'fixed',
@@ -107,7 +219,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{
 				category: 'new',
-				description: 'Added 5 new upgrade cards for attack speed and frenzy bonuses'
+				description: 'Added `5` new upgrade cards for attack speed and frenzy bonuses'
 			},
 			{
 				category: 'changed',
@@ -157,11 +269,11 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{
 				category: 'changed',
-				description: 'Changed rarity drop rates to taper at 1/3 per tier for a steeper curve'
+				description: 'Changed rarity drop rates to taper at `1/3` per tier for a steeper curve'
 			},
 			{
 				category: 'changed',
-				description: 'Changed chest loot to only offer uncommon or better cards'
+				description: 'Changed chest loot to only offer `uncommon` or better cards'
 			},
 			{ category: 'changed', description: 'Disabled execute from triggering on boss enemies' },
 			{ category: 'fixed', description: 'Fixed gold drop stats not appearing in the stats panel' }
@@ -247,9 +359,9 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{
 				category: 'new',
-				description: 'Boss chests drop legendary-only loot with multiplied health'
+				description: 'Boss chests drop `legendary`-only loot with multiplied health'
 			},
-			{ category: 'new', description: 'Added 2 new chest spawn rate upgrade cards to discover' }
+			{ category: 'new', description: 'Added `2` new chest spawn rate upgrade cards to discover' }
 		]
 	},
 	{
@@ -263,7 +375,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{
 				category: 'new',
-				description: 'Added 3 new gold drop chance upgrade cards to discover during level-ups'
+				description: 'Added `3` new gold drop chance upgrade cards to discover during level-ups'
 			},
 			{
 				category: 'new',
@@ -319,7 +431,7 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{ category: 'new', description: 'Poison stacks have a duration and tick down over time' },
 			{ category: 'new', description: 'Enemies now show a poison stack counter' },
-			{ category: 'new', description: 'Added 8 new poison upgrade cards to discover' },
+			{ category: 'new', description: 'Added `8` new poison upgrade cards to discover' },
 			{ category: 'new', description: 'Stats panel now shows poison stack details' },
 			{
 				category: 'fixed',

@@ -102,7 +102,7 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('filters out execute upgrades when at cap', () => {
-		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3']);
+		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3', 'execute_4', 'execute_5']);
 
 		for (let i = 0; i < 20; i++) {
 			const result = getRandomUpgrades(3, 0, EXECUTE_CHANCE_BASE_CAP, EXECUTE_CHANCE_BASE_CAP, 0);
@@ -113,7 +113,7 @@ describe('getRandomUpgrades', () => {
 	});
 
 	test('allows execute upgrades when below cap', () => {
-		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3']);
+		const executeIds = new Set(['execute_1', 'execute_2', 'execute_3', 'execute_4', 'execute_5']);
 
 		let foundExecute = false;
 		for (let i = 0; i < 500; i++) {
@@ -226,7 +226,9 @@ describe('frenzy upgrade cards', () => {
 		'frenzy_bonus_3',
 		'frenzy_duration_1',
 		'frenzy_duration_2',
-		'frenzy_duration_3',
+		'frenzy_duration_bonus_1',
+		'frenzy_duration_bonus_2',
+		'frenzy_duration_bonus_3',
 		'frenzy_legendary_1'
 	];
 
@@ -237,9 +239,11 @@ describe('frenzy upgrade cards', () => {
 	});
 
 	test('frenzy cards have correct rarities', () => {
-		expect(getUpgradeById('frenzy_duration_1')!.rarity).toBe('uncommon');
-		expect(getUpgradeById('frenzy_duration_2')!.rarity).toBe('rare');
-		expect(getUpgradeById('frenzy_duration_3')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy_duration_1')!.rarity).toBe('common');
+		expect(getUpgradeById('frenzy_duration_2')!.rarity).toBe('uncommon');
+		expect(getUpgradeById('frenzy_duration_bonus_1')!.rarity).toBe('rare');
+		expect(getUpgradeById('frenzy_duration_bonus_2')!.rarity).toBe('epic');
+		expect(getUpgradeById('frenzy_duration_bonus_3')!.rarity).toBe('legendary');
 		expect(getUpgradeById('frenzy_bonus_3')!.rarity).toBe('epic');
 		expect(getUpgradeById('frenzy_legendary_1')!.rarity).toBe('legendary');
 	});
@@ -267,5 +271,304 @@ describe('frenzy upgrade cards', () => {
 			}
 		}
 		expect(foundFrenzyNew).toBe(true);
+	});
+});
+
+describe('gaussian lucky system', () => {
+	test('at 0 lucky, common dominates', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.common / 2000).toBeGreaterThan(0.7);
+	});
+
+	test('at 200% lucky, uncommon tier dominates over rare', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 2.0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.uncommon).toBeGreaterThan(counts.rare);
+		expect(counts.uncommon).toBeGreaterThan(counts.legendary);
+	});
+
+	test('at 1000% lucky, rare tier dominates over common and uncommon', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 10.0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.rare).toBeGreaterThan(counts.common);
+		expect(counts.rare).toBeGreaterThan(counts.uncommon);
+	});
+
+	test('legendary is never 100% even at extreme lucky', () => {
+		const counts: Record<string, number> = {
+			common: 0,
+			uncommon: 0,
+			rare: 0,
+			epic: 0,
+			legendary: 0
+		};
+		for (let i = 0; i < 2000; i++) {
+			const result = getRandomUpgrades(1, 100.0, 0, 0.05, 5);
+			counts[result[0].rarity]++;
+		}
+		expect(counts.legendary / 2000).toBeLessThan(1.0);
+		expect(counts.legendary / 2000).toBeGreaterThan(0.5);
+	});
+
+	test('focus point calculation matches design breakpoints', () => {
+		const fp = (lucky: number) => 4 * (1 - 1 / (1 + lucky / 7));
+		expect(fp(0)).toBeCloseTo(0.0);
+		expect(fp(1.0)).toBeCloseTo(0.5, 1);
+		expect(fp(2.0)).toBeCloseTo(0.89, 1);
+		expect(fp(5.0)).toBeCloseTo(1.67, 1);
+		expect(fp(10.0)).toBeCloseTo(2.35, 1);
+	});
+});
+
+describe('lucky cards (all tiers)', () => {
+	const luckyCards = [
+		{ id: 'lucky_1', rarity: 'common', value: 0.05 },
+		{ id: 'lucky_2', rarity: 'uncommon', value: 0.1 },
+		{ id: 'lucky_3', rarity: 'rare', value: 0.2 },
+		{ id: 'lucky_4', rarity: 'epic', value: 0.5 },
+		{ id: 'lucky_5', rarity: 'legendary', value: 1.0 }
+	];
+
+	test('5 lucky cards exist across all tiers', () => {
+		for (const { id, rarity, value } of luckyCards) {
+			const card = getUpgradeById(id)!;
+			expect(card, `${id} should exist`).toBeDefined();
+			expect(card.rarity).toBe(rarity);
+			expect(card.modifiers[0].stat).toBe('luckyChance');
+			expect(card.modifiers[0].value).toBe(value);
+		}
+	});
+
+	test('values increase with rarity', () => {
+		for (let i = 1; i < luckyCards.length; i++) {
+			expect(luckyCards[i].value).toBeGreaterThan(luckyCards[i - 1].value);
+		}
+	});
+});
+
+describe('multistrike rarity bump', () => {
+	test('multi_strike_1 is rare with +1', () => {
+		const card = getUpgradeById('multi_strike_1')!;
+		expect(card.rarity).toBe('rare');
+		expect(card.modifiers[0].value).toBe(1);
+	});
+	test('multi_strike_2 is epic with +2', () => {
+		const card = getUpgradeById('multi_strike_2')!;
+		expect(card.rarity).toBe('epic');
+		expect(card.modifiers[0].value).toBe(2);
+	});
+	test('multi_strike_3 is legendary with +3', () => {
+		const card = getUpgradeById('multi_strike_3')!;
+		expect(card.rarity).toBe('legendary');
+		expect(card.modifiers[0].value).toBe(3);
+	});
+});
+
+describe('execute rework', () => {
+	test('EXECUTE_CHANCE_BASE_CAP is 0.05', () => {
+		expect(EXECUTE_CHANCE_BASE_CAP).toBe(0.05);
+	});
+
+	const executeCards = [
+		{ id: 'execute_1', rarity: 'common', value: 0.001 },
+		{ id: 'execute_2', rarity: 'uncommon', value: 0.002 },
+		{ id: 'execute_3', rarity: 'rare', value: 0.005 },
+		{ id: 'execute_4', rarity: 'epic', value: 0.01 },
+		{ id: 'execute_5', rarity: 'legendary', value: 0.025 }
+	];
+
+	for (const { id, rarity, value } of executeCards) {
+		test(`${id} exists with rarity ${rarity} and executeChance ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'executeChance');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+});
+
+describe('gold per kill cards (two paths)', () => {
+	const flatGoldCards = [
+		{ id: 'gold_per_kill_1', rarity: 'common', value: 1 },
+		{ id: 'gold_per_kill_2', rarity: 'uncommon', value: 2 },
+		{ id: 'gold_per_kill_3', rarity: 'rare', value: 3 },
+		{ id: 'gold_per_kill_4', rarity: 'epic', value: 5 },
+		{ id: 'gold_per_kill_5', rarity: 'legendary', value: 10 }
+	];
+
+	for (const { id, rarity, value } of flatGoldCards) {
+		test(`${id} exists with rarity ${rarity} and goldPerKill ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'goldPerKill');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+
+	const pctGoldCards = [
+		{ id: 'gold_multiplier_1', rarity: 'rare', value: 0.1 },
+		{ id: 'gold_multiplier_2', rarity: 'epic', value: 0.25 },
+		{ id: 'gold_multiplier_3', rarity: 'legendary', value: 0.5 }
+	];
+
+	for (const { id, rarity, value } of pctGoldCards) {
+		test(`${id} exists with rarity ${rarity} and goldMultiplier ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'goldMultiplier');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+});
+
+describe('attack speed cards (percentage-based)', () => {
+	const speedCards = [
+		{ id: 'attack_speed_1', rarity: 'common', value: 0.05 },
+		{ id: 'attack_speed_2', rarity: 'uncommon', value: 0.1 },
+		{ id: 'attack_speed_3', rarity: 'rare', value: 0.25 },
+		{ id: 'attack_speed_4', rarity: 'epic', value: 0.5 },
+		{ id: 'attack_speed_5', rarity: 'legendary', value: 1.5 }
+	];
+
+	for (const { id, rarity, value } of speedCards) {
+		test(`${id} uses attackSpeedBonus (not flat attackSpeed)`, () => {
+			const card = getUpgradeById(id)!;
+			expect(card).toBeDefined();
+			expect(card.rarity).toBe(rarity);
+			expect(card.modifiers[0].stat).toBe('attackSpeedBonus');
+			expect(card.modifiers[0].value).toBe(value);
+		});
+	}
+
+	test('no upgrade cards use flat attackSpeed stat', () => {
+		const flatSpeedCards = allUpgrades.filter((u) =>
+			u.modifiers.some((m) => m.stat === 'attackSpeed')
+		);
+		expect(flatSpeedCards).toHaveLength(0);
+	});
+});
+
+describe('xp multiplier cards (all tiers)', () => {
+	const xpCards = [
+		{ id: 'xp_1', rarity: 'common', value: 0.05 },
+		{ id: 'xp_2', rarity: 'uncommon', value: 0.1 },
+		{ id: 'xp_3', rarity: 'rare', value: 0.15 },
+		{ id: 'xp_4', rarity: 'epic', value: 0.25 },
+		{ id: 'xp_5', rarity: 'legendary', value: 0.5 }
+	];
+
+	for (const { id, rarity, value } of xpCards) {
+		test(`${id} exists with rarity ${rarity} and xpMultiplier ${value}`, () => {
+			const card = getUpgradeById(id);
+			expect(card).toBeDefined();
+			expect(card!.rarity).toBe(rarity);
+			const mod = card!.modifiers.find((m) => m.stat === 'xpMultiplier');
+			expect(mod).toBeDefined();
+			expect(mod!.value).toBe(value);
+		});
+	}
+});
+
+describe('frenzy duration cards (split paths)', () => {
+	test('flat duration cards exist at common/uncommon', () => {
+		const flat1 = getUpgradeById('frenzy_duration_1')!;
+		expect(flat1.rarity).toBe('common');
+		expect(flat1.modifiers[0].stat).toBe('tapFrenzyDuration');
+		expect(flat1.modifiers[0].value).toBe(0.5);
+
+		const flat2 = getUpgradeById('frenzy_duration_2')!;
+		expect(flat2.rarity).toBe('uncommon');
+		expect(flat2.modifiers[0].stat).toBe('tapFrenzyDuration');
+		expect(flat2.modifiers[0].value).toBe(1);
+	});
+
+	test('percentage duration bonus cards exist at rare/epic/legendary', () => {
+		const pct1 = getUpgradeById('frenzy_duration_bonus_1')!;
+		expect(pct1.rarity).toBe('rare');
+		expect(pct1.modifiers[0].stat).toBe('tapFrenzyDurationBonus');
+		expect(pct1.modifiers[0].value).toBe(0.25);
+
+		const pct2 = getUpgradeById('frenzy_duration_bonus_2')!;
+		expect(pct2.rarity).toBe('epic');
+		expect(pct2.modifiers[0].stat).toBe('tapFrenzyDurationBonus');
+
+		const pct3 = getUpgradeById('frenzy_duration_bonus_3')!;
+		expect(pct3.rarity).toBe('legendary');
+		expect(pct3.modifiers[0].stat).toBe('tapFrenzyDurationBonus');
+		expect(pct3.modifiers[0].value).toBe(1.0);
+	});
+});
+
+describe('crit system (all tiers + prerequisite)', () => {
+	const critCards = [
+		{ id: 'crit_chance_1', rarity: 'common', value: 0.005 },
+		{ id: 'crit_chance_2', rarity: 'uncommon', value: 0.01 },
+		{ id: 'crit_chance_3', rarity: 'rare', value: 0.025 },
+		{ id: 'crit_chance_4', rarity: 'epic', value: 0.05 },
+		{ id: 'crit_chance_5', rarity: 'legendary', value: 0.1 }
+	];
+
+	for (const { id, rarity, value } of critCards) {
+		test(`${id} is ${rarity} with critChance ${value}`, () => {
+			const card = getUpgradeById(id)!;
+			expect(card).toBeDefined();
+			expect(card.rarity).toBe(rarity);
+			expect(card.modifiers[0].stat).toBe('critChance');
+			expect(card.modifiers[0].value).toBe(value);
+		});
+	}
+
+	test('crit damage cards are excluded when critChance is 0', () => {
+		const results = getRandomUpgrades(100, 0, 0, 0.05, 0, 'common', 0);
+		const critDamageCards = results.filter(
+			(u) =>
+				u.modifiers.some((m) => m.stat === 'critMultiplier') &&
+				!u.modifiers.some((m) => m.stat === 'critChance')
+		);
+		expect(critDamageCards).toHaveLength(0);
+	});
+
+	test('crit damage cards can appear when critChance > 0', () => {
+		// With high lucky to increase epic/uncommon chances, run many picks
+		let foundCritDamage = false;
+		for (let i = 0; i < 50 && !foundCritDamage; i++) {
+			const results = getRandomUpgrades(100, 5, 0, 0.05, 0, 'common', 0.1);
+			foundCritDamage = results.some((u) => u.id === 'crit_damage_1' || u.id === 'crit_damage_2');
+		}
+		expect(foundCritDamage).toBe(true);
 	});
 });

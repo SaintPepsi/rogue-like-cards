@@ -124,8 +124,10 @@ describe('createShop', () => {
 		const stats = createDefaultStats();
 		shop.open(stats);
 
-		const upgrade = shop.shopChoices[0];
-		if (upgrade.id === 'execute_cap' || upgrade.id === 'gold_per_kill') return;
+		const upgrade = shop.shopChoices.find(
+			(u) => !u.id.startsWith('execute_cap') && u.id !== 'gold_per_kill'
+		);
+		if (!upgrade) return;
 
 		const firstPrice = shop.getPrice(upgrade);
 		shop.buy(upgrade, stats);
@@ -197,7 +199,6 @@ describe('createShop', () => {
 			gold: 500,
 			purchasedUpgradeCounts: {},
 			executeCapBonus: 0,
-			goldPerKillBonus: 0,
 			rerollCost: 5
 		});
 
@@ -230,16 +231,20 @@ describe('createShop', () => {
 		const p = mockPersistence();
 		(p.loadPersistent as ReturnType<typeof vi.fn>).mockReturnValue({
 			gold: 500,
-			purchasedUpgradeCounts: { upgrade1: 2 },
-			executeCapBonus: 0.05,
-			goldPerKillBonus: 2
+			purchasedUpgradeCounts: { upgrade1: 2, gold_per_kill: 2 },
+			executeCapBonus: 0.05
 		});
 
 		const shop = createShop(p);
 		shop.load();
 
 		expect(shop.persistentGold).toBe(500);
-		expect(shop.purchasedUpgradeIds).toEqual(['upgrade1', 'upgrade1']);
+		expect(shop.purchasedUpgradeIds).toEqual([
+			'upgrade1',
+			'upgrade1',
+			'gold_per_kill',
+			'gold_per_kill'
+		]);
 	});
 
 	test('load restores shop choices from saved IDs', () => {
@@ -248,14 +253,14 @@ describe('createShop', () => {
 			gold: 10000,
 			purchasedUpgradeCounts: {},
 			executeCapBonus: 0,
-			goldPerKillBonus: 0,
 			shopChoiceIds: ['execute_cap', 'gold_per_kill']
 		});
 
 		const shop = createShop(p);
 		shop.load();
 
-		expect(shop.shopChoices.map((c) => c.id)).toEqual(['execute_cap', 'gold_per_kill']);
+		// Old 'execute_cap' maps to 'execute_cap_2' via backwards compat
+		expect(shop.shopChoices.map((c) => c.id)).toEqual(['execute_cap_2', 'gold_per_kill']);
 	});
 
 	test('fullReset clears all persistent state', () => {
@@ -292,10 +297,5 @@ describe('createShop', () => {
 	test('getExecuteCapValue returns base cap initially', () => {
 		const shop = createShop(persistence);
 		expect(shop.getExecuteCapValue()).toBeGreaterThan(0);
-	});
-
-	test('getGoldPerKillBonus starts at 0', () => {
-		const shop = createShop(persistence);
-		expect(shop.getGoldPerKillBonus()).toBe(0);
 	});
 });

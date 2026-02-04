@@ -22,6 +22,10 @@ import { createShop } from './shop.svelte';
 import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
 import { sfx } from '$lib/audio';
+import { allUpgrades, getRandomLegendaryUpgrades } from '$lib/data/upgrades';
+import { VERSION, RESET_VERSION } from '$lib/version';
+import { shouldTriggerReset } from '$lib/utils/versionComparison';
+import { getLastResetVersion, setLastResetVersion } from '$lib/utils/resetVersionStorage';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -36,8 +40,21 @@ function createGameState() {
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
 
+	// Stats comparison tracking
+	let startingStats = $state<PlayerStats | null>(null);
+	let endingStats = $state<PlayerStats | null>(null);
+
 	// UI state
 	let showGameOver = $state(false);
+	let wasDefeatNatural = $state(true); // Track if game over was from natural defeat vs give up
+
+	// Legendary start selection
+	let hasCompletedFirstRun = $state(false);
+	let hasSelectedStartingLegendary = $state(false);
+	let showLegendarySelection = $state(false);
+	let legendaryChoices = $state<Upgrade[]>([]);
+	// Track if we should show legendary selection on next reset (only after natural death)
+	let showLegendaryOnNextReset = $state(false);
 
 	// Reactive poison stack count — pipeline.getSystemState() reads from a plain Map
 	// which Svelte can't track, so we sync this after every pipeline mutation.
@@ -89,8 +106,10 @@ function createGameState() {
 			goldDropChance: statPipeline.get('goldDropChance'),
 			goldPerKill: statPipeline.get('goldPerKill'),
 			attackSpeed: statPipeline.get('attackSpeed'),
+			attackSpeedBonus: statPipeline.get('attackSpeedBonus'),
 			tapFrenzyBonus: statPipeline.get('tapFrenzyBonus'),
 			tapFrenzyDuration: statPipeline.get('tapFrenzyDuration'),
+			tapFrenzyDurationBonus: statPipeline.get('tapFrenzyDurationBonus'),
 			tapFrenzyStackMultiplier: statPipeline.get('tapFrenzyStackMultiplier'),
 			executeCap: shop.getExecuteCapValue()
 		};
@@ -101,26 +120,56 @@ function createGameState() {
 			luckyChance: statPipeline.get('luckyChance'),
 			executeChance: statPipeline.get('executeChance'),
 			executeCap: shop.getExecuteCapValue(),
-			poison: statPipeline.get('poison')
+			poison: statPipeline.get('poison'),
+			critChance: statPipeline.get('critChance')
 		};
 	}
 
-	function handleBossExpired() {
+	function handleBossExpired(isNaturalDeath: boolean = true) {
+		// Capture final stats BEFORE any state changes
+		// Why: Ensures we capture stats from the actual run before gameLoop.reset()
+		// clears all run-based effects and upgrades, which would show incorrect stats
+		endingStats = getEffectiveStats();
+
 		gameLoop.reset();
-		shop.depositGold(gold);
+		shop.depositGold(gold); // This calls shop.save() which saves persistent data
 		sfx.play('game:over');
 		showGameOver = true;
+		wasDefeatNatural = isNaturalDeath;
+
+		// Set meta-progression flag only on natural death (not give up)
+		if (isNaturalDeath) {
+			hasCompletedFirstRun = true;
+			// Only show legendary selection on next reset if this was a natural death
+			showLegendaryOnNextReset = true;
+		} else {
+			// Give up doesn't trigger legendary selection
+			showLegendaryOnNextReset = false;
+		}
+
+		// Save persistent data again to include hasCompletedFirstRun
+		// DECISION: We save twice (shop.save inside depositGold, then here) to ensure
+		// hasCompletedFirstRun is persisted. This is acceptable since it only happens on game over.
+		const persistentData = persistence.loadPersistent();
+		if (persistentData) {
+			persistence.savePersistent({
+				...persistentData,
+				// Only update hasCompletedFirstRun if this is a natural death
+				hasCompletedFirstRun: isNaturalDeath ? true : (persistentData.hasCompletedFirstRun ?? false)
+			});
+		}
+
 		persistence.clearSession();
 	}
 
 	function giveUp() {
 		if (showGameOver) return;
-		handleBossExpired();
+		handleBossExpired(false); // Give up is not a natural death, don't unlock legendaries
 	}
 
 	// Centralized check: is the game currently paused by a modal?
 	function isModalOpen() {
-		return showGameOver || leveling.hasActiveEvent;
+		return showGameOver || leveling.hasActiveEvent || showLegendarySelection;
 	}
 
 	function syncPoisonStacks() {
@@ -234,11 +283,10 @@ function createGameState() {
 
 			enemy.advanceWave();
 
-			const effectiveGoldPerKill = playerStats.goldPerKill + shop.getGoldPerKillBonus();
 			if (shouldDropGold(playerStats.goldDropChance, Math.random)) {
 				const goldReward = enemy.isBoss
-					? getBossGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier)
-					: getEnemyGoldReward(enemy.stage, effectiveGoldPerKill, playerStats.goldMultiplier);
+					? getBossGoldReward(enemy.stage, playerStats.goldPerKill, playerStats.goldMultiplier)
+					: getEnemyGoldReward(enemy.stage, playerStats.goldPerKill, playerStats.goldMultiplier);
 				gold += goldReward;
 				ui.addGoldDrop(goldReward);
 				sfx.play('gold:drop');
@@ -317,6 +365,71 @@ function createGameState() {
 		saveGame();
 	}
 
+	function selectLegendaryUpgrade(upgrade: Upgrade | null): void {
+		if (upgrade !== null) {
+			// Acquire upgrade via pipeline
+			statPipeline.acquireUpgrade(upgrade.id);
+			if (upgrade.onAcquire) upgrade.onAcquire();
+
+			// Track unlocked upgrades for collection
+			unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+
+			// Track special effects — same pattern as selectUpgrade
+			if (upgrade.modifiers.length > 0) {
+				const effectName = upgrade.title;
+				if (!effects.find((e) => e.name === effectName)) {
+					effects.push({
+						name: effectName,
+						description: upgrade.modifiers
+							.map((m) => {
+								const entry = statRegistry.find((s) => s.key === m.stat);
+								const formatter = entry ? (entry.formatMod ?? entry.format) : null;
+								return formatter
+									? `${entry!.label} ${formatter(m.value)}`
+									: `${m.stat} +${m.value}`;
+							})
+							.join(', ')
+					});
+				}
+			}
+		}
+
+		// Close modal and clear choices (whether upgrade was selected or skipped)
+		showLegendarySelection = false;
+		legendaryChoices = [];
+
+		// Mark that user has made their selection for this run
+		hasSelectedStartingLegendary = true;
+
+		// Update session data to persist the flag and clear legendary choices
+		saveGame();
+
+		// Resume game loop
+		gameLoop.resume();
+	}
+
+	function startNewRunWithLegendary(): void {
+		if (showLegendaryOnNextReset && !hasSelectedStartingLegendary) {
+			// Get 3 random legendary upgrades
+			legendaryChoices = getRandomLegendaryUpgrades(3);
+
+			// Only show modal if we have legendaries
+			if (legendaryChoices.length > 0) {
+				showLegendarySelection = true;
+				gameLoop.pause();
+				saveGame(); // Persist legendary choices so they survive refresh
+			} else {
+				// No legendaries available (edge case)
+				enemy.spawnEnemy(statPipeline.get('greed'));
+			}
+			// Clear the flag after consuming it
+			showLegendaryOnNextReset = false;
+		} else {
+			// First run ever OR already selected - spawn enemy immediately
+			enemy.spawnEnemy(statPipeline.get('greed'));
+		}
+	}
+
 	function openNextUpgrade() {
 		if (!leveling.openNextUpgrade()) return;
 		gameLoop.pause();
@@ -332,7 +445,6 @@ function createGameState() {
 
 	function saveGame() {
 		persistence.saveSession({
-			playerStats: getEffectiveStats(),
 			effects: [...effects],
 			unlockedUpgradeIds: [...unlockedUpgrades],
 			xp: leveling.xp,
@@ -349,7 +461,11 @@ function createGameState() {
 			upgradeQueue: leveling.upgradeQueue.map(serializeEvent),
 			activeEvent: leveling.activeEvent ? serializeEvent(leveling.activeEvent) : null,
 			timestamp: Date.now(),
-			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined
+			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined,
+			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
+			hasSelectedStartingLegendary,
+			startingStats: startingStats ?? undefined,
+			endingStats: endingStats ?? undefined
 		});
 	}
 
@@ -391,6 +507,28 @@ function createGameState() {
 			isBossChest: data.isBossChest ?? false
 		});
 
+		// Restore hasSelectedStartingLegendary flag from session
+		hasSelectedStartingLegendary = data.hasSelectedStartingLegendary ?? false;
+
+		// Restore legendary choices if they exist AND user hasn't already selected
+		if (
+			data.legendaryChoiceIds &&
+			data.legendaryChoiceIds.length > 0 &&
+			!hasSelectedStartingLegendary
+		) {
+			legendaryChoices = data.legendaryChoiceIds
+				.map((id) => allUpgrades.find((u) => u.id === id))
+				.filter((u): u is Upgrade => u !== undefined);
+
+			if (legendaryChoices.length > 0) {
+				showLegendarySelection = true;
+			}
+		}
+
+		// Restore stats comparison data
+		startingStats = data.startingStats ?? null;
+		endingStats = data.endingStats ?? null;
+
 		return true;
 	}
 
@@ -400,7 +538,8 @@ function createGameState() {
 			onSystemTick: tickSystems,
 			onBossExpired: handleBossExpired,
 			onBossTimerUrgent: () => sfx.play('boss:clockTicking'),
-			getAttackSpeed: () => statPipeline.get('attackSpeed'),
+			getAttackSpeed: () =>
+				statPipeline.get('attackSpeed') * (1 + statPipeline.get('attackSpeedBonus')),
 			getFrenzyCount: () => frenzy.count
 		};
 	}
@@ -414,6 +553,11 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
+		// DECISION: hasCompletedFirstRun is a persistent meta-progression flag (stored in PersistentSaveData)
+		// that tracks whether the player has ever completed a run. It should NOT be reset here since
+		// resetGame() is for starting a new run (preserving meta-progression), not for clearing all progress.
+		// It is only reset in fullReset() which clears all persistent data.
+		hasSelectedStartingLegendary = false; // Reset for new run
 		ui.reset();
 		leveling.reset();
 		showGameOver = false;
@@ -421,13 +565,35 @@ function createGameState() {
 		persistence.clearSession();
 
 		applyShopUpgrades();
+
+		// Capture starting baseline (base + shop upgrades only)
+		startingStats = getEffectiveStats();
+
+		// Reset enemy state (this spawns an initial enemy)
 		enemy.reset(statPipeline.get('greed'));
 
 		gameLoop.start(buildGameLoopCallbacks());
+
+		// Show legendary selection only if the previous run ended with a natural death
+		// (tracked by showLegendaryOnNextReset flag) AND user hasn't already selected
+		if (showLegendaryOnNextReset && !hasSelectedStartingLegendary) {
+			legendaryChoices = getRandomLegendaryUpgrades(3);
+			if (legendaryChoices.length > 0) {
+				showLegendarySelection = true;
+				gameLoop.pause();
+				saveGame(); // Persist legendary choices so they survive refresh
+			}
+		}
+		// Clear the flag after consuming it
+		showLegendaryOnNextReset = false;
 	}
 
 	function fullReset() {
 		shop.fullReset();
+		// DECISION: Reset meta-progression flags here since fullReset() clears ALL persistent data
+		// (unlike resetGame() which preserves meta-progression between runs)
+		hasCompletedFirstRun = false;
+		showLegendaryOnNextReset = false;
 		resetGame();
 	}
 
@@ -441,11 +607,34 @@ function createGameState() {
 	}
 
 	function init() {
+		// Check if we need to reset due to version change
+		const lastResetVersion = getLastResetVersion();
+		if (shouldTriggerReset(VERSION, RESET_VERSION, lastResetVersion)) {
+			persistence.clearSession();
+			persistence.clearPersistent();
+			setLastResetVersion(RESET_VERSION);
+		}
+
+		// Save reset version for first-time players
+		if (!lastResetVersion) {
+			setLastResetVersion(RESET_VERSION);
+		}
+
+		// Continue with normal initialization
 		shop.load();
+
+		// Load persistent data (includes hasCompletedFirstRun)
+		const persistentData = persistence.loadPersistent();
+		if (persistentData) {
+			hasCompletedFirstRun = persistentData.hasCompletedFirstRun;
+			// On fresh page load, if player has completed a run, they should see legendary selection
+			showLegendaryOnNextReset = persistentData.hasCompletedFirstRun ?? false;
+		}
 
 		if (!loadGame()) {
 			applyShopUpgrades();
-			enemy.spawnEnemy(statPipeline.get('greed'));
+			// Start new run with legendary selection (or spawn enemy immediately)
+			startNewRunWithLegendary();
 		} else {
 			pipeline.refreshSystems(getEffectiveStats());
 			if (enemy.isBoss) {
@@ -500,6 +689,21 @@ function createGameState() {
 		},
 		get showGameOver() {
 			return showGameOver;
+		},
+		get wasDefeatNatural() {
+			return wasDefeatNatural;
+		},
+		get showLegendarySelection() {
+			return showLegendarySelection;
+		},
+		get legendaryChoices() {
+			return legendaryChoices;
+		},
+		get hasCompletedFirstRun() {
+			return hasCompletedFirstRun;
+		},
+		get hasSelectedStartingLegendary() {
+			return hasSelectedStartingLegendary;
 		},
 		get upgradeChoices() {
 			return leveling.upgradeChoices;
@@ -556,6 +760,12 @@ function createGameState() {
 		get frenzyStacks() {
 			return frenzy.count;
 		},
+		get startingStats() {
+			return startingStats;
+		},
+		get endingStats() {
+			return endingStats;
+		},
 
 		// Actions
 		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
@@ -567,17 +777,29 @@ function createGameState() {
 		},
 		pointerUp: () => gameLoop.pointerUp(),
 		selectUpgrade,
+		selectLegendaryUpgrade,
 		openNextUpgrade,
 		resetGame,
 		fullReset,
 		giveUp,
 		init,
-		openShop: () => shop.open(getEffectiveStats()),
+		openShop: () => {
+			showGameOver = false;
+			shop.open(getEffectiveStats());
+		},
 		closeShop: () => shop.close(),
 		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
 		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade),
 		getUpgradeLevel: (upgrade: Upgrade) => shop.getUpgradeLevel(upgrade),
-		rerollShop: () => shop.reroll(getEffectiveStats())
+		rerollShop: () => shop.reroll(getEffectiveStats()),
+
+		// Test-only methods
+		__test__: {
+			triggerBossExpired: (isNaturalDeath: boolean = true) => handleBossExpired(isNaturalDeath),
+			get bossTimerMax() {
+				return bossTimerMax;
+			}
+		}
 	};
 }
 

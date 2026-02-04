@@ -7,10 +7,10 @@ import { formatNumber } from '$lib/format';
 //   critMultiplier: 1.5x — standard ARPG crit bonus; higher base would devalue crit-damage cards
 //   chestChance: 5% — roughly 1 chest per wave (5 kills), keeps gold income predictable
 //   bossChestChance: 0.1% — ultra-rare windfall event (~1 per 1000 boss kills), legendary-gated
-//   executeCap: 10% — hard floor prevents execute from trivializing bosses
+//   executeCap: 5% — reduced from 10%; execute is instant kill so even 5% is very strong. Shop upgrades raise the cap.
 //   poisonMaxStacks/Duration: 5/5 — conservative base so poison-build cards feel impactful when stacked
 //   tapFrenzyBonus: 5% per tap — requires rapid tapping to meaningfully boost DPS (~20 taps = double speed)
-//   tapFrenzyDuration: 3s — short window forces active engagement, decays fast if player stops
+//   tapFrenzyDuration: 1s — very short base window; flat cards add seconds, % cards multiply total
 export function createDefaultStats(): PlayerStats {
 	return {
 		damage: 1,
@@ -34,10 +34,12 @@ export function createDefaultStats(): PlayerStats {
 		goldDropChance: 0.1,
 		goldPerKill: 0,
 		attackSpeed: 0.8,
+		attackSpeedBonus: 0,
 		tapFrenzyBonus: 0.05,
-		tapFrenzyDuration: 3,
+		tapFrenzyDuration: 1,
+		tapFrenzyDurationBonus: 0,
 		tapFrenzyStackMultiplier: 1,
-		executeCap: 0.1
+		executeCap: 0.05
 	};
 }
 
@@ -79,7 +81,7 @@ export const statRegistry: StatEntry[] = [
 	},
 	{
 		key: 'damageMultiplier',
-		icon: '⚔️',
+		icon: '⚔️💥',
 		label: 'Damage Bonus',
 		description: 'Percentage bonus applied to all damage.',
 		format: asBonusPercent,
@@ -174,7 +176,7 @@ export const statRegistry: StatEntry[] = [
 		key: 'luckyChance',
 		icon: '🍀',
 		label: 'Lucky',
-		description: 'Bonus chance to be offered rare upgrades.',
+		description: 'Increases chance at higher rarity upgrades.',
 		format: asPercent,
 		formatMod: asPlusPercent
 	},
@@ -240,6 +242,13 @@ export const statRegistry: StatEntry[] = [
 		alwaysShow: true
 	},
 	{
+		key: 'attackSpeedBonus',
+		icon: '🗡️',
+		label: 'Attack Speed Bonus',
+		description: 'Percentage bonus applied to base attack speed.',
+		format: asPlusPercent
+	},
+	{
 		key: 'tapFrenzyBonus',
 		icon: '✨',
 		label: 'Frenzy Bonus',
@@ -254,6 +263,13 @@ export const statRegistry: StatEntry[] = [
 		description: 'How long the frenzy effect lasts.',
 		format: (v) => `${v}s`,
 		formatMod: asPlusSeconds
+	},
+	{
+		key: 'tapFrenzyDurationBonus',
+		icon: '⏳',
+		label: 'Frenzy Duration Bonus',
+		description: 'Percentage bonus applied to frenzy duration.',
+		format: asPlusPercent
 	},
 	{
 		key: 'tapFrenzyStackMultiplier',

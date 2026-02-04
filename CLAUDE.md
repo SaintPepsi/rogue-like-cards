@@ -50,8 +50,63 @@ function addItem(data: Omit<Item, 'id'>) {
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
 - Prefer early returns over nested `if/else` blocks. Guard clauses at the top of a function make the happy path obvious and reduce indentation depth.
-- Do not use `as any`. Use specific type assertions (`as SomeType`), generics, or restructure code to avoid the need for casts.
+- Never use the `any` type. Always use explicit types, whether in function parameters, return types, variable declarations, or type assertions. Use specific type assertions (`as SomeType`), generics, unions, or restructure code to avoid the need for `any`.
 - Use descriptive function names. Avoid cryptic abbreviations like `pct`, `num`, `fmt`. Prefer self-explanatory names like `asPercent`, `asPlusNumber`, `formatPrice`.
+
+## Component Reuse
+
+Always explore the codebase before creating new components. Reuse existing patterns and components to maintain consistency.
+
+### Exploration first
+
+Before implementing ANY UI component or pattern:
+
+1. Search for similar existing components (`Glob`, `Grep`, or `Task` tool with `Explore` agent)
+2. Check if `bits-ui` provides a suitable primitive
+3. Look for existing utility hooks (e.g., `useCardFlip`, `useCardSelect`)
+4. Review similar modals/components to match existing patterns
+
+### Use bits-ui by default
+
+For common UI primitives (buttons, dialogs, tooltips, etc.), always use `bits-ui` components first. Do not reinvent wheels.
+
+### Extract reusable components
+
+When creating custom UI patterns:
+
+- Extract them into dedicated components immediately
+- Place them in `src/lib/components/`
+- Use Svelte 5 snippets to avoid duplicating rendering logic
+- Ensure new components match existing design patterns
+
+### Anti-patterns (do not use)
+
+- **Reimplementing existing components from scratch** — Always check if something similar exists first
+- **Duplicating rendering logic** — Use `{#snippet}` blocks to define once, render multiple times
+- **Ignoring existing patterns** — New modals/forms should match the structure of existing ones
+- **Creating custom primitives** — Use `bits-ui` for buttons, dialogs, tooltips, etc.
+
+### Canonical examples
+
+- **Card rendering:** `LevelUpModal` and `LegendarySelectionModal` both use `CardCarousel`, `useCardFlip`, `useCardSelect` hooks
+- **Modals:** All modals follow the same overlay + content structure with consistent animations
+- **Buttons:** Use `bits-ui`'s `Button.Root` component, not raw `<button>` elements
+
+## Design Document Management
+
+Track the lifecycle of planning documents by moving them to a completed folder once they've been used.
+
+### When to move documents
+
+- **Design documents:** After writing an implementation plan from a design markdown file, move the design file to the completed folder.
+- **Implementation plans:** After executing a plan from an implementation markdown file, move it to the completed folder.
+
+### Why
+
+- Clearly separates active work from completed work
+- Maintains a historical record of design decisions
+- Prevents confusion about which documents are still relevant
+- Keeps the active planning directory focused on current tasks
 
 ## Code Proximity Principles
 

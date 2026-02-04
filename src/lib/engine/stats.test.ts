@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { createDefaultStats } from './stats';
+import { createDefaultStats, statRegistry } from './stats';
 
 describe('createDefaultStats', () => {
 	test('returns fresh PlayerStats with correct defaults', () => {
@@ -24,6 +24,18 @@ describe('createDefaultStats', () => {
 		expect(stats.goldMultiplier).toBe(1);
 	});
 
+	test('attackSpeedBonus defaults to 0', () => {
+		expect(createDefaultStats().attackSpeedBonus).toBe(0);
+	});
+
+	test('tapFrenzyDurationBonus defaults to 0', () => {
+		expect(createDefaultStats().tapFrenzyDurationBonus).toBe(0);
+	});
+
+	test('tapFrenzyDuration base is 1s (reduced from 3s)', () => {
+		expect(createDefaultStats().tapFrenzyDuration).toBe(1);
+	});
+
 	test('returns a new object each time (no shared references)', () => {
 		const a = createDefaultStats();
 		const b = createDefaultStats();
@@ -31,5 +43,13 @@ describe('createDefaultStats', () => {
 		expect(a).not.toBe(b);
 		a.damage = 999;
 		expect(b.damage).toBe(1);
+	});
+});
+
+describe('statRegistry', () => {
+	test('has entries for new balance stats', () => {
+		const keys = statRegistry.map((s) => s.key);
+		expect(keys).toContain('attackSpeedBonus');
+		expect(keys).toContain('tapFrenzyDurationBonus');
 	});
 });

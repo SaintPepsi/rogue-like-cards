@@ -1,6 +1,6 @@
-// DECISION: 5 kills per wave keeps waves short (~5-10s) so players feel constant progression.
-// Lower values (3) made waves trivial; higher values (7+) felt grindy before boss encounters.
-export const KILLS_PER_WAVE = 5;
+// DECISION: 10 kills per wave (up from 5). Combined with halved base HP,
+// each wave has similar total HP but more individual kills — more upgrade/loot opportunities.
+export const KILLS_PER_WAVE = 10;
 
 // DECISION: 30s boss timer creates urgency without being punishing.
 // 20s was too tight for under-geared players; 45s removed all tension.
@@ -25,16 +25,18 @@ export function getGreedMultiplier(greed: number): number {
 	return 1 + greed;
 }
 
+// DECISION: Base HP halved (10→5, 50→25, 20→10). With doubled kills per wave,
+// total HP per wave is similar but enemies die faster — feels more action-packed.
 export function getEnemyHealth(stage: number, greed: number): number {
-	return Math.floor(10 * getStageMultiplier(stage) * getGreedMultiplier(greed));
+	return Math.floor(5 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
 export function getBossHealth(stage: number, greed: number): number {
-	return Math.floor(50 * getStageMultiplier(stage) * getGreedMultiplier(greed));
+	return Math.floor(25 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
 export function getChestHealth(stage: number, greed: number): number {
-	return Math.floor(20 * getStageMultiplier(stage) * getGreedMultiplier(greed));
+	return Math.floor(10 * getStageMultiplier(stage) * getGreedMultiplier(greed));
 }
 
 export function getBossChestHealth(stage: number, greed: number): number {
@@ -100,10 +102,11 @@ export function shouldDropGold(goldDropChance: number, rng: () => number): boole
 	return rng() < goldDropChance;
 }
 
-// DECISION: Base XP 25 with 1.5x growth per level.
-// Originally 10, but that caused level-up spam in early stages (leveling every 1-2 kills).
-// 25 means level 1→2 requires ~2-3 kills, scaling steeply to prevent trivial late-game leveling.
-export function getXpToNextLevel(level: number, base: number = 25): number {
+// DECISION: Base XP 12 with 1.5x growth per level.
+// Was 25 but felt too slow for the first level-up with halved enemy HP.
+// 12 means level 1→2 in ~2-3 kills, giving an early upgrade quickly.
+// The 1.5x curve still makes later levels steep.
+export function getXpToNextLevel(level: number, base: number = 12): number {
 	const SOFT_CAP_LEVEL = 100;
 	if (level <= SOFT_CAP_LEVEL) {
 		return Math.floor(base * Math.pow(1.5, level - 1));

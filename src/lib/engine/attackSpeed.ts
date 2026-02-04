@@ -1,9 +1,10 @@
 export function getEffectiveAttackSpeed(
 	baseAttackSpeed: number,
 	frenzyStacks: number,
-	tapFrenzyBonus: number
+	tapFrenzyBonus: number,
+	attackSpeedBonus: number = 0
 ): number {
-	return baseAttackSpeed * (1 + frenzyStacks * tapFrenzyBonus);
+	return baseAttackSpeed * (1 + attackSpeedBonus) * (1 + frenzyStacks * tapFrenzyBonus);
 }
 
 export function getAttackIntervalMs(attackSpeed: number): number {

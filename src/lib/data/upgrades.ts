@@ -1,18 +1,18 @@
-import type { Upgrade, StatModifier } from '$lib/types';
 import { statRegistry } from '$lib/engine/stats';
+import type { StatModifier, Upgrade } from '$lib/types';
 
 // Card images
-import swordImg from '$lib/assets/images/cards/sword.png';
-import axeImg from '$lib/assets/images/cards/axe.png';
 import attackImg from '$lib/assets/images/cards/attack.png';
-import fireImg from '$lib/assets/images/cards/fire.png';
+import axeImg from '$lib/assets/images/cards/axe.png';
 import bookImg from '$lib/assets/images/cards/book.png';
-import chestImg from '$lib/assets/images/cards/chest.png';
-import poisonImg from '$lib/assets/images/cards/poison.png';
-import timerImg from '$lib/assets/images/cards/timer.png';
 import coinsImg from '$lib/assets/images/cards/coins.png';
+import fireImg from '$lib/assets/images/cards/fire.png';
 import hammerImg from '$lib/assets/images/cards/hammer.png';
 import pickaxeImg from '$lib/assets/images/cards/pickaxe.png';
+import poisonImg from '$lib/assets/images/cards/poison.png';
+import swordImg from '$lib/assets/images/cards/sword.png';
+import timerImg from '$lib/assets/images/cards/timer.png';
+import chestImg from '$lib/assets/images/chest-closed.png';
 import mimicImg from '$lib/assets/images/mimic-closed.png';
 
 const _allUpgrades = [
@@ -47,27 +47,44 @@ const _allUpgrades = [
 	},
 
 	// === CRIT CHANCE UPGRADES ===
+	// DECISION: 0.5% increments with 25% hard cap. At 0.5% per common card, reaching
+	// the cap requires ~50 common crit cards — but higher tiers and combos provide
+	// larger chunks, so a crit build can cap in ~10-15 targeted picks.
 	{
 		id: 'crit_chance_1',
 		title: 'Keen Eye',
 		rarity: 'common',
 		image: attackImg,
-		modifiers: [{ stat: 'critChance', value: 0.05 }]
+		modifiers: [{ stat: 'critChance', value: 0.005 }]
 	},
 	{
 		id: 'crit_chance_2',
 		title: "Assassin's Focus",
 		rarity: 'uncommon',
 		image: attackImg,
-		modifiers: [{ stat: 'critChance', value: 0.1 }]
+		modifiers: [{ stat: 'critChance', value: 0.01 }]
 	},
 	{
 		id: 'crit_chance_3',
-		title: 'Death Mark',
+		title: 'Precision Strike',
 		rarity: 'rare',
 		image: attackImg,
+		modifiers: [{ stat: 'critChance', value: 0.025 }]
+	},
+	{
+		id: 'crit_chance_4',
+		title: 'Death Mark',
+		rarity: 'epic',
+		image: attackImg,
+		modifiers: [{ stat: 'critChance', value: 0.05 }]
+	},
+	{
+		id: 'crit_chance_5',
+		title: "Assassin's Creed",
+		rarity: 'legendary',
+		image: attackImg,
 		modifiers: [
-			{ stat: 'critChance', value: 0.15 },
+			{ stat: 'critChance', value: 0.1 },
 			{ stat: 'critMultiplier', value: 0.5 }
 		]
 	},
@@ -89,17 +106,40 @@ const _allUpgrades = [
 	},
 
 	// === XP UPGRADES ===
+	// DECISION: Lower values spread across all tiers. XP multiplier already has sqrt diminishing
+	// returns in the reward formula, so even small bonuses compound meaningfully at high values.
 	{
 		id: 'xp_1',
 		title: 'Quick Learner',
 		rarity: 'common',
 		image: bookImg,
-		modifiers: [{ stat: 'xpMultiplier', value: 0.25 }]
+		modifiers: [{ stat: 'xpMultiplier', value: 0.05 }]
 	},
 	{
 		id: 'xp_2',
 		title: 'Wisdom',
 		rarity: 'uncommon',
+		image: bookImg,
+		modifiers: [{ stat: 'xpMultiplier', value: 0.1 }]
+	},
+	{
+		id: 'xp_3',
+		title: 'Scholar',
+		rarity: 'rare',
+		image: bookImg,
+		modifiers: [{ stat: 'xpMultiplier', value: 0.15 }]
+	},
+	{
+		id: 'xp_4',
+		title: 'Enlightenment',
+		rarity: 'epic',
+		image: bookImg,
+		modifiers: [{ stat: 'xpMultiplier', value: 0.25 }]
+	},
+	{
+		id: 'xp_5',
+		title: 'Transcendence',
+		rarity: 'legendary',
 		image: bookImg,
 		modifiers: [{ stat: 'xpMultiplier', value: 0.5 }]
 	},
@@ -197,24 +237,26 @@ const _allUpgrades = [
 	},
 
 	// === MULTI-STRIKE UPGRADES ===
+	// DECISION: Multistrike bumped up one rarity tier — multi-hit is too powerful at lower rarities
+	// since it multiplies all on-hit effects (execute, poison application, crit rolls).
 	{
 		id: 'multi_strike_1',
 		title: 'Double Tap',
-		rarity: 'uncommon',
+		rarity: 'rare',
 		image: swordImg,
 		modifiers: [{ stat: 'multiStrike', value: 1 }]
 	},
 	{
 		id: 'multi_strike_2',
 		title: 'Flurry',
-		rarity: 'rare',
+		rarity: 'epic',
 		image: swordImg,
 		modifiers: [{ stat: 'multiStrike', value: 2 }]
 	},
 	{
 		id: 'multi_strike_3',
 		title: 'Blade Storm',
-		rarity: 'epic',
+		rarity: 'legendary',
 		image: axeImg,
 		modifiers: [{ stat: 'multiStrike', value: 3 }]
 	},
@@ -229,26 +271,42 @@ const _allUpgrades = [
 	// },
 
 	// === EXECUTE ===
+	// DECISION: 5 tiers with lower values, base cap reduced from 10% to 5%.
+	// Execute is the most powerful mechanic (instant kill) so per-card values stay tiny.
 	{
 		id: 'execute_1',
 		title: 'Mercy Kill',
-		rarity: 'uncommon',
+		rarity: 'common',
 		image: pickaxeImg,
-		modifiers: [{ stat: 'executeChance', value: 0.005 }]
+		modifiers: [{ stat: 'executeChance', value: 0.001 }]
 	},
 	{
 		id: 'execute_2',
 		title: 'Culling Blade',
-		rarity: 'rare',
-		image: axeImg,
-		modifiers: [{ stat: 'executeChance', value: 0.01 }]
+		rarity: 'uncommon',
+		image: pickaxeImg,
+		modifiers: [{ stat: 'executeChance', value: 0.002 }]
 	},
 	{
 		id: 'execute_3',
 		title: 'Death Sentence',
+		rarity: 'rare',
+		image: axeImg,
+		modifiers: [{ stat: 'executeChance', value: 0.005 }]
+	},
+	{
+		id: 'execute_4',
+		title: "Reaper's Mark",
 		rarity: 'epic',
 		image: axeImg,
-		modifiers: [{ stat: 'executeChance', value: 0.02 }]
+		modifiers: [{ stat: 'executeChance', value: 0.01 }]
+	},
+	{
+		id: 'execute_5',
+		title: 'Final Judgment',
+		rarity: 'legendary',
+		image: axeImg,
+		modifiers: [{ stat: 'executeChance', value: 0.025 }]
 	},
 
 	// === BOSS TIMER ===
@@ -275,7 +333,7 @@ const _allUpgrades = [
 		image: coinsImg,
 		modifiers: [
 			{ stat: 'greed', value: 0.5 },
-			{ stat: 'xpMultiplier', value: 1 }
+			{ stat: 'xpMultiplier', value: 0.1 }
 		]
 	},
 	{
@@ -285,7 +343,7 @@ const _allUpgrades = [
 		image: coinsImg,
 		modifiers: [
 			{ stat: 'greed', value: 1 },
-			{ stat: 'xpMultiplier', value: 2 }
+			{ stat: 'xpMultiplier', value: 0.25 }
 		]
 	},
 
@@ -338,19 +396,43 @@ const _allUpgrades = [
 	},
 
 	// === LUCKY ===
+	// DECISION: 5 tiers with conservative values. Lucky shifts the gaussian focus point
+	// toward higher rarities asymptotically. Even small amounts matter — 0.5 total lucky
+	// moves focus to ~0.8 (still weighted toward common/uncommon but rare starts appearing).
 	{
 		id: 'lucky_1',
 		title: 'Lucky Charm',
+		rarity: 'common',
+		image: chestImg,
+		modifiers: [{ stat: 'luckyChance', value: 0.05 }]
+	},
+	{
+		id: 'lucky_2',
+		title: "Rabbit's Foot",
 		rarity: 'uncommon',
 		image: chestImg,
 		modifiers: [{ stat: 'luckyChance', value: 0.1 }]
 	},
 	{
-		id: 'lucky_2',
+		id: 'lucky_3',
 		title: "Fortune's Favor",
 		rarity: 'rare',
 		image: chestImg,
-		modifiers: [{ stat: 'luckyChance', value: 0.25 }]
+		modifiers: [{ stat: 'luckyChance', value: 0.2 }]
+	},
+	{
+		id: 'lucky_4',
+		title: 'Serendipity',
+		rarity: 'epic',
+		image: chestImg,
+		modifiers: [{ stat: 'luckyChance', value: 0.5 }]
+	},
+	{
+		id: 'lucky_5',
+		title: 'Fate Weaver',
+		rarity: 'legendary',
+		image: chestImg,
+		modifiers: [{ stat: 'luckyChance', value: 1.0 }]
 	},
 
 	// === GOLD DROP CHANCE ===
@@ -379,6 +461,68 @@ const _allUpgrades = [
 		]
 	},
 
+	// === GOLD PER KILL (flat, all tiers) ===
+	// DECISION: Flat gold increases the base that goldMultiplier percentage cards multiply.
+	// Two-path synergy mirrors the frenzy duration split.
+	{
+		id: 'gold_per_kill_1',
+		title: 'Coin Pouch',
+		rarity: 'common',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 1 }]
+	},
+	{
+		id: 'gold_per_kill_2',
+		title: 'Bounty Hunter',
+		rarity: 'uncommon',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 2 }]
+	},
+	{
+		id: 'gold_per_kill_3',
+		title: 'War Profiteer',
+		rarity: 'rare',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 3 }]
+	},
+	{
+		id: 'gold_per_kill_4',
+		title: "Merchant's Eye",
+		rarity: 'epic',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 5 }]
+	},
+	{
+		id: 'gold_per_kill_5',
+		title: 'Midas Touch',
+		rarity: 'legendary',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldPerKill', value: 10 }]
+	},
+
+	// === GOLD MULTIPLIER (percentage, rare+) ===
+	{
+		id: 'gold_multiplier_1',
+		title: 'Silver Lining',
+		rarity: 'rare',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldMultiplier', value: 0.1 }]
+	},
+	{
+		id: 'gold_multiplier_2',
+		title: 'Golden Age',
+		rarity: 'epic',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldMultiplier', value: 0.25 }]
+	},
+	{
+		id: 'gold_multiplier_3',
+		title: "Dragon's Treasury",
+		rarity: 'legendary',
+		image: coinsImg,
+		modifiers: [{ stat: 'goldMultiplier', value: 0.5 }]
+	},
+
 	// === DAMAGE MULTIPLIER ===
 	{
 		id: 'damage_multiplier_1',
@@ -403,7 +547,7 @@ const _allUpgrades = [
 		image: axeImg,
 		modifiers: [
 			{ stat: 'damage', value: 8 },
-			{ stat: 'critChance', value: 0.1 }
+			{ stat: 'critChance', value: 0.03 }
 		]
 	},
 	{
@@ -446,7 +590,7 @@ const _allUpgrades = [
 		image: chestImg,
 		modifiers: [
 			{ stat: 'damage', value: 15 },
-			{ stat: 'critChance', value: 0.2 },
+			{ stat: 'critChance', value: 0.05 },
 			{ stat: 'critMultiplier', value: 1 }
 		]
 	},
@@ -469,31 +613,48 @@ const _allUpgrades = [
 		modifiers: [
 			{ stat: 'bonusBossTime', value: 20 },
 			{ stat: 'multiStrike', value: 3 },
-			{ stat: 'xpMultiplier', value: 1 }
+			{ stat: 'xpMultiplier', value: 0.25 }
 		]
 	},
 
 	// === ATTACK SPEED ===
+	// DECISION: Percentage-based attack speed bonus instead of flat. Base speed (0.8/s) stays
+	// fixed, cards add % bonus. This prevents early-game speed from becoming too fast too quickly
+	// while still allowing meaningful late-game scaling.
 	{
 		id: 'attack_speed_1',
 		title: 'Quick Hands',
 		rarity: 'common',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeed', value: 0.1 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.05 }]
 	},
 	{
 		id: 'attack_speed_2',
 		title: 'Swift Strikes',
 		rarity: 'uncommon',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeed', value: 0.2 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.1 }]
 	},
 	{
 		id: 'attack_speed_3',
-		title: 'Blade Storm',
+		title: 'Rapid Assault',
 		rarity: 'rare',
 		image: swordImg,
-		modifiers: [{ stat: 'attackSpeed', value: 0.4 }]
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.25 }]
+	},
+	{
+		id: 'attack_speed_4',
+		title: 'Lightning Reflexes',
+		rarity: 'epic',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeedBonus', value: 0.5 }]
+	},
+	{
+		id: 'attack_speed_5',
+		title: 'Blade Storm',
+		rarity: 'legendary',
+		image: swordImg,
+		modifiers: [{ stat: 'attackSpeedBonus', value: 1.5 }]
 	},
 
 	// === FRENZY ===
@@ -511,34 +672,53 @@ const _allUpgrades = [
 		image: fireImg,
 		modifiers: [
 			{ stat: 'tapFrenzyBonus', value: 0.05 },
-			{ stat: 'attackSpeed', value: 0.2 }
+			{ stat: 'attackSpeedBonus', value: 0.02 }
 		]
 	},
 
-	// === FRENZY DURATION ===
+	// === FRENZY DURATION (flat seconds, common/uncommon) ===
+	// DECISION: Two paths for frenzy duration — flat seconds for early game,
+	// percentage bonus for late game scaling. Base duration is 1s so flat +1s
+	// is a massive early boost, while percentage scales with accumulated flat.
 	{
 		id: 'frenzy_duration_1',
 		title: 'Adrenaline Rush',
-		rarity: 'uncommon',
+		rarity: 'common',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyDuration', value: 1 }]
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 0.5 }]
 	},
 	{
 		id: 'frenzy_duration_2',
 		title: 'Sustained Fury',
+		rarity: 'uncommon',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDuration', value: 1 }]
+	},
+
+	// === FRENZY DURATION BONUS (percentage, rare+) ===
+	{
+		id: 'frenzy_duration_bonus_1',
+		title: 'Endless Rage',
 		rarity: 'rare',
 		image: fireImg,
-		modifiers: [{ stat: 'tapFrenzyDuration', value: 2 }]
+		modifiers: [{ stat: 'tapFrenzyDurationBonus', value: 0.25 }]
 	},
 	{
-		id: 'frenzy_duration_3',
+		id: 'frenzy_duration_bonus_2',
 		title: 'Relentless Rage',
 		rarity: 'epic',
 		image: fireImg,
 		modifiers: [
-			{ stat: 'tapFrenzyDuration', value: 3 },
+			{ stat: 'tapFrenzyDurationBonus', value: 0.5 },
 			{ stat: 'tapFrenzyBonus', value: 0.03 }
 		]
+	},
+	{
+		id: 'frenzy_duration_bonus_3',
+		title: 'Eternal Fury',
+		rarity: 'legendary',
+		image: fireImg,
+		modifiers: [{ stat: 'tapFrenzyDurationBonus', value: 1.0 }]
 	},
 
 	// === FRENZY BONUS (Epic capstone) ===
@@ -549,7 +729,7 @@ const _allUpgrades = [
 		image: fireImg,
 		modifiers: [
 			{ stat: 'tapFrenzyBonus', value: 0.08 },
-			{ stat: 'attackSpeed', value: 0.3 }
+			{ stat: 'attackSpeedBonus', value: 0.03 }
 		]
 	},
 
@@ -566,13 +746,31 @@ const _allUpgrades = [
 export type UpgradeId = (typeof _allUpgrades)[number]['id'];
 export const allUpgrades: readonly Upgrade[] = _allUpgrades;
 
-// === EXECUTE CAP (shop-only stackable card) ===
-export const executeCapUpgrade: Upgrade = {
-	id: 'execute_cap',
-	title: "Executioner's Pact",
-	rarity: 'epic',
-	image: pickaxeImg,
-	modifiers: [] // Applied via executeCapBonus in gameState, not through normal stats
+// === EXECUTE CAP (shop-only stackable cards) ===
+// DECISION: Tiered execute cap shop cards. Higher rarities give bigger cap increases
+// per purchase. All use the same executeCapBonus accumulator.
+export const executeCapUpgrades: Record<string, Upgrade> = {
+	execute_cap_1: {
+		id: 'execute_cap_1',
+		title: "Headsman's Contract",
+		rarity: 'uncommon',
+		image: pickaxeImg,
+		modifiers: [] // +0.25% cap per purchase
+	},
+	execute_cap_2: {
+		id: 'execute_cap_2',
+		title: "Executioner's Pact",
+		rarity: 'rare',
+		image: pickaxeImg,
+		modifiers: [] // +0.5% cap per purchase
+	},
+	execute_cap_3: {
+		id: 'execute_cap_3',
+		title: 'Death Warrant',
+		rarity: 'epic',
+		image: pickaxeImg,
+		modifiers: [] // +1% cap per purchase
+	}
 };
 
 // === GOLD PER KILL (shop-only stackable card) ===
@@ -581,10 +779,20 @@ export const goldPerKillUpgrade: Upgrade = {
 	title: "Prospector's Pick",
 	rarity: 'uncommon',
 	image: coinsImg,
-	modifiers: [] // Applied via goldPerKillBonus in gameState, not through normal stats
+	modifiers: [{ stat: 'goldPerKill', value: 1 }]
 };
 
-export const EXECUTE_CHANCE_BASE_CAP = 0.1;
+// DECISION: Base cap reduced from 10% to 5%. Execute is instant kill, so even 5% is very strong.
+// Shop upgrades can raise the cap further.
+export const EXECUTE_CHANCE_BASE_CAP = 0.05;
+
+export const EXECUTE_CAP_BONUS_PER_TIER: Record<string, number> = {
+	execute_cap_1: 0.0025,
+	execute_cap_2: 0.005,
+	execute_cap_3: 0.01
+};
+
+export const executeCapIds = new Set(Object.keys(executeCapUpgrades));
 
 export function getModifierDisplay(mod: StatModifier): {
 	icon: string;
@@ -627,7 +835,16 @@ export function getUpgradeById(id: string): Upgrade | undefined {
 	return upgradeMap.get(id as UpgradeId);
 }
 
-const executeUpgradeIds: Set<UpgradeId> = new Set(['execute_1', 'execute_2', 'execute_3']);
+const executeUpgradeIds: Set<UpgradeId> = new Set([
+	'execute_1',
+	'execute_2',
+	'execute_3',
+	'execute_4',
+	'execute_5'
+]);
+
+// Upgrades that require the player to already have crit chance
+const critDependentIds: Set<UpgradeId> = new Set(['crit_damage_1', 'crit_damage_2']);
 
 // Upgrades that require the player to already have base poison
 const poisonDependentIds: Set<UpgradeId> = new Set([
@@ -654,31 +871,102 @@ export function getRandomLegendaryUpgrades(count: number): Upgrade[] {
 	return shuffled.slice(0, count);
 }
 
-// DECISION: Each tier is roughly 1/3 the previous (67→22→7→3→1), summing to 100.
-// This gives ~1 legendary per 100 draws and ~1 epic per 33 draws.
-// The 1/3 ratio keeps higher tiers exciting without making them unobtainable.
-const RARITY_TIER_CHANCES: Record<string, number> = {
-	common: 67, // 67% chance per pick
-	uncommon: 22, // 22% chance per pick  (~1/3 of common)
-	rare: 7, //  7% chance per pick  (~1/3 of uncommon)
-	epic: 3, //  3% chance per pick  (~1/3 of rare)
-	legendary: 1 //  1% chance per pick  (~1/3 of epic)
+export function getFilteredLegendaryUpgrades(
+	count: number,
+	currentStats: Record<string, number>
+): Upgrade[] {
+	const legendaries = allUpgrades.filter((u) => u.rarity === 'legendary');
+
+	// Filter out legendaries with unmet dependencies
+	const available = legendaries.filter((upgrade) => {
+		// Check if upgrade has poison modifiers but player has no poison
+		const hasPoison = upgrade.modifiers.some((m) => m.stat === 'poison');
+		if (hasPoison && (!currentStats.poison || currentStats.poison <= 0)) {
+			return false;
+		}
+
+		// Check if upgrade has crit modifiers but player has no crit
+		const hasCrit = upgrade.modifiers.some(
+			(m) => m.stat === 'critChance' || m.stat === 'critMultiplier'
+		);
+		if (hasCrit && (!currentStats.critChance || currentStats.critChance <= 0)) {
+			return false;
+		}
+
+		return true;
+	});
+
+	const shuffled = [...available].sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, count);
+}
+
+// DECISION: Gaussian rarity distribution centered on a lucky-driven focus point.
+// At 0 lucky, focusPoint=0 (common). Lucky pushes it asymptotically toward 4 (legendary).
+// The sigma=0.8 gaussian spread means tiers ±1 from focus get significant weight,
+// tiers ±2 get small weight, and beyond is negligible.
+// This replaces the old linear redistribution system which had a hard ceiling on lucky benefit.
+const RARITY_TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+const TIER_INDEX: Record<string, number> = {
+	common: 0,
+	uncommon: 1,
+	rare: 2,
+	epic: 3,
+	legendary: 4
 };
 
-// DECISION: Lucky redistributes 20% points from common into higher tiers.
-// The split (5/7/5/3) favors rare slightly, keeping legendaries special even with full luck.
-// At max lucky (1.0): common drops from 67% to 47%, legendary rises from 1% to 4%.
-const LUCKY_TIER_BONUS: Record<string, number> = {
-	common: -20, // loses 20% points
-	uncommon: 5, // gains 5% points
-	rare: 7, // gains 7% points
-	epic: 5, // gains 5% points
-	legendary: 3 // gains 3% points
-};
+// DECISION: Sigma=0.55 gives ~84% common / ~16% uncommon / <1% rare at 0% Lucky.
+// Tighter than sigma=0.8 (which gave ~30% uncommon), making Lucky investment
+// more meaningful to reach higher tiers.
+const GAUSSIAN_SIGMA = 0.55;
 
-const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
+// DECISION: Divisor of 7 makes 100% Lucky ≈ equal common/uncommon chance.
+// At 0% Lucky, focusPoint=0 (peaked on common).
+// At 100% Lucky, focusPoint=0.5 (midpoint between common and uncommon).
+// Very high Lucky (700%+) is needed to push focus toward legendary.
+function getFocusPoint(luckyChance: number): number {
+	return 4 * (1 - 1 / (1 + luckyChance / 7));
+}
 
-// Pick N cards from a pool using rarity-weighted random selection (no duplicates).
+function gaussianWeight(tierIndex: number, focusPoint: number): number {
+	const distance = tierIndex - focusPoint;
+	return Math.exp(-(distance * distance) / (2 * GAUSSIAN_SIGMA * GAUSSIAN_SIGMA));
+}
+
+export function getRarityWeights(luckyChance: number): Record<string, number> {
+	const focusPoint = getFocusPoint(luckyChance);
+	const weights: Record<string, number> = {};
+
+	let totalGaussian = 0;
+	for (const rarity of RARITY_TIERS) {
+		const w = gaussianWeight(TIER_INDEX[rarity], focusPoint);
+		weights[rarity] = w;
+		totalGaussian += w;
+	}
+
+	// Normalize to sum to 1 (probability distribution)
+	for (const rarity of RARITY_TIERS) {
+		weights[rarity] = weights[rarity] / totalGaussian;
+	}
+
+	return weights;
+}
+
+// DECISION: Per-slot rarity roll instead of carousel. Each card slot independently
+// rolls against the gaussian weight distribution to pick a rarity tier, then picks
+// a random card from that tier. This gives exact probability control without the
+// discretization artifacts of ticket-based systems.
+
+function rollRarity(weights: Record<string, number>): string {
+	const roll = Math.random();
+	let cumulative = 0;
+	for (const rarity of RARITY_TIERS) {
+		cumulative += weights[rarity];
+		if (roll < cumulative) return rarity;
+	}
+	return 'common';
+}
+
+// Pick N cards from a pool using per-slot rarity rolls (no duplicates).
 // The pool can be any pre-filtered set of upgrades.
 export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number = 0): Upgrade[] {
 	// Group pool by rarity
@@ -688,52 +976,36 @@ export function pickByRarity(pool: Upgrade[], count: number, luckyChance: number
 		tiers[upgrade.rarity].push(upgrade);
 	}
 
-	// Build effective tier chances (base + lucky bonus)
-	const tierChances: Record<string, number> = {};
-	for (const rarity of Object.keys(RARITY_TIER_CHANCES)) {
-		const base = RARITY_TIER_CHANCES[rarity] ?? 0;
-		const bonus = (LUCKY_TIER_BONUS[rarity] ?? 0) * luckyChance;
-		tierChances[rarity] = Math.max(0, base + bonus);
-	}
+	const weights = getRarityWeights(luckyChance);
 
-	// Build carousel: each tier gets tickets equal to its % chance,
-	// distributed evenly across cards in that tier.
-	// Use 100 total tickets so 1 ticket = 1% chance.
-	const carousel: Upgrade[] = [];
-	for (const [rarity, chance] of Object.entries(tierChances)) {
-		const cards = tiers[rarity];
-		if (!cards || cards.length === 0) continue;
-		// Round up tickets so every non-empty tier gets representation
-		const totalTickets = Math.max(1, Math.round(chance));
-		// Spread tickets across cards in the tier
-		for (let t = 0; t < totalTickets; t++) {
-			carousel.push(cards[t % cards.length]);
+	// Redistribute weight from empty tiers to common
+	let redistributed = 0;
+	for (const rarity of RARITY_TIERS) {
+		if (!tiers[rarity] || tiers[rarity].length === 0) {
+			redistributed += weights[rarity];
+			weights[rarity] = 0;
 		}
 	}
+	weights['common'] = (weights['common'] ?? 0) + redistributed;
 
-	// Pick randomly from the carousel without duplicates
 	const selected: Upgrade[] = [];
 	const usedIds = new Set<string>();
 
-	for (let i = 0; i < count && carousel.length > 0; i++) {
+	for (let i = 0; i < count; i++) {
 		let pick: Upgrade | null = null;
-		for (let attempt = 0; attempt < carousel.length; attempt++) {
-			const idx = Math.floor(Math.random() * carousel.length);
-			const candidate = carousel[idx];
+
+		// Try up to 100 times to find an unused card
+		for (let attempt = 0; attempt < 100; attempt++) {
+			const rarity = rollRarity(weights);
+			const cards = tiers[rarity];
+			if (!cards || cards.length === 0) continue;
+			const candidate = cards[Math.floor(Math.random() * cards.length)];
 			if (!usedIds.has(candidate.id)) {
 				pick = candidate;
 				break;
 			}
 		}
-		// Fallback: linear scan for any remaining card not yet picked
-		if (!pick) {
-			for (const candidate of carousel) {
-				if (!usedIds.has(candidate.id)) {
-					pick = candidate;
-					break;
-				}
-			}
-		}
+
 		if (pick) {
 			selected.push(pick);
 			usedIds.add(pick.id);
@@ -749,15 +1021,16 @@ export function getRandomUpgrades(
 	currentExecuteChance: number = 0,
 	executeCap: number = EXECUTE_CHANCE_BASE_CAP,
 	currentPoison: number = 0,
-	minRarity: string = 'common'
+	minRarity: string = 'common',
+	currentCritChance: number = 0
 ): Upgrade[] {
 	let pool = [...allUpgrades];
 
 	// Filter by minimum rarity
-	const minIndex = RARITY_ORDER.indexOf(minRarity as (typeof RARITY_ORDER)[number]);
+	const minIndex = RARITY_TIERS.indexOf(minRarity as (typeof RARITY_TIERS)[number]);
 	if (minIndex > 0) {
-		const allowed = new Set(RARITY_ORDER.slice(minIndex));
-		pool = pool.filter((u) => allowed.has(u.rarity as (typeof RARITY_ORDER)[number]));
+		const allowed = new Set(RARITY_TIERS.slice(minIndex));
+		pool = pool.filter((u) => allowed.has(u.rarity as (typeof RARITY_TIERS)[number]));
 	}
 
 	// Filter out execute upgrades if player has hit their current cap
@@ -768,6 +1041,11 @@ export function getRandomUpgrades(
 	// Filter out poison-dependent upgrades if player has no base poison
 	if (currentPoison <= 0) {
 		pool = pool.filter((u) => !poisonDependentIds.has(u.id as UpgradeId));
+	}
+
+	// Filter out crit damage upgrades if player has no crit chance
+	if (currentCritChance <= 0) {
+		pool = pool.filter((u) => !critDependentIds.has(u.id as UpgradeId));
 	}
 
 	return pickByRarity(pool, count, luckyChance);
