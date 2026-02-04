@@ -714,6 +714,12 @@ function createGameState() {
 		get frenzyStacks() {
 			return frenzy.count;
 		},
+		get startingStats() {
+			return startingStats;
+		},
+		get endingStats() {
+			return endingStats;
+		},
 
 		// Actions
 		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
