@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
-	import { formatNumber } from '$lib/format';
 	import { statRegistry } from '$lib/engine/stats';
+	import { formatNumber } from '$lib/format';
 	import type { PlayerStats } from '$lib/types';
+	import { Button } from 'bits-ui';
 
 	type Props = {
 		show: boolean;
@@ -63,7 +63,7 @@
 				{#if changedStats.length > 0}
 					<div class="stats-comparison">
 						<h3>Run Progression</h3>
-						{#each changedStats as stat}
+						{#each changedStats as stat (stat.key)}
 							<div class="stat-row">
 								<span class="stat-icon">{stat.icon}</span>
 								<span class="stat-label">{stat.label}</span>
@@ -177,7 +177,7 @@
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		padding: 6px 0;
+		margin: 4px 0;
 		color: rgba(255, 255, 255, 0.8);
 	}
 
@@ -188,6 +188,7 @@
 
 	.stat-label {
 		flex: 1;
+		text-align: left;
 		font-weight: 500;
 	}
 
