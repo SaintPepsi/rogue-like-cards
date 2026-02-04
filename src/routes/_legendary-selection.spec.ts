@@ -1,8 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { VERSION } from '$lib/version';
+import { seedRandom } from './_test-helpers';
 
 test.describe('Legendary Selection Modal', () => {
 	async function setupGame(page: any) {
+		// Seed Math.random() for deterministic test runs
+		await seedRandom(page);
+
 		await page.goto('/');
 		await page.evaluate((version: string) => {
 			localStorage.clear();
@@ -45,6 +49,12 @@ test.describe('Legendary Selection Modal', () => {
 		// Verify legendary modal does NOT appear
 		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
 		await expect(legendaryModal).not.toBeVisible();
+
+		// Wait for any animations to settle
+		await page.waitForTimeout(500);
+
+		// Visual regression: capture game over state without legendary modal
+		await expect(page).toHaveScreenshot('legendary-give-up-no-modal.png', { fullPage: true });
 	});
 
 	test('boss timeout shows legendary selection modal after first completion', async ({ page }) => {
@@ -67,5 +77,13 @@ test.describe('Legendary Selection Modal', () => {
 		// Verify legendary modal DOES appear
 		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
 		await expect(legendaryModal).toBeVisible();
+
+		// Wait for modal animations to settle
+		await page.waitForTimeout(500);
+
+		// Visual regression: capture legendary selection modal visible
+		await expect(page).toHaveScreenshot('legendary-boss-timeout-with-modal.png', {
+			fullPage: true
+		});
 	});
 });

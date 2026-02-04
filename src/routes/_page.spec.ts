@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { VERSION } from '$lib/version';
+import { seedRandom } from './_test-helpers';
 
 test('attack enemy 100 times without crashing', async ({ page }) => {
 	const errors: Error[] = [];
@@ -9,13 +10,7 @@ test('attack enemy 100 times without crashing', async ({ page }) => {
 	});
 
 	// Seed Math.random() for deterministic test runs
-	await page.addInitScript(() => {
-		let seed = 12345;
-		Math.random = () => {
-			seed = (seed * 9301 + 49297) % 233280;
-			return seed / 233280;
-		};
-	});
+	await seedRandom(page);
 
 	// Navigate and wait for game to load
 	await page.goto('/');
