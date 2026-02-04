@@ -290,6 +290,7 @@
 		totalGold={gameState.persistentGold}
 		startingStats={gameState.startingStats}
 		endingStats={gameState.endingStats}
+		wasDefeatNatural={gameState.wasDefeatNatural}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
 	/>

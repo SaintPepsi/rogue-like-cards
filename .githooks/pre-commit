@@ -2,7 +2,9 @@
 #
 # Pre-commit hook:
 #   1. Formats staged files with Prettier
-#   2. Runs the production build and aborts on failure.
+#   2. Runs lint checks and aborts on errors/warnings
+#   3. Runs type checks and aborts on errors
+#   4. Runs the production build and aborts on failure
 #
 # Changelog validation and version bumping are handled by Claude Code hooks
 # in .claude/hooks/ — see .claude/settings.json for configuration.
@@ -14,6 +16,26 @@ if [ -n "$STAGED_FILES" ]; then
   echo "$STAGED_FILES" | xargs bunx prettier --write --ignore-unknown --ignore-path .prettierignore --ignore-path .gitignore 2>/dev/null
   echo "$STAGED_FILES" | xargs git add
 fi
+
+# --- Lint check ---
+echo "Running lint check..."
+bun run lint > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "LINT FAILED - commit aborted. Fix lint errors/warnings before committing."
+  echo "Run 'bun run lint' to see details."
+  exit 1
+fi
+echo "Lint passed."
+
+# --- Type check ---
+echo "Running type check..."
+bun run check > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "TYPE CHECK FAILED - commit aborted. Fix type errors before committing."
+  echo "Run 'bun run check' to see details."
+  exit 1
+fi
+echo "Type check passed."
 
 # --- Build check ---
 echo "Running build check..."

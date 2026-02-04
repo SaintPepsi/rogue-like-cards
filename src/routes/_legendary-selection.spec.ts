@@ -1,9 +1,9 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { VERSION } from '$lib/version';
 import { seedRandom } from './_test-helpers';
 
 test.describe('Legendary Selection Modal', () => {
-	async function setupGame(page: any) {
+	async function setupGame(page: Page) {
 		// Seed Math.random() for deterministic test runs
 		await seedRandom(page);
 
@@ -18,7 +18,7 @@ test.describe('Legendary Selection Modal', () => {
 		await page.waitForTimeout(500);
 	}
 
-	async function completeFirstRun(page: any) {
+	async function completeFirstRun(page: Page) {
 		// Force boss timer to expire (natural death)
 		await page.evaluate(() => {
 			window.gameState?.__test__.triggerBossExpired(true);
@@ -55,6 +55,9 @@ test.describe('Legendary Selection Modal', () => {
 		// Wait for game over modal to appear
 		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
 
+		// Verify the correct message is shown
+		await expect(page.locator('.modal-overlay')).toContainText('You gave up!');
+
 		// Click Play Again to start next run
 		await page.locator('button:has-text("Play Again")').click();
 
@@ -88,8 +91,13 @@ test.describe('Legendary Selection Modal', () => {
 			window.gameState?.__test__.triggerBossExpired(true);
 		});
 
-		// Close game over modal
+		// Wait for game over modal to appear
 		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
+
+		// Verify the correct message is shown for boss defeat
+		await expect(page.locator('.modal-overlay')).toContainText('The boss defeated you!');
+
+		// Close game over modal
 		await page.locator('button:has-text("Play Again")').click();
 
 		// Verify legendary modal DOES appear

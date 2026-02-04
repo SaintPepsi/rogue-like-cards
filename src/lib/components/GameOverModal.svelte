@@ -13,6 +13,7 @@
 		totalGold: number;
 		startingStats: PlayerStats | null;
 		endingStats: PlayerStats | null;
+		wasDefeatNatural: boolean;
 		onReset: () => void;
 		onOpenShop: () => void;
 	};
@@ -26,6 +27,7 @@
 		totalGold,
 		startingStats,
 		endingStats,
+		wasDefeatNatural,
 		onReset,
 		onOpenShop
 	}: Props = $props();
@@ -49,7 +51,7 @@
 	<div class="modal-overlay">
 		<div class="modal game-over">
 			<h2>Game Over</h2>
-			<p>The boss defeated you!</p>
+			<p>{wasDefeatNatural ? 'The boss defeated you!' : 'You gave up!'}</p>
 			<div class="game-over-stats">
 				<p>Stage Reached: <strong>{stage}</strong></p>
 				<p>Level: <strong>{level}</strong></p>

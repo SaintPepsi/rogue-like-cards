@@ -46,6 +46,7 @@ function createGameState() {
 
 	// UI state
 	let showGameOver = $state(false);
+	let wasDefeatNatural = $state(true); // Track if game over was from natural defeat vs give up
 
 	// Legendary start selection
 	let hasCompletedFirstRun = $state(false);
@@ -134,6 +135,7 @@ function createGameState() {
 		shop.depositGold(gold); // This calls shop.save() which saves persistent data
 		sfx.play('game:over');
 		showGameOver = true;
+		wasDefeatNatural = isNaturalDeath;
 
 		// Set meta-progression flag only on natural death (not give up)
 		if (isNaturalDeath) {
@@ -685,6 +687,9 @@ function createGameState() {
 		},
 		get showGameOver() {
 			return showGameOver;
+		},
+		get wasDefeatNatural() {
+			return wasDefeatNatural;
 		},
 		get showLegendarySelection() {
 			return showLegendarySelection;
