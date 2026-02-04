@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { gameState } from './gameState.svelte';
 import * as resetVersionStorage from '$lib/utils/resetVersionStorage';
+import { RESET_VERSION } from '$lib/version';
 
 // Mock localStorage for testing
 const localStorageMock = (() => {
@@ -104,8 +105,7 @@ describe('gameState - reset version behavior', () => {
 
 	it('does not trigger reset when lastResetVersion matches RESET_VERSION', () => {
 		// Set current RESET_VERSION (player already experienced the reset)
-		const currentResetVersion = '0.42.0'; // Matches RESET_VERSION in version.ts
-		localStorage.setItem('roguelike-cards-reset-version', currentResetVersion);
+		localStorage.setItem('roguelike-cards-reset-version', RESET_VERSION);
 
 		// Set up existing save data with required fields
 		const saveData = JSON.stringify({
