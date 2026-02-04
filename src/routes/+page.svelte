@@ -130,6 +130,10 @@
 	onMount(() => {
 		gameState.init();
 	});
+
+	if (typeof window !== 'undefined' && import.meta.env.MODE === 'test') {
+		window.gameState = gameState;
+	}
 </script>
 
 <svelte:head>
