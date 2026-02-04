@@ -737,7 +737,10 @@ function createGameState() {
 		fullReset,
 		giveUp,
 		init,
-		openShop: () => shop.open(getEffectiveStats()),
+		openShop: () => {
+			showGameOver = false;
+			shop.open(getEffectiveStats());
+		},
 		closeShop: () => shop.close(),
 		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
 		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade),
