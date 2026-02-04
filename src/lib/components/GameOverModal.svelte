@@ -56,6 +56,26 @@
 				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
 				<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
 			</div>
+
+			<!-- Stats progression section -->
+			{#if startingStats && endingStats}
+				{@const changedStats = getChangedStats(startingStats, endingStats)}
+				{#if changedStats.length > 0}
+					<div class="stats-comparison">
+						<h3>Run Progression</h3>
+						{#each changedStats as stat}
+							<div class="stat-row">
+								<span class="stat-icon">{stat.icon}</span>
+								<span class="stat-label">{stat.label}</span>
+								<span class="stat-change">
+									{stat.formatStart} → {stat.formatEnd}
+								</span>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{/if}
+
 			<p class="gold-display">
 				Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span>
 			</p>
