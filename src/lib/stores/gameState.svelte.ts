@@ -633,6 +633,8 @@ function createGameState() {
 
 		if (!loadGame()) {
 			applyShopUpgrades();
+			// Capture starting baseline (base + shop upgrades only) for stats comparison
+			startingStats = getEffectiveStats();
 			// Start new run with legendary selection (or spawn enemy immediately)
 			startNewRunWithLegendary();
 		} else {

@@ -29,6 +29,10 @@ export const CHANGELOG: ChangelogEntry[] = [
 			{
 				category: 'changed',
 				description: 'Removed custom favicon in favor of default browser behavior'
+			},
+			{
+				category: 'fixed',
+				description: 'Fixed stats comparison not showing after a version-triggered data reset'
 			}
 		]
 	},
