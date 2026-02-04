@@ -37,6 +37,10 @@ function createGameState() {
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
 
+	// Stats comparison tracking
+	let startingStats = $state<PlayerStats | null>(null);
+	let endingStats = $state<PlayerStats | null>(null);
+
 	// UI state
 	let showGameOver = $state(false);
 
