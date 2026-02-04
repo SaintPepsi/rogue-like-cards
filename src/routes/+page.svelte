@@ -300,7 +300,6 @@
 		onBuy={gameState.buyUpgrade}
 		currentStats={gameState.playerStats}
 		onReroll={gameState.rerollShop}
-		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
 	/>
 
