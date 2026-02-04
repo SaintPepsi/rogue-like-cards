@@ -46,4 +46,26 @@ test.describe('Legendary Selection Modal', () => {
 		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
 		await expect(legendaryModal).not.toBeVisible();
 	});
+
+	test('boss timeout shows legendary selection modal after first completion', async ({ page }) => {
+		// Setup and complete first run
+		await setupGame(page);
+		await completeFirstRun(page);
+
+		// Start second run
+		await page.locator('.enemy').waitFor({ state: 'visible' });
+
+		// Force boss timeout again
+		await page.evaluate(() => {
+			window.gameState?.__test__.triggerBossExpired(true);
+		});
+
+		// Close game over modal
+		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
+		await page.locator('button:has-text("Play Again")').click();
+
+		// Verify legendary modal DOES appear
+		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
+		await expect(legendaryModal).toBeVisible();
+	});
 });
