@@ -25,6 +25,10 @@ export const CHANGELOG: ChangelogEntry[] = [
 				category: 'changed',
 				description:
 					'Enforced one-way navigation flow from game over to shop — removed back button to prevent confusion'
+			},
+			{
+				category: 'changed',
+				description: 'Removed custom favicon in favor of default browser behavior'
 			}
 		]
 	},
