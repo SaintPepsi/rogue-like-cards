@@ -2,7 +2,8 @@ import { describe, test, expect } from 'vitest';
 import {
 	isVersionGreaterThan,
 	getNewChangelogEntries,
-	getPreviousMinorVersion
+	getPreviousMinorVersion,
+	shouldTriggerReset
 } from './versionComparison';
 import type { ChangelogEntry } from '$lib/changelog';
 
@@ -105,5 +106,31 @@ describe('getPreviousMinorVersion', () => {
 
 	test('handles major version rollover', () => {
 		expect(getPreviousMinorVersion('0.0.0')).toBe('0.0.0');
+	});
+});
+
+describe('shouldTriggerReset', () => {
+	test('returns false for first-time players (no lastResetVersion)', () => {
+		expect(shouldTriggerReset('0.67.0', '0.5.0', null)).toBe(false);
+	});
+
+	test('returns true when current >= reset AND last reset < reset version', () => {
+		expect(shouldTriggerReset('0.67.0', '0.5.0', '0.3.0')).toBe(true);
+	});
+
+	test('returns false when last reset already matches reset version', () => {
+		expect(shouldTriggerReset('0.67.0', '0.5.0', '0.5.0')).toBe(false);
+	});
+
+	test('returns false when last reset is beyond reset version', () => {
+		expect(shouldTriggerReset('0.67.0', '0.5.0', '0.10.0')).toBe(false);
+	});
+
+	test('returns false when current version is below reset version', () => {
+		expect(shouldTriggerReset('0.4.0', '0.5.0', '0.3.0')).toBe(false);
+	});
+
+	test('handles exact version match for current and reset', () => {
+		expect(shouldTriggerReset('0.5.0', '0.5.0', '0.3.0')).toBe(true);
 	});
 });

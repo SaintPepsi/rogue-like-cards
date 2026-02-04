@@ -59,3 +59,35 @@ export function getPreviousMinorVersion(currentVersion: string): string {
 	// Normal case: decrement minor
 	return `${major}.${minor - 1}.0`;
 }
+
+/**
+ * Determines if a reset should be triggered based on version comparisons.
+ *
+ * Reset logic:
+ * - First-time players (no lastResetVersion): DON'T reset, establish baseline
+ * - Returning players: Reset if they haven't experienced this reset version yet
+ *
+ * @param currentVersion - The current game version
+ * @param resetVersion - The version that should trigger a reset
+ * @param lastResetVersion - The last reset version the player experienced (null for first-time)
+ * @returns true if reset should be triggered, false otherwise
+ */
+export function shouldTriggerReset(
+	currentVersion: string,
+	resetVersion: string,
+	lastResetVersion: string | null
+): boolean {
+	// First time player (no lastResetVersion stored)
+	if (!lastResetVersion) {
+		return false; // New player, don't reset
+	}
+
+	// Current game version must be >= reset version
+	const isCurrentAtOrBeyondReset =
+		currentVersion === resetVersion || isVersionGreaterThan(currentVersion, resetVersion);
+
+	// Last reset must be before the target reset version
+	const lastResetBeforeTarget = isVersionGreaterThan(resetVersion, lastResetVersion);
+
+	return isCurrentAtOrBeyondReset && lastResetBeforeTarget;
+}

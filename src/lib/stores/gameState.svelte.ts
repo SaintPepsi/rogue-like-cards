@@ -23,6 +23,9 @@ import { createStatPipeline } from './statPipeline.svelte';
 import { createUIEffects } from './uiEffects.svelte';
 import { sfx } from '$lib/audio';
 import { allUpgrades, getRandomLegendaryUpgrades } from '$lib/data/upgrades';
+import { VERSION, RESET_VERSION } from '$lib/version';
+import { shouldTriggerReset } from '$lib/utils/versionComparison';
+import { getLastResetVersion, setLastResetVersion } from '$lib/utils/resetVersionStorage';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -564,6 +567,20 @@ function createGameState() {
 	}
 
 	function init() {
+		// Check if we need to reset due to version change
+		const lastResetVersion = getLastResetVersion();
+		if (shouldTriggerReset(VERSION, RESET_VERSION, lastResetVersion)) {
+			persistence.clearSession();
+			persistence.clearPersistent();
+			setLastResetVersion(RESET_VERSION);
+		}
+
+		// Save reset version for first-time players
+		if (!lastResetVersion) {
+			setLastResetVersion(RESET_VERSION);
+		}
+
+		// Continue with normal initialization
 		shop.load();
 
 		// Load persistent data (includes hasCompletedFirstRun)
