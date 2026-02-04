@@ -327,7 +327,6 @@
 	.health-fill {
 		height: 100%;
 		background: linear-gradient(90deg, #ef4444, #f87171);
-		transition: width 0.2s ease;
 	}
 
 	.health-bar.boss-bar .health-fill {
