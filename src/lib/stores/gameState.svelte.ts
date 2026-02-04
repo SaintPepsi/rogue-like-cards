@@ -123,9 +123,9 @@ function createGameState() {
 	}
 
 	function handleBossExpired(isNaturalDeath: boolean = true) {
-// Capture final stats BEFORE any state changes
-// Why: Ensures we capture stats from the actual run before gameLoop.reset() 
-// clears all run-based effects and upgrades, which would show incorrect stats
+		// Capture final stats BEFORE any state changes
+		// Why: Ensures we capture stats from the actual run before gameLoop.reset()
+		// clears all run-based effects and upgrades, which would show incorrect stats
 		endingStats = getEffectiveStats();
 
 		gameLoop.reset();
@@ -451,8 +451,8 @@ function createGameState() {
 			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined,
 			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
 			hasSelectedStartingLegendary,
-			startingStats,
-			endingStats
+			startingStats: startingStats ?? undefined,
+			endingStats: endingStats ?? undefined
 		});
 	}
 

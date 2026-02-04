@@ -10,6 +10,8 @@ const baseProps = {
 	enemiesKilled: 42,
 	goldEarned: 89,
 	totalGold: 320,
+	startingStats: null,
+	endingStats: null,
 	onReset: noop,
 	onOpenShop: noop
 };
