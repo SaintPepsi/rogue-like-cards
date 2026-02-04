@@ -284,6 +284,8 @@
 		enemiesKilled={gameState.enemiesKilled}
 		goldEarned={gameState.gold}
 		totalGold={gameState.persistentGold}
+		startingStats={gameState.startingStats}
+		endingStats={gameState.endingStats}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
 	/>
