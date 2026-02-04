@@ -540,7 +540,10 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
-		hasCompletedFirstRun = false; // Reset for new run
+		// DECISION: hasCompletedFirstRun is a persistent meta-progression flag (stored in PersistentSaveData)
+		// that tracks whether the player has ever completed a run. It should NOT be reset here since
+		// resetGame() is for starting a new run (preserving meta-progression), not for clearing all progress.
+		// It is only reset in fullReset() which clears all persistent data.
 		hasSelectedStartingLegendary = false; // Reset for new run
 		ui.reset();
 		leveling.reset();
@@ -572,6 +575,9 @@ function createGameState() {
 
 	function fullReset() {
 		shop.fullReset();
+		// DECISION: Reset meta-progression flags here since fullReset() clears ALL persistent data
+		// (unlike resetGame() which preserves meta-progression between runs)
+		hasCompletedFirstRun = false;
 		resetGame();
 	}
 
