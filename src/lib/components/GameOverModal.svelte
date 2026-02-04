@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
+	import { formatNumber } from '$lib/format';
+	import { statRegistry } from '$lib/engine/stats';
+	import type { PlayerStats } from '$lib/types';
+
 	type Props = {
 		show: boolean;
 		stage: number;
@@ -7,14 +11,24 @@
 		enemiesKilled: number;
 		goldEarned: number;
 		totalGold: number;
+		startingStats: PlayerStats | null;
+		endingStats: PlayerStats | null;
 		onReset: () => void;
 		onOpenShop: () => void;
 	};
 
-	import { formatNumber } from '$lib/format';
-
-	let { show, stage, level, enemiesKilled, goldEarned, totalGold, onReset, onOpenShop }: Props =
-		$props();
+	let {
+		show,
+		stage,
+		level,
+		enemiesKilled,
+		goldEarned,
+		totalGold,
+		startingStats,
+		endingStats,
+		onReset,
+		onOpenShop
+	}: Props = $props();
 </script>
 
 {#if show}
