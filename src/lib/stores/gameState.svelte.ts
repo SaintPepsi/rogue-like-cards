@@ -52,6 +52,8 @@ function createGameState() {
 	let hasSelectedStartingLegendary = $state(false);
 	let showLegendarySelection = $state(false);
 	let legendaryChoices = $state<Upgrade[]>([]);
+	// Track if we should show legendary selection on next reset (only after natural death)
+	let showLegendaryOnNextReset = $state(false);
 
 	// Reactive poison stack count — pipeline.getSystemState() reads from a plain Map
 	// which Svelte can't track, so we sync this after every pipeline mutation.
@@ -136,6 +138,11 @@ function createGameState() {
 		// Set meta-progression flag only on natural death (not give up)
 		if (isNaturalDeath) {
 			hasCompletedFirstRun = true;
+			// Only show legendary selection on next reset if this was a natural death
+			showLegendaryOnNextReset = true;
+		} else {
+			// Give up doesn't trigger legendary selection
+			showLegendaryOnNextReset = false;
 		}
 
 		// Save persistent data again to include hasCompletedFirstRun
@@ -398,7 +405,7 @@ function createGameState() {
 	}
 
 	function startNewRunWithLegendary(): void {
-		if (hasCompletedFirstRun && !hasSelectedStartingLegendary) {
+		if (showLegendaryOnNextReset && !hasSelectedStartingLegendary) {
 			// Get 3 random legendary upgrades
 			legendaryChoices = getRandomLegendaryUpgrades(3);
 
@@ -411,6 +418,8 @@ function createGameState() {
 				// No legendaries available (edge case)
 				enemy.spawnEnemy(statPipeline.get('greed'));
 			}
+			// Clear the flag after consuming it
+			showLegendaryOnNextReset = false;
 		} else {
 			// First run ever OR already selected - spawn enemy immediately
 			enemy.spawnEnemy(statPipeline.get('greed'));
@@ -561,9 +570,9 @@ function createGameState() {
 
 		gameLoop.start(buildGameLoopCallbacks());
 
-		// If hasCompletedFirstRun AND user hasn't already selected, show legendary selection
-		// Otherwise, the enemy from reset() stays and game continues
-		if (hasCompletedFirstRun && !hasSelectedStartingLegendary) {
+		// Show legendary selection only if the previous run ended with a natural death
+		// (tracked by showLegendaryOnNextReset flag) AND user hasn't already selected
+		if (showLegendaryOnNextReset && !hasSelectedStartingLegendary) {
 			legendaryChoices = getRandomLegendaryUpgrades(3);
 			if (legendaryChoices.length > 0) {
 				showLegendarySelection = true;
@@ -571,6 +580,8 @@ function createGameState() {
 				saveGame(); // Persist legendary choices so they survive refresh
 			}
 		}
+		// Clear the flag after consuming it
+		showLegendaryOnNextReset = false;
 	}
 
 	function fullReset() {
@@ -578,6 +589,7 @@ function createGameState() {
 		// DECISION: Reset meta-progression flags here since fullReset() clears ALL persistent data
 		// (unlike resetGame() which preserves meta-progression between runs)
 		hasCompletedFirstRun = false;
+		showLegendaryOnNextReset = false;
 		resetGame();
 	}
 
@@ -611,6 +623,8 @@ function createGameState() {
 		const persistentData = persistence.loadPersistent();
 		if (persistentData) {
 			hasCompletedFirstRun = persistentData.hasCompletedFirstRun;
+			// On fresh page load, if player has completed a run, they should see legendary selection
+			showLegendaryOnNextReset = persistentData.hasCompletedFirstRun ?? false;
 		}
 
 		if (!loadGame()) {

@@ -55,14 +55,23 @@ test.describe('Legendary Selection Modal', () => {
 		// Wait for game over modal to appear
 		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
 
-		// Verify legendary modal does NOT appear (only game over modal)
+		// Click Play Again to start next run
+		await page.locator('button:has-text("Play Again")').click();
+
+		// Wait for game over modal to close
+		await page.locator('.modal-overlay').waitFor({ state: 'hidden' });
+
+		// Verify legendary modal does NOT appear (game should start directly)
 		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
 		await expect(legendaryModal).not.toBeVisible();
+
+		// Verify enemy is visible (game started)
+		await page.locator('.enemy').waitFor({ state: 'visible' });
 
 		// Wait for any animations to settle
 		await page.waitForTimeout(500);
 
-		// Visual regression: capture game over state without legendary modal
+		// Visual regression: capture game state without legendary modal
 		await expect(page).toHaveScreenshot('legendary-give-up-no-modal.png', { fullPage: true });
 	});
 
