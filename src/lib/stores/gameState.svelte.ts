@@ -445,7 +445,9 @@ function createGameState() {
 			timestamp: Date.now(),
 			bossTimeRemaining: gameLoop.bossTimeRemaining > 0 ? gameLoop.bossTimeRemaining : undefined,
 			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
-			hasSelectedStartingLegendary
+			hasSelectedStartingLegendary,
+			startingStats,
+			endingStats
 		});
 	}
 
