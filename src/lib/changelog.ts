@@ -13,6 +13,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.47.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added stats comparison on game over screen showing which stats changed during your run'
+			},
+			{
+				category: 'changed',
+				description:
+					'Enforced one-way navigation flow from game over to shop — removed back button to prevent confusion'
+			}
+		]
+	},
+	{
 		version: '0.46.0',
 		date: '2026-02-04',
 		changes: [
@@ -24,13 +40,18 @@ export const CHANGELOG: ChangelogEntry[] = [
 		]
 	},
 	{
-		version: '0.45.0',
+		version: '0.43.0',
 		date: '2026-02-03',
 		changes: [
 			{
 				category: 'new',
 				description:
 					'Added legendary upgrade selection at the start of each run after completing your first run'
+			},
+			{
+				category: 'new',
+				description:
+					'Added automatic changelog notifications showing new entries on version updates'
 			}
 		]
 	},
@@ -100,17 +121,6 @@ export const CHANGELOG: ChangelogEntry[] = [
 			{
 				category: 'new',
 				description: 'Added rarity simulator dev tool for testing upgrade drop rates'
-			}
-		]
-	},
-	{
-		version: '0.43.0',
-		date: '2026-02-03',
-		changes: [
-			{
-				category: 'new',
-				description:
-					'Added automatic changelog notifications showing new entries on version updates'
 			}
 		]
 	},

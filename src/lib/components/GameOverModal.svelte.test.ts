@@ -10,6 +10,9 @@ const baseProps = {
 	enemiesKilled: 42,
 	goldEarned: 89,
 	totalGold: 320,
+	startingStats: null,
+	endingStats: null,
+	wasDefeatNatural: true,
 	onReset: noop,
 	onOpenShop: noop
 };
@@ -43,5 +46,19 @@ describe('GameOverModal', () => {
 
 		await screen.getByText('Buy Cards').click();
 		expect(onOpenShop).toHaveBeenCalled();
+	});
+
+	test('shows "The boss defeated you!" message when wasDefeatNatural is true', async () => {
+		const screen = render(GameOverModal, {
+			props: { ...baseProps, show: true, wasDefeatNatural: true }
+		});
+		await expect.element(screen.getByText('The boss defeated you!')).toBeInTheDocument();
+	});
+
+	test('shows "You gave up!" message when wasDefeatNatural is false', async () => {
+		const screen = render(GameOverModal, {
+			props: { ...baseProps, show: true, wasDefeatNatural: false }
+		});
+		await expect.element(screen.getByText('You gave up!')).toBeInTheDocument();
 	});
 });

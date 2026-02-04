@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { VERSION } from '$lib/version';
+import { seedRandom } from './_test-helpers';
 
 test('attack enemy 100 times without crashing', async ({ page }) => {
 	const errors: Error[] = [];
@@ -7,12 +9,18 @@ test('attack enemy 100 times without crashing', async ({ page }) => {
 		console.error('PAGE ERROR:', err.message);
 	});
 
+	// Seed Math.random() for deterministic test runs
+	await seedRandom(page);
+
 	// Navigate and wait for game to load
 	await page.goto('/');
 	await page.locator('.enemy').waitFor({ state: 'visible' });
 
-	// Clear localStorage for a fresh game state, then reload
-	await page.evaluate(() => localStorage.clear());
+	// Clear localStorage for a fresh game state, then mock changelog version to prevent modal
+	await page.evaluate((version) => {
+		localStorage.clear();
+		localStorage.setItem('changelog_last_seen_version', version);
+	}, VERSION);
 	await page.reload();
 	await page.locator('.enemy').waitFor({ state: 'visible' });
 
@@ -55,4 +63,7 @@ test('attack enemy 100 times without crashing', async ({ page }) => {
 	expect(errors, `Uncaught page errors:\n${errors.map((e) => e.message).join('\n')}`).toHaveLength(
 		0
 	);
+
+	// Visual regression: capture final game state
+	await expect(page).toHaveScreenshot('game-final-state.png', { fullPage: true });
 });

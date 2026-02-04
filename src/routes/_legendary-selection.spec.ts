@@ -1,0 +1,115 @@
+import { expect, test, type Page } from '@playwright/test';
+import { VERSION } from '$lib/version';
+import { seedRandom } from './_test-helpers';
+
+test.describe('Legendary Selection Modal', () => {
+	async function setupGame(page: Page) {
+		// Seed Math.random() for deterministic test runs
+		await seedRandom(page);
+
+		await page.goto('/');
+		await page.evaluate((version: string) => {
+			localStorage.clear();
+			localStorage.setItem('changelog_last_seen_version', version);
+		}, VERSION);
+		await page.reload();
+		await page.locator('.enemy').waitFor({ state: 'visible' });
+		// Wait for game loop to initialize
+		await page.waitForTimeout(500);
+	}
+
+	async function completeFirstRun(page: Page) {
+		// Force boss timer to expire (natural death)
+		await page.evaluate(() => {
+			window.gameState?.__test__.triggerBossExpired(true);
+		});
+
+		// Close game over modal
+		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
+		await page.locator('button:has-text("Play Again")').click();
+
+		// After first completion, legendary selection modal appears - skip it
+		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
+		await legendaryModal.waitFor({ state: 'visible' });
+		await page.locator('button:has-text("Skip")').click();
+		await legendaryModal.waitFor({ state: 'hidden' });
+	}
+
+	test('give up does not show legendary selection modal', async ({ page }) => {
+		// Setup and complete first run
+		await setupGame(page);
+		await completeFirstRun(page);
+
+		// Start second run
+		await page.locator('.enemy').waitFor({ state: 'visible' });
+
+		// Give up - click header button to open confirmation
+		await page.locator('button:has-text("Give Up")').first().click();
+
+		// Wait for confirmation dialog
+		await page.locator('.confirm-dialog').waitFor({ state: 'visible' });
+
+		// Click the actual Give Up button in the confirmation modal
+		await page.locator('.confirm-dialog button:has-text("Give Up")').click();
+
+		// Wait for game over modal to appear
+		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
+
+		// Verify the correct message is shown
+		await expect(page.locator('.modal-overlay')).toContainText('You gave up!');
+
+		// Click Play Again to start next run
+		await page.locator('button:has-text("Play Again")').click();
+
+		// Wait for game over modal to close
+		await page.locator('.modal-overlay').waitFor({ state: 'hidden' });
+
+		// Verify legendary modal does NOT appear (game should start directly)
+		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
+		await expect(legendaryModal).not.toBeVisible();
+
+		// Verify enemy is visible (game started)
+		await page.locator('.enemy').waitFor({ state: 'visible' });
+
+		// Wait for any animations to settle
+		await page.waitForTimeout(500);
+
+		// Visual regression: capture game state without legendary modal
+		await expect(page).toHaveScreenshot('legendary-give-up-no-modal.png', { fullPage: true });
+	});
+
+	test('boss timeout shows legendary selection modal after first completion', async ({ page }) => {
+		// Setup and complete first run
+		await setupGame(page);
+		await completeFirstRun(page);
+
+		// Start second run
+		await page.locator('.enemy').waitFor({ state: 'visible' });
+
+		// Force boss timeout again
+		await page.evaluate(() => {
+			window.gameState?.__test__.triggerBossExpired(true);
+		});
+
+		// Wait for game over modal to appear
+		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
+
+		// Verify the correct message is shown for boss defeat
+		await expect(page.locator('.modal-overlay')).toContainText('The boss defeated you!');
+
+		// Close game over modal
+		await page.locator('button:has-text("Play Again")').click();
+
+		// Verify legendary modal DOES appear
+		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
+		await expect(legendaryModal).toBeVisible();
+
+		// Wait for modal animations to settle
+		await page.waitForTimeout(500);
+
+		// Visual regression: capture legendary selection modal visible
+		await expect(page).toHaveScreenshot('legendary-boss-timeout-with-modal.png', {
+			fullPage: true
+		});
+	});
+});

@@ -19,7 +19,13 @@
 	}
 </script>
 
-<CardSelectionModal cards={choices} onSelect={handleSelect} {currentStats} theme="legendary">
+<CardSelectionModal
+	cards={choices}
+	onSelect={handleSelect}
+	{currentStats}
+	theme="legendary"
+	testId="legendary-selection-modal"
+>
 	{#snippet header()}
 		<h2 class="m-0 mb-2 text-[1.8rem] text-[#ffd700] [text-shadow:0_0_10px_rgba(255,215,0,0.5)]">
 			Choose Your Starting Legendary

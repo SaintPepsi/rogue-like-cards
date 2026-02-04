@@ -1,4 +1,4 @@
-import type { Effect } from '$lib/types';
+import type { Effect, PlayerStats } from '$lib/types';
 
 export interface SavedUpgradeEvent {
 	type: 'levelup' | 'chest';
@@ -26,6 +26,8 @@ export interface SessionSaveData {
 	bossTimeRemaining?: number;
 	legendaryChoiceIds?: string[];
 	hasSelectedStartingLegendary?: boolean;
+	startingStats?: PlayerStats;
+	endingStats?: PlayerStats;
 }
 
 export interface PersistentSaveData {

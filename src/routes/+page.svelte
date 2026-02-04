@@ -130,6 +130,10 @@
 	onMount(() => {
 		gameState.init();
 	});
+
+	if (typeof window !== 'undefined' && import.meta.env.DEV) {
+		window.gameState = gameState;
+	}
 </script>
 
 <svelte:head>
@@ -284,6 +288,9 @@
 		enemiesKilled={gameState.enemiesKilled}
 		goldEarned={gameState.gold}
 		totalGold={gameState.persistentGold}
+		startingStats={gameState.startingStats}
+		endingStats={gameState.endingStats}
+		wasDefeatNatural={gameState.wasDefeatNatural}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
 	/>
@@ -298,7 +305,6 @@
 		onBuy={gameState.buyUpgrade}
 		currentStats={gameState.playerStats}
 		onReroll={gameState.rerollShop}
-		onBack={gameState.closeShop}
 		onPlayAgain={gameState.resetGame}
 	/>
 

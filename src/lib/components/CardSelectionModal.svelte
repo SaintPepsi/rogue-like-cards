@@ -28,6 +28,7 @@
 		class?: string;
 		modalClass?: string;
 		choicesClass?: string;
+		testId?: string;
 	};
 
 	let {
@@ -43,7 +44,8 @@
 		theme = 'default',
 		class: overlayClass = '',
 		modalClass = '',
-		choicesClass = ''
+		choicesClass = '',
+		testId
 	}: Props = $props();
 
 	const flip = useCardFlip();
@@ -101,7 +103,7 @@
 	</Button.Root>
 {/snippet}
 
-<div class="modal-overlay {overlayClass}">
+<div class="modal-overlay {overlayClass}" data-testid={testId}>
 	<div class="modal {modalClass} theme-{theme}" class:selecting={cardSelect.selecting}>
 		<div class="modal-header" class:content-fade-out={cardSelect.selecting}>
 			{@render header?.()}

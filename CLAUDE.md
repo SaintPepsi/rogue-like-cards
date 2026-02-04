@@ -50,7 +50,7 @@ function addItem(data: Omit<Item, 'id'>) {
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
 - Prefer early returns over nested `if/else` blocks. Guard clauses at the top of a function make the happy path obvious and reduce indentation depth.
-- Do not use `as any`. Use specific type assertions (`as SomeType`), generics, or restructure code to avoid the need for casts.
+- Never use the `any` type. Always use explicit types, whether in function parameters, return types, variable declarations, or type assertions. Use specific type assertions (`as SomeType`), generics, unions, or restructure code to avoid the need for `any`.
 - Use descriptive function names. Avoid cryptic abbreviations like `pct`, `num`, `fmt`. Prefer self-explanatory names like `asPercent`, `asPlusNumber`, `formatPrice`.
 
 ## Component Reuse
@@ -91,6 +91,22 @@ When creating custom UI patterns:
 - **Card rendering:** `LevelUpModal` and `LegendarySelectionModal` both use `CardCarousel`, `useCardFlip`, `useCardSelect` hooks
 - **Modals:** All modals follow the same overlay + content structure with consistent animations
 - **Buttons:** Use `bits-ui`'s `Button.Root` component, not raw `<button>` elements
+
+## Design Document Management
+
+Track the lifecycle of planning documents by moving them to a completed folder once they've been used.
+
+### When to move documents
+
+- **Design documents:** After writing an implementation plan from a design markdown file, move the design file to the completed folder.
+- **Implementation plans:** After executing a plan from an implementation markdown file, move it to the completed folder.
+
+### Why
+
+- Clearly separates active work from completed work
+- Maintains a historical record of design decisions
+- Prevents confusion about which documents are still relevant
+- Keeps the active planning directory focused on current tasks
 
 ## Code Proximity Principles
 
