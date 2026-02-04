@@ -156,4 +156,44 @@
 		justify-content: center;
 		gap: 12px;
 	}
+
+	.stats-comparison {
+		background: rgba(0, 0, 0, 0.3);
+		padding: 16px;
+		border-radius: 8px;
+		margin: 16px 0;
+		max-height: 300px;
+		overflow-y: auto;
+	}
+
+	.stats-comparison h3 {
+		color: #a78bfa;
+		margin: 0 0 12px;
+		font-size: 1.2rem;
+		text-align: center;
+	}
+
+	.stat-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 0;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.stat-icon {
+		font-size: 1.1rem;
+		width: 24px;
+	}
+
+	.stat-label {
+		flex: 1;
+		font-weight: 500;
+	}
+
+	.stat-change {
+		color: #fbbf24;
+		font-weight: bold;
+		font-family: monospace;
+	}
 </style>
