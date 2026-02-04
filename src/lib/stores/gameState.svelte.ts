@@ -507,6 +507,10 @@ function createGameState() {
 			}
 		}
 
+		// Restore stats comparison data
+		startingStats = data.startingStats ?? null;
+		endingStats = data.endingStats ?? null;
+
 		return true;
 	}
 
