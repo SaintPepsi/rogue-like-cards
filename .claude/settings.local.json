@@ -54,7 +54,8 @@
 			"Skill(superpowers:executing-plans)",
 			"Bash(git restore:*)",
 			"Bash(grep:*)",
-			"Bash(git log:*)"
+			"Bash(git log:*)",
+			"Bash(npm run test:e2e:*)"
 		]
 	},
 	"enableAllProjectMcpServers": true,
