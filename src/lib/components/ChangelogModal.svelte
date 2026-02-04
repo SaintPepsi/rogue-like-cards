@@ -31,10 +31,9 @@
 		const regex = /`([^`]+)`/g;
 		const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'] as const;
 		let lastIndex = 0;
-		let match;
 
-		while ((match = regex.exec(text)) !== null) {
-			if (match.index > lastIndex) {
+		for (const match of text.matchAll(regex)) {
+			if (match.index !== undefined && match.index > lastIndex) {
 				parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
 			}
 
@@ -56,7 +55,7 @@
 			}
 
 			parts.push({ type: 'code', content: displayContent, variant });
-			lastIndex = regex.lastIndex;
+			lastIndex = (match.index ?? 0) + match[0].length;
 		}
 
 		if (lastIndex < text.length) {
