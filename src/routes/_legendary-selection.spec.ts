@@ -10,6 +10,8 @@ test.describe('Legendary Selection Modal', () => {
 		}, VERSION);
 		await page.reload();
 		await page.locator('.enemy').waitFor({ state: 'visible' });
+		// Wait for game loop to initialize
+		await page.waitForTimeout(500);
 	}
 
 	async function completeFirstRun(page: any) {
@@ -21,8 +23,27 @@ test.describe('Legendary Selection Modal', () => {
 		// Close game over modal
 		await page.locator('.modal-overlay').waitFor({ state: 'visible' });
 		await page.locator('button:has-text("Play Again")').click();
-		await page.locator('.modal-overlay').waitFor({ state: 'hidden' });
+
+		// After first completion, legendary selection modal appears - skip it
+		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
+		await legendaryModal.waitFor({ state: 'visible' });
+		await page.locator('button:has-text("Skip")').click();
+		await legendaryModal.waitFor({ state: 'hidden' });
 	}
 
-	// Tests will go here
+	test('give up does not show legendary selection modal', async ({ page }) => {
+		// Setup and complete first run
+		await setupGame(page);
+		await completeFirstRun(page);
+
+		// Start second run
+		await page.locator('.enemy').waitFor({ state: 'visible' });
+
+		// Give up
+		await page.locator('button:has-text("Give Up")').click();
+
+		// Verify legendary modal does NOT appear
+		const legendaryModal = page.locator('[data-testid="legendary-selection-modal"]');
+		await expect(legendaryModal).not.toBeVisible();
+	});
 });

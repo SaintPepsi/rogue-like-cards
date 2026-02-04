@@ -131,7 +131,7 @@
 		gameState.init();
 	});
 
-	if (typeof window !== 'undefined' && import.meta.env.MODE === 'test') {
+	if (typeof window !== 'undefined' && import.meta.env.DEV) {
 		window.gameState = gameState;
 	}
 </script>
