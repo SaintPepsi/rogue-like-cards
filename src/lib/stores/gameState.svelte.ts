@@ -536,6 +536,9 @@ function createGameState() {
 
 		applyShopUpgrades();
 
+		// Capture starting baseline (base + shop upgrades only)
+		startingStats = getEffectiveStats();
+
 		// Reset enemy state (this spawns an initial enemy)
 		enemy.reset(statPipeline.get('greed'));
 
