@@ -15,7 +15,6 @@
 		getPrice: (upgrade: Upgrade) => number;
 		onBuy: (upgrade: Upgrade) => boolean;
 		onReroll: () => void;
-		onBack: () => void;
 		onPlayAgain: () => void;
 		currentStats?: Partial<PlayerStats>;
 	};
@@ -29,7 +28,6 @@
 		getPrice,
 		onBuy,
 		onReroll,
-		onBack,
 		onPlayAgain,
 		currentStats
 	}: Props = $props();
@@ -123,10 +121,6 @@
 
 			<div class="button-row">
 				<Button.Root
-					class="py-3 px-8 bg-[#374151] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[background] duration-200 hover:bg-[#4b5563]"
-					onclick={onBack}>Back</Button.Root
-				>
-				<Button.Root
 					class="py-3 px-8 bg-linear-to-r from-[#22c55e] to-[#16a34a] border-none rounded-lg text-white text-base font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(34,197,94,0.4)]"
 					onclick={onPlayAgain}>Play Again</Button.Root
 				>
@@ -209,7 +203,6 @@
 	.button-row {
 		display: flex;
 		justify-content: center;
-		gap: 16px;
 	}
 
 	:global(.upgrade-choices.cards-fading) {
