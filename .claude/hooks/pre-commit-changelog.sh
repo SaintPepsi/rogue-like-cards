@@ -29,7 +29,7 @@ fi
 CHANGELOG_FILE="src/lib/changelog.ts"
 VERSION_FILE="src/lib/version.ts"
 
-CURRENT_VERSION=$(grep -oP "VERSION = '\K[^']+" "$VERSION_FILE" 2>/dev/null || echo "")
+CURRENT_VERSION=$(grep -oP "^export const VERSION = '\K[^']+" "$VERSION_FILE" 2>/dev/null | head -1 || echo "")
 if [ -z "$CURRENT_VERSION" ]; then
   exit 0
 fi
