@@ -13,6 +13,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
+		version: '0.46.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added automatic save data reset system for major beta updates to ensure clean testing of new game flows'
+			}
+		]
+	},
+	{
 		version: '0.45.0',
 		date: '2026-02-03',
 		changes: [
