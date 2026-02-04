@@ -1,7 +1,7 @@
 # Beta Reset Versioning Design
 
 **Date:** 2026-02-04
-**Status:** Approved
+**Status:** Implemented
 
 ## Overview
 

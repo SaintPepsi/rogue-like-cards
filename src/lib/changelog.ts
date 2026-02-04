@@ -13,7 +13,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
 	{
-		version: '0.45.0',
+		version: '0.47.0',
 		date: '2026-02-04',
 		changes: [
 			{
@@ -25,6 +25,17 @@ export const CHANGELOG: ChangelogEntry[] = [
 				category: 'changed',
 				description:
 					'Enforced one-way navigation flow from game over to shop — removed back button to prevent confusion'
+			}
+		]
+	},
+	{
+		version: '0.46.0',
+		date: '2026-02-04',
+		changes: [
+			{
+				category: 'new',
+				description:
+					'Added automatic save data reset system for major beta updates to ensure clean testing of new game flows'
 			}
 		]
 	},

@@ -457,11 +457,11 @@ describe('gold per kill cards (two paths)', () => {
 
 describe('attack speed cards (percentage-based)', () => {
 	const speedCards = [
-		{ id: 'attack_speed_1', rarity: 'common', value: 0.005 },
-		{ id: 'attack_speed_2', rarity: 'uncommon', value: 0.01 },
-		{ id: 'attack_speed_3', rarity: 'rare', value: 0.025 },
-		{ id: 'attack_speed_4', rarity: 'epic', value: 0.05 },
-		{ id: 'attack_speed_5', rarity: 'legendary', value: 0.25 }
+		{ id: 'attack_speed_1', rarity: 'common', value: 0.05 },
+		{ id: 'attack_speed_2', rarity: 'uncommon', value: 0.1 },
+		{ id: 'attack_speed_3', rarity: 'rare', value: 0.25 },
+		{ id: 'attack_speed_4', rarity: 'epic', value: 0.5 },
+		{ id: 'attack_speed_5', rarity: 'legendary', value: 1.5 }
 	];
 
 	for (const { id, rarity, value } of speedCards) {
