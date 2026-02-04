@@ -92,6 +92,22 @@ When creating custom UI patterns:
 - **Modals:** All modals follow the same overlay + content structure with consistent animations
 - **Buttons:** Use `bits-ui`'s `Button.Root` component, not raw `<button>` elements
 
+## Design Document Management
+
+Track the lifecycle of planning documents by moving them to a completed folder once they've been used.
+
+### When to move documents
+
+- **Design documents:** After writing an implementation plan from a design markdown file, move the design file to the completed folder.
+- **Implementation plans:** After executing a plan from an implementation markdown file, move it to the completed folder.
+
+### Why
+
+- Clearly separates active work from completed work
+- Maintains a historical record of design decisions
+- Prevents confusion about which documents are still relevant
+- Keeps the active planning directory focused on current tasks
+
 ## Code Proximity Principles
 
 Keep related code close together. Fight the natural drift of logic scattering across the codebase.
