@@ -770,7 +770,15 @@ function createGameState() {
 		buyUpgrade: (upgrade: Upgrade) => shop.buy(upgrade, getEffectiveStats()),
 		getCardPrice: (upgrade: Upgrade) => shop.getPrice(upgrade),
 		getUpgradeLevel: (upgrade: Upgrade) => shop.getUpgradeLevel(upgrade),
-		rerollShop: () => shop.reroll(getEffectiveStats())
+		rerollShop: () => shop.reroll(getEffectiveStats()),
+
+		// Test-only methods
+		__test__: {
+			triggerBossExpired: (isNaturalDeath: boolean = true) => handleBossExpired(isNaturalDeath),
+			get bossTimerMax() {
+				return bossTimerMax;
+			}
+		}
 	};
 }
 
