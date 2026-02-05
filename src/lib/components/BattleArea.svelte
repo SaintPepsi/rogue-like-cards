@@ -1,18 +1,14 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
 	import { Button } from 'bits-ui';
 	import type { HitInfo, GoldDrop } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import { codes } from '$lib/stores/codes.svelte';
+	import { gameState } from '$lib/stores/gameState.svelte';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
 	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
-
-	// DECISION: 100ms interval = ~10 clicks per second for autoclicker
-	// Why: Matches the user request for "about 10 clicks per second" testing aid
-	const AUTOCLICKER_INTERVAL_MS = 100;
 
 	type Props = {
 		isBoss: boolean;
@@ -48,21 +44,18 @@
 
 	let autoclickerActive = $state(false);
 
-	// Manage autoclicker interval reactively via $effect cleanup
-	// Reads only autoclickerActive — callbacks are untracked to avoid re-runs on prop identity changes
+	// DECISION: Use game loop timer instead of setInterval
+	// Why: setInterval queues callbacks when tab is inactive, causing bursts on focus.
+	// Game loop's timer registry already handles this via deltaMs capping.
 	$effect(() => {
-		if (!autoclickerActive) return;
-
-		const down = untrack(() => onPointerDown);
-		const up = untrack(() => onPointerUp);
-
-		const intervalId = setInterval(() => {
-			down();
-		}, AUTOCLICKER_INTERVAL_MS);
+		if (autoclickerActive) {
+			gameState.startAutoclicker();
+		} else {
+			gameState.stopAutoclicker();
+		}
 
 		return () => {
-			clearInterval(intervalId);
-			up();
+			gameState.stopAutoclicker();
 		};
 	});
 </script>
