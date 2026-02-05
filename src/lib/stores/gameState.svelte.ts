@@ -347,7 +347,7 @@ function createGameState() {
 
 		// Track run pick statistics
 		const currentCount = runPickCounts.get(upgrade.id) ?? 0;
-		runPickCounts = new SvelteMap([...runPickCounts, [upgrade.id, currentCount + 1]]);
+		runPickCounts.set(upgrade.id, currentCount + 1);
 
 		// Track special effects — derive from modifiers + statRegistry
 		if (upgrade.modifiers.length > 0) {

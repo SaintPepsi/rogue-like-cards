@@ -76,7 +76,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 			executeCapBonus += EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005;
 		} else {
 			const prev = purchasedUpgradeCounts.get(upgrade.id) ?? 0;
-			purchasedUpgradeCounts = new SvelteMap([...purchasedUpgradeCounts, [upgrade.id, prev + 1]]);
+			purchasedUpgradeCounts.set(upgrade.id, prev + 1);
 		}
 
 		save();
@@ -146,7 +146,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	function mergeRunPickCounts(runCounts: SvelteMap<string, number> | Map<string, number>) {
 		for (const [id, count] of runCounts) {
 			const prev = lifetimePickCounts.get(id) ?? 0;
-			lifetimePickCounts = new SvelteMap([...lifetimePickCounts, [id, prev + count]]);
+			lifetimePickCounts.set(id, prev + count);
 		}
 		save();
 	}
