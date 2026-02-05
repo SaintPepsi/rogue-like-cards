@@ -73,35 +73,33 @@
 				{@const statInfo = statRegistry.find((s) => s.key === stat.stat)}
 				{@const description = statInfo?.description}
 				{#if description}
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							{#snippet child({ props })}
-								<li {...props}>
-									<span class="stat-icon">{stat.icon}</span>
-									<div class="stat-text">
-										<span class="stat-label">{stat.label}</span>
-										<span class="stat-change">
-											<span class="stat-value">{stat.value}</span>
-											{#if 'total' in stat && stat.total}
-												<span class="stat-arrow">→</span>
-												<span class="stat-total">{stat.total}</span>
-											{/if}
-										</span>
-									</div>
-								</li>
-							{/snippet}
-						</Tooltip.Trigger>
-						<Tooltip.Portal>
-							<Tooltip.Content
-								class="card-stat-tooltip"
-								side="top"
-								sideOffset={8}
-							>
-								{description}
-								<Tooltip.Arrow class="card-stat-tooltip-arrow" />
-							</Tooltip.Content>
-						</Tooltip.Portal>
-					</Tooltip.Root>
+					<li>
+						<Tooltip.Root>
+							<Tooltip.Trigger class="stat-tooltip-trigger">
+								<span class="stat-icon">{stat.icon}</span>
+								<div class="stat-text">
+									<span class="stat-label">{stat.label}</span>
+									<span class="stat-change">
+										<span class="stat-value">{stat.value}</span>
+										{#if 'total' in stat && stat.total}
+											<span class="stat-arrow">→</span>
+											<span class="stat-total">{stat.total}</span>
+										{/if}
+									</span>
+								</div>
+							</Tooltip.Trigger>
+							<Tooltip.Portal>
+								<Tooltip.Content
+									class="card-stat-tooltip"
+									side="top"
+									sideOffset={8}
+								>
+									{description}
+									<Tooltip.Arrow class="card-stat-tooltip-arrow" />
+								</Tooltip.Content>
+							</Tooltip.Portal>
+						</Tooltip.Root>
+					</li>
 				{:else}
 					<li>
 						<span class="stat-icon">{stat.icon}</span>
@@ -242,6 +240,21 @@
 			color: #fbbf24;
 			font-weight: 400;
 		}
+	}
+
+	:global(.stat-tooltip-trigger) {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: 100%;
+		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		font-family: inherit;
+		font-size: inherit;
+		color: inherit;
+		text-align: inherit;
 	}
 
 	:global(.card-stat-tooltip) {
