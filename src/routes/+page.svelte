@@ -311,6 +311,8 @@
 	<UpgradesModal
 		show={showUpgradesModal}
 		unlockedUpgrades={gameState.unlockedUpgrades}
+		shopPurchaseCounts={gameState.getShopPurchaseCounts()}
+		lifetimePickCounts={gameState.getLifetimePickCounts()}
 		onClose={() => (showUpgradesModal = false)}
 	/>
 

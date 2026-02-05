@@ -7,9 +7,11 @@
 		show: boolean;
 		unlockedUpgrades: Set<string>;
 		onClose: () => void;
+		shopPurchaseCounts: Map<string, number>;
+		lifetimePickCounts: Map<string, number>;
 	};
 
-	let { show, unlockedUpgrades, onClose }: Props = $props();
+	let { show, unlockedUpgrades, onClose, shopPurchaseCounts, lifetimePickCounts }: Props = $props();
 
 	const unlockedCount = $derived(unlockedUpgrades.size);
 	const totalCount = allUpgrades.length;
@@ -48,6 +50,8 @@
 								rarity={upgrade.rarity}
 								image={upgrade.image}
 								modifiers={isUnlocked ? upgrade.modifiers : []}
+								shopPurchases={isUnlocked ? (shopPurchaseCounts.get(upgrade.id) ?? 0) : 0}
+								lifetimePicks={isUnlocked ? (lifetimePickCounts.get(upgrade.id) ?? 0) : 0}
 							/>
 							{#if !isUnlocked}
 								<div class="lock-overlay">

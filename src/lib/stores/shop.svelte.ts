@@ -16,6 +16,7 @@ import type { createPersistence } from './persistence.svelte';
 export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let persistentGold = $state(0);
 	let purchasedUpgradeCounts = new SvelteMap<string, number>();
+	let lifetimePickCounts = new SvelteMap<string, number>();
 	let executeCapBonus = $state(0);
 	let showShop = $state(false);
 	let shopChoices = $state<Upgrade[]>([]);
@@ -101,6 +102,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		persistence.savePersistent({
 			gold: persistentGold,
 			purchasedUpgradeCounts: Object.fromEntries(purchasedUpgradeCounts),
+			lifetimePickCounts: Object.fromEntries(lifetimePickCounts),
 			executeCapBonus,
 			shopChoiceIds: shopChoices.map((u) => u.id),
 			rerollCost,
@@ -114,6 +116,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		if (!data) return;
 		persistentGold = data.gold || 0;
 		purchasedUpgradeCounts = new SvelteMap(Object.entries(data.purchasedUpgradeCounts || {}));
+		lifetimePickCounts = new SvelteMap(Object.entries(data.lifetimePickCounts || {}));
 		executeCapBonus = data.executeCapBonus || 0;
 		rerollCost = data.rerollCost ?? 1;
 
@@ -140,9 +143,18 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		return ids;
 	}
 
+	function mergeRunPickCounts(runCounts: Map<string, number>) {
+		for (const [id, count] of runCounts) {
+			const prev = lifetimePickCounts.get(id) ?? 0;
+			lifetimePickCounts = new SvelteMap([...lifetimePickCounts, [id, prev + count]]);
+		}
+		save();
+	}
+
 	function fullReset() {
 		persistentGold = 0;
 		purchasedUpgradeCounts = new SvelteMap();
+		lifetimePickCounts = new SvelteMap();
 		executeCapBonus = 0;
 		shopChoices = [];
 		rerollCost = 1;
@@ -162,6 +174,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		},
 		get purchasedUpgradeCounts() {
 			return purchasedUpgradeCounts;
+		},
+		get lifetimePickCounts() {
+			return lifetimePickCounts;
 		},
 		get executeCapBonus() {
 			return executeCapBonus;
@@ -190,6 +205,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		buy,
 		reroll,
 		depositGold,
+		mergeRunPickCounts,
 		save,
 		load,
 		fullReset,

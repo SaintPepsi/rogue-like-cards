@@ -39,6 +39,7 @@ function createGameState() {
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
+	let runPickCounts = $state<Map<string, number>>(new Map());
 
 	// Stats comparison tracking
 	let startingStats = $state<PlayerStats | null>(null);
@@ -130,6 +131,10 @@ function createGameState() {
 		// Why: Ensures we capture stats from the actual run before gameLoop.reset()
 		// clears all run-based effects and upgrades, which would show incorrect stats
 		endingStats = getEffectiveStats();
+
+		// Merge run pick counts into lifetime stats before resetting
+		shop.mergeRunPickCounts(runPickCounts);
+		runPickCounts = new Map();
 
 		gameLoop.reset();
 		shop.depositGold(gold); // This calls shop.save() which saves persistent data
@@ -338,6 +343,10 @@ function createGameState() {
 
 		// Track unlocked upgrades for collection
 		unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+
+		// Track run pick statistics
+		const currentCount = runPickCounts.get(upgrade.id) ?? 0;
+		runPickCounts = new Map([...runPickCounts, [upgrade.id, currentCount + 1]]);
 
 		// Track special effects — derive from modifiers + statRegistry
 		if (upgrade.modifiers.length > 0) {
@@ -553,6 +562,7 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
+		runPickCounts = new Map();
 		// DECISION: hasCompletedFirstRun is a persistent meta-progression flag (stored in PersistentSaveData)
 		// that tracks whether the player has ever completed a run. It should NOT be reset here since
 		// resetGame() is for starting a new run (preserving meta-progression), not for clearing all progress.
@@ -759,6 +769,9 @@ function createGameState() {
 		get rerollCost() {
 			return shop.rerollCost;
 		},
+		getShopPurchaseCounts: () => shop.purchasedUpgradeCounts,
+		getLifetimePickCounts: () => shop.lifetimePickCounts,
+		getRunPickCounts: () => runPickCounts,
 		get frenzyStacks() {
 			return frenzy.count;
 		},
