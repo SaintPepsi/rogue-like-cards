@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { allUpgrades } from '$lib/data/upgrades';
-	import { Button } from 'bits-ui';
+	import { Button, Tooltip } from 'bits-ui';
 	import UpgradeCard from './UpgradeCard.svelte';
 
 	type Props = {
@@ -39,24 +39,26 @@
 				>
 			</div>
 			<div class="modal-content">
-				<div class="upgrades-grid">
-					{#each allUpgrades as upgrade (upgrade.id)}
-						{@const isUnlocked = unlockedUpgrades.has(upgrade.id)}
-						<div class="upgrade-wrapper" class:locked={!isUnlocked}>
-							<UpgradeCard
-								title={isUnlocked ? upgrade.title : '???'}
-								rarity={upgrade.rarity}
-								image={upgrade.image}
-								modifiers={isUnlocked ? upgrade.modifiers : []}
-							/>
-							{#if !isUnlocked}
-								<div class="lock-overlay">
-									<span class="lock-icon">🔒</span>
-								</div>
-							{/if}
-						</div>
-					{/each}
-				</div>
+				<Tooltip.Provider delayDuration={0} disableHoverableContent>
+					<div class="upgrades-grid">
+						{#each allUpgrades as upgrade (upgrade.id)}
+							{@const isUnlocked = unlockedUpgrades.has(upgrade.id)}
+							<div class="upgrade-wrapper" class:locked={!isUnlocked}>
+								<UpgradeCard
+									title={isUnlocked ? upgrade.title : '???'}
+									rarity={upgrade.rarity}
+									image={upgrade.image}
+									modifiers={isUnlocked ? upgrade.modifiers : []}
+								/>
+								{#if !isUnlocked}
+									<div class="lock-overlay">
+										<span class="lock-icon">🔒</span>
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				</Tooltip.Provider>
 			</div>
 		</div>
 	</div>
