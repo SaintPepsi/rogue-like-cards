@@ -72,29 +72,6 @@
 
 	<h2>{title}</h2>
 
-	{#if showStatsBar}
-		<div class="stats-bar">
-			{#if shopPurchases > 0}
-				<div class="stat-badge shop" title="Shop purchases">
-					<span class="badge-icon">🛒</span>
-					<span class="badge-count">{shopPurchases}</span>
-				</div>
-			{/if}
-			{#if runPicks > 0}
-				<div class="stat-badge run" title="Picks this run">
-					<span class="badge-icon">▶</span>
-					<span class="badge-count">{runPicks}</span>
-				</div>
-			{/if}
-			{#if lifetimePicks > 0}
-				<div class="stat-badge lifetime" title="Total lifetime picks">
-					<span class="badge-icon">🏆</span>
-					<span class="badge-count">{lifetimePicks}</span>
-				</div>
-			{/if}
-		</div>
-	{/if}
-
 	{#if displayStats.length > 0}
 		<ul class="stats">
 			{#each displayStats as stat, i (i)}
@@ -114,10 +91,38 @@
 			{/each}
 		</ul>
 	{/if}
+
+	{#if showStatsBar}
+		<div class="stats-badges">
+			<div class="badges-left">
+				{#if shopPurchases > 0}
+					<div class="stat-badge shop" title="Shop purchases">
+						<span class="badge-icon">🛒</span>
+						<span class="badge-count">{shopPurchases}</span>
+					</div>
+				{/if}
+			</div>
+			<div class="badges-right">
+				{#if runPicks > 0}
+					<div class="stat-badge run" title="Picks this run">
+						<span class="badge-icon">▶</span>
+						<span class="badge-count">{runPicks}</span>
+					</div>
+				{/if}
+				{#if lifetimePicks > 0}
+					<div class="stat-badge lifetime" title="Total lifetime picks">
+						<span class="badge-icon">🏆</span>
+						<span class="badge-count">{lifetimePicks}</span>
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style lang="scss">
 	.UpgradeCard {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		border: 2px solid var(--border-color);
@@ -238,11 +243,20 @@
 		}
 	}
 
-	.stats-bar {
+	.stats-badges {
+		position: absolute;
+		bottom: 8px;
+		left: 8px;
+		right: 8px;
+		display: flex;
+		justify-content: space-between;
+		pointer-events: none;
+	}
+
+	.badges-left,
+	.badges-right {
 		display: flex;
 		gap: 4px;
-		margin: 8px 0;
-		justify-content: center;
 	}
 
 	.stat-badge {
@@ -253,6 +267,7 @@
 		border-radius: 12px;
 		font-size: 0.75rem;
 		font-weight: 600;
+		pointer-events: auto;
 
 		.badge-icon {
 			font-size: 0.85rem;

@@ -313,6 +313,7 @@
 		unlockedUpgrades={gameState.unlockedUpgrades}
 		shopPurchaseCounts={gameState.getShopPurchaseCounts()}
 		lifetimePickCounts={gameState.getLifetimePickCounts()}
+		runPickCounts={gameState.getRunPickCounts()}
 		onClose={() => (showUpgradesModal = false)}
 	/>
 

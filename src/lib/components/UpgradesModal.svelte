@@ -9,9 +9,10 @@
 		onClose: () => void;
 		shopPurchaseCounts: Map<string, number>;
 		lifetimePickCounts: Map<string, number>;
+		runPickCounts: Map<string, number>;
 	};
 
-	let { show, unlockedUpgrades, onClose, shopPurchaseCounts, lifetimePickCounts }: Props = $props();
+	let { show, unlockedUpgrades, onClose, shopPurchaseCounts, lifetimePickCounts, runPickCounts }: Props = $props();
 
 	const unlockedCount = $derived(unlockedUpgrades.size);
 	const totalCount = allUpgrades.length;
@@ -52,6 +53,7 @@
 								modifiers={isUnlocked ? upgrade.modifiers : []}
 								shopPurchases={isUnlocked ? (shopPurchaseCounts.get(upgrade.id) ?? 0) : 0}
 								lifetimePicks={isUnlocked ? (lifetimePickCounts.get(upgrade.id) ?? 0) : 0}
+								runPicks={isUnlocked ? (runPickCounts.get(upgrade.id) ?? 0) : 0}
 							/>
 							{#if !isUnlocked}
 								<div class="lock-overlay">
