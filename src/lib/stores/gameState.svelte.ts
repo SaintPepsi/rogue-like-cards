@@ -26,6 +26,7 @@ import { allUpgrades, getRandomLegendaryUpgrades } from '$lib/data/upgrades';
 import { VERSION, RESET_VERSION } from '$lib/version';
 import { shouldTriggerReset } from '$lib/utils/versionComparison';
 import { getLastResetVersion, setLastResetVersion } from '$lib/utils/resetVersionStorage';
+import { SvelteMap } from 'svelte/reactivity';
 
 function createGameState() {
 	const persistence = createPersistence('roguelike-cards-save', 'roguelike-cards-persistent');
@@ -39,7 +40,7 @@ function createGameState() {
 	let effects = $state<Effect[]>([]);
 	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
-	let runPickCounts = $state<Map<string, number>>(new Map());
+	let runPickCounts = new SvelteMap<string, number>();
 
 	// Stats comparison tracking
 	let startingStats = $state<PlayerStats | null>(null);
@@ -134,7 +135,7 @@ function createGameState() {
 
 		// Merge run pick counts into lifetime stats before resetting
 		shop.mergeRunPickCounts(runPickCounts);
-		runPickCounts = new Map();
+		runPickCounts = new SvelteMap();
 
 		gameLoop.reset();
 		shop.depositGold(gold); // This calls shop.save() which saves persistent data
@@ -346,7 +347,7 @@ function createGameState() {
 
 		// Track run pick statistics
 		const currentCount = runPickCounts.get(upgrade.id) ?? 0;
-		runPickCounts = new Map([...runPickCounts, [upgrade.id, currentCount + 1]]);
+		runPickCounts = new SvelteMap([...runPickCounts, [upgrade.id, currentCount + 1]]);
 
 		// Track special effects — derive from modifiers + statRegistry
 		if (upgrade.modifiers.length > 0) {
@@ -562,7 +563,7 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
-		runPickCounts = new Map();
+		runPickCounts = new SvelteMap();
 		// DECISION: hasCompletedFirstRun is a persistent meta-progression flag (stored in PersistentSaveData)
 		// that tracks whether the player has ever completed a run. It should NOT be reset here since
 		// resetGame() is for starting a new run (preserving meta-progression), not for clearing all progress.

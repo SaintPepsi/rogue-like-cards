@@ -61,6 +61,33 @@
 </script>
 
 <div class="UpgradeCard" style:--glow-color={colors.glow} style:--border-color={colors.border}>
+	{#if showStatsBar}
+		<div class="stats-badges">
+			<div class="badges-left">
+				{#if shopPurchases > 0}
+					<div class="stat-badge shop" title="Shop purchases">
+						<span class="badge-icon">🛒</span>
+						<span class="badge-count">{shopPurchases}</span>
+					</div>
+				{/if}
+			</div>
+			<div class="badges-right">
+				{#if runPicks > 0}
+					<div class="stat-badge run" title="Picks this run">
+						<span class="badge-icon">▶</span>
+						<span class="badge-count">{runPicks}</span>
+					</div>
+				{/if}
+				{#if lifetimePicks > 0}
+					<div class="stat-badge lifetime" title="Total lifetime picks">
+						<span class="badge-icon">🏆</span>
+						<span class="badge-count">{lifetimePicks}</span>
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
+
 	<div class="image-container">
 		<AspectRatio.Root ratio={4 / 3}>
 			<div class="image-bg">
@@ -90,33 +117,6 @@
 				</li>
 			{/each}
 		</ul>
-	{/if}
-
-	{#if showStatsBar}
-		<div class="stats-badges">
-			<div class="badges-left">
-				{#if shopPurchases > 0}
-					<div class="stat-badge shop" title="Shop purchases">
-						<span class="badge-icon">🛒</span>
-						<span class="badge-count">{shopPurchases}</span>
-					</div>
-				{/if}
-			</div>
-			<div class="badges-right">
-				{#if runPicks > 0}
-					<div class="stat-badge run" title="Picks this run">
-						<span class="badge-icon">▶</span>
-						<span class="badge-count">{runPicks}</span>
-					</div>
-				{/if}
-				{#if lifetimePicks > 0}
-					<div class="stat-badge lifetime" title="Total lifetime picks">
-						<span class="badge-icon">🏆</span>
-						<span class="badge-count">{lifetimePicks}</span>
-					</div>
-				{/if}
-			</div>
-		</div>
 	{/if}
 </div>
 
@@ -245,12 +245,13 @@
 
 	.stats-badges {
 		position: absolute;
-		bottom: 8px;
+		top: 8px;
 		left: 8px;
 		right: 8px;
 		display: flex;
 		justify-content: space-between;
 		pointer-events: none;
+		z-index: 10;
 	}
 
 	.badges-left,

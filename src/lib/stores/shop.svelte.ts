@@ -143,7 +143,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		return ids;
 	}
 
-	function mergeRunPickCounts(runCounts: Map<string, number>) {
+	function mergeRunPickCounts(runCounts: SvelteMap<string, number> | Map<string, number>) {
 		for (const [id, count] of runCounts) {
 			const prev = lifetimePickCounts.get(id) ?? 0;
 			lifetimePickCounts = new SvelteMap([...lifetimePickCounts, [id, prev + count]]);
