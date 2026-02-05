@@ -18,9 +18,9 @@
 	<Tooltip.Root>
 		<Tooltip.Trigger>
 			{#snippet child({ props })}
-				<li {...props}>
+				<div {...props}>
 					{@render children()}
-				</li>
+				</div>
 			{/snippet}
 		</Tooltip.Trigger>
 		<Tooltip.Portal>
@@ -35,7 +35,5 @@
 		</Tooltip.Portal>
 	</Tooltip.Root>
 {:else}
-	<li>
-		{@render children()}
-	</li>
+	{@render children()}
 {/if}
