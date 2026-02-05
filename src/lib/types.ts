@@ -75,3 +75,8 @@ export type GoldDrop = {
 	id: number;
 	amount: number;
 };
+
+export type Toast = {
+	id: number;
+	message: string;
+};

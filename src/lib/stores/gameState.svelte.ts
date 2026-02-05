@@ -56,6 +56,10 @@ function createGameState() {
 	// Track if we should show legendary selection on next reset (only after natural death)
 	let showLegendaryOnNextReset = $state(false);
 
+	// Auto-pick upgrades toggle — when enabled, randomly selects from upgrade choices
+	// instead of showing the card selection modal
+	let autoPickUpgrades = $state(false);
+
 	// Reactive poison stack count — pipeline.getSystemState() reads from a plain Map
 	// which Svelte can't track, so we sync this after every pipeline mutation.
 	let poisonStackCount = $state(0);
@@ -280,6 +284,9 @@ function createGameState() {
 				enemy.clearChestFlags();
 
 				leveling.queueChestLoot(wasBossChest, upgradeContext(), goldReward);
+				if (autoPickUpgrades) {
+					autoPickFromQueue();
+				}
 				enemy.spawnNextTarget(playerStats);
 				saveGame();
 				return;
@@ -318,6 +325,9 @@ function createGameState() {
 			}
 
 			leveling.checkLevelUp(upgradeContext());
+			if (autoPickUpgrades) {
+				autoPickFromQueue();
+			}
 
 			if (!enemy.isBoss && enemy.isWaveComplete()) {
 				if (enemy.shouldSpawnBossChestTarget(playerStats)) {
@@ -336,7 +346,7 @@ function createGameState() {
 		}
 	}
 
-	function selectUpgrade(upgrade: Upgrade) {
+	function applyUpgrade(upgrade: Upgrade) {
 		statPipeline.acquireUpgrade(upgrade.id);
 		if (upgrade.onAcquire) upgrade.onAcquire();
 
@@ -359,6 +369,10 @@ function createGameState() {
 				});
 			}
 		}
+	}
+
+	function selectUpgrade(upgrade: Upgrade) {
+		applyUpgrade(upgrade);
 
 		if (!leveling.closeActiveEvent()) {
 			leveling.openNextUpgrade();
@@ -366,6 +380,33 @@ function createGameState() {
 			return;
 		}
 		gameLoop.resume();
+		saveGame();
+	}
+
+	/**
+	 * Drain the upgrade queue automatically by picking a random card from each event.
+	 * Used when autoPickUpgrades is enabled.
+	 */
+	function autoPickFromQueue() {
+		const MAX_ITERATIONS = 200;
+		for (let i = 0; i < MAX_ITERATIONS && leveling.pendingUpgrades > 0; i++) {
+			const event = leveling.openNextUpgrade();
+			if (!event) break;
+
+			const randomIndex = Math.floor(Math.random() * event.choices.length);
+			applyUpgrade(event.choices[randomIndex]);
+			leveling.closeActiveEvent();
+		}
+		saveGame();
+	}
+
+	function toggleAutoPickUpgrades() {
+		autoPickUpgrades = !autoPickUpgrades;
+		ui.addToast(autoPickUpgrades ? 'Auto-pick upgrades enabled' : 'Auto-pick upgrades disabled');
+		// If toggled on and there are pending upgrades, drain them immediately
+		if (autoPickUpgrades && leveling.pendingUpgrades > 0) {
+			autoPickFromQueue();
+		}
 		saveGame();
 	}
 
@@ -469,7 +510,8 @@ function createGameState() {
 			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
 			hasSelectedStartingLegendary,
 			startingStats: startingStats ?? undefined,
-			endingStats: endingStats ?? undefined
+			endingStats: endingStats ?? undefined,
+			autoPickUpgrades: autoPickUpgrades || undefined
 		});
 	}
 
@@ -513,6 +555,9 @@ function createGameState() {
 
 		// Restore hasSelectedStartingLegendary flag from session
 		hasSelectedStartingLegendary = data.hasSelectedStartingLegendary ?? false;
+
+		// Restore auto-pick toggle state
+		autoPickUpgrades = data.autoPickUpgrades ?? false;
 
 		// Restore legendary choices if they exist AND user hasn't already selected
 		if (
@@ -754,6 +799,12 @@ function createGameState() {
 		get goldDrops() {
 			return ui.goldDrops;
 		},
+		get toasts() {
+			return ui.toasts;
+		},
+		get autoPickUpgrades() {
+			return autoPickUpgrades;
+		},
 		get executeCapLevel() {
 			return shop.executeCapLevel;
 		},
@@ -805,6 +856,7 @@ function createGameState() {
 
 		selectUpgrade,
 		selectLegendaryUpgrade,
+		toggleAutoPickUpgrades,
 		openNextUpgrade,
 		resetGame,
 		fullReset,
