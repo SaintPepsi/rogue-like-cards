@@ -2,6 +2,7 @@
 	import { getModifierDisplay, getModifierDisplayWithTotal } from '$lib/data/upgrades';
 	import type { PlayerStats, StatModifier } from '$lib/types';
 	import { AspectRatio } from 'bits-ui';
+	import CardStatTooltip from './CardStatTooltip.svelte';
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
 	import epicGem from '$lib/assets/images/rarity/epic.png';
@@ -28,9 +29,10 @@
 	}: Props = $props();
 
 	let displayStats = $derived(
-		modifiers.map((mod) =>
-			currentStats ? getModifierDisplayWithTotal(mod, currentStats) : getModifierDisplay(mod)
-		)
+		modifiers.map((mod) => ({
+			...(currentStats ? getModifierDisplayWithTotal(mod, currentStats) : getModifierDisplay(mod)),
+			stat: mod.stat
+		}))
 	);
 
 	const rarityColors: Record<Rarity, { glow: string; border: string }> = {
@@ -68,19 +70,21 @@
 	{#if displayStats.length > 0}
 		<ul class="stats">
 			{#each displayStats as stat, i (i)}
-				<li>
-					<span class="stat-icon">{stat.icon}</span>
-					<div class="stat-text">
-						<span class="stat-label">{stat.label}</span>
-						<span class="stat-change">
-							<span class="stat-value">{stat.value}</span>
-							{#if 'total' in stat && stat.total}
-								<span class="stat-arrow">→</span>
-								<span class="stat-total">{stat.total}</span>
-							{/if}
-						</span>
-					</div>
-				</li>
+				<CardStatTooltip statKey={stat.stat}>
+					<li>
+						<span class="stat-icon">{stat.icon}</span>
+						<div class="stat-text">
+							<span class="stat-label">{stat.label}</span>
+							<span class="stat-change">
+								<span class="stat-value">{stat.value}</span>
+								{#if 'total' in stat && stat.total}
+									<span class="stat-arrow">→</span>
+									<span class="stat-total">{stat.total}</span>
+								{/if}
+							</span>
+						</div>
+					</li>
+				</CardStatTooltip>
 			{/each}
 		</ul>
 	{/if}

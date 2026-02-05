@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { PlayerStats, StatModifier, Upgrade } from '$lib/types';
-	import { Button } from 'bits-ui';
+	import { Button, Tooltip } from 'bits-ui';
 	import CardCarousel from './CardCarousel.svelte';
 	import UpgradeCard from './UpgradeCard.svelte';
 	import { useCardFlip } from './useCardFlip.svelte';
@@ -105,27 +105,29 @@
 
 <div class="modal-overlay {overlayClass}" data-testid={testId}>
 	<div class="modal {modalClass} theme-{theme}" class:selecting={cardSelect.selecting}>
-		<div class="modal-header" class:content-fade-out={cardSelect.selecting}>
-			{@render header?.()}
-		</div>
+		<Tooltip.Provider delayDuration={0} disableHoverableContent>
+			<div class="modal-header" class:content-fade-out={cardSelect.selecting}>
+				{@render header?.()}
+			</div>
 
-		<!-- Desktop grid -->
-		<div class="upgrade-choices desktop-grid {choicesClass}">
-			{#each cards as card, i (card.id)}
-				{@render cardButton(card, i)}
-			{/each}
-		</div>
+			<!-- Desktop grid -->
+			<div class="upgrade-choices desktop-grid {choicesClass}">
+				{#each cards as card, i (card.id)}
+					{@render cardButton(card, i)}
+				{/each}
+			</div>
 
-		<!-- Mobile carousel -->
-		<CardCarousel count={cards.length}>
-			{#each cards as card, i (card.id)}
-				{@render cardButton(card, i)}
-			{/each}
-		</CardCarousel>
+			<!-- Mobile carousel -->
+			<CardCarousel count={cards.length}>
+				{#each cards as card, i (card.id)}
+					{@render cardButton(card, i)}
+				{/each}
+			</CardCarousel>
 
-		<div class="modal-footer mt-4" class:content-fade-out={cardSelect.selecting}>
-			{@render footer?.()}
-		</div>
+			<div class="modal-footer mt-4" class:content-fade-out={cardSelect.selecting}>
+				{@render footer?.()}
+			</div>
+		</Tooltip.Provider>
 	</div>
 </div>
 
