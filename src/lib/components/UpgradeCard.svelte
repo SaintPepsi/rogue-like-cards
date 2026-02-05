@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { getModifierDisplay, getModifierDisplayWithTotal } from '$lib/data/upgrades';
 	import type { PlayerStats, StatModifier } from '$lib/types';
-	import { AspectRatio } from 'bits-ui';
+	import { AspectRatio, Tooltip } from 'bits-ui';
+	import { statRegistry } from '$lib/engine/stats';
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
 	import epicGem from '$lib/assets/images/rarity/epic.png';
@@ -28,9 +29,10 @@
 	}: Props = $props();
 
 	let displayStats = $derived(
-		modifiers.map((mod) =>
-			currentStats ? getModifierDisplayWithTotal(mod, currentStats) : getModifierDisplay(mod)
-		)
+		modifiers.map((mod) => ({
+			...(currentStats ? getModifierDisplayWithTotal(mod, currentStats) : getModifierDisplay(mod)),
+			stat: mod.stat
+		}))
 	);
 
 	const rarityColors: Record<Rarity, { glow: string; border: string }> = {
@@ -68,19 +70,47 @@
 	{#if displayStats.length > 0}
 		<ul class="stats">
 			{#each displayStats as stat, i (i)}
-				<li>
-					<span class="stat-icon">{stat.icon}</span>
-					<div class="stat-text">
-						<span class="stat-label">{stat.label}</span>
-						<span class="stat-change">
-							<span class="stat-value">{stat.value}</span>
-							{#if 'total' in stat && stat.total}
-								<span class="stat-arrow">→</span>
-								<span class="stat-total">{stat.total}</span>
-							{/if}
-						</span>
-					</div>
-				</li>
+				{@const statInfo = statRegistry.find((s) => s.key === stat.stat)}
+				{@const description = statInfo?.description}
+				{#if description}
+					<li>
+						<Tooltip.Root>
+							<Tooltip.Trigger class="stat-tooltip-trigger">
+								<span class="stat-icon">{stat.icon}</span>
+								<div class="stat-text">
+									<span class="stat-label">{stat.label}</span>
+									<span class="stat-change">
+										<span class="stat-value">{stat.value}</span>
+										{#if 'total' in stat && stat.total}
+											<span class="stat-arrow">→</span>
+											<span class="stat-total">{stat.total}</span>
+										{/if}
+									</span>
+								</div>
+							</Tooltip.Trigger>
+							<Tooltip.Portal>
+								<Tooltip.Content class="card-stat-tooltip" side="top" sideOffset={8}>
+									{description}
+									<Tooltip.Arrow class="card-stat-tooltip-arrow" />
+								</Tooltip.Content>
+							</Tooltip.Portal>
+						</Tooltip.Root>
+					</li>
+				{:else}
+					<li>
+						<span class="stat-icon">{stat.icon}</span>
+						<div class="stat-text">
+							<span class="stat-label">{stat.label}</span>
+							<span class="stat-change">
+								<span class="stat-value">{stat.value}</span>
+								{#if 'total' in stat && stat.total}
+									<span class="stat-arrow">→</span>
+									<span class="stat-total">{stat.total}</span>
+								{/if}
+							</span>
+						</div>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 	{/if}
@@ -206,5 +236,38 @@
 			color: #fbbf24;
 			font-weight: 400;
 		}
+	}
+
+	:global(.stat-tooltip-trigger) {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: 100%;
+		cursor: pointer;
+		background: none;
+		border: none;
+		padding: 0;
+		font-family: inherit;
+		font-size: inherit;
+		color: inherit;
+		text-align: inherit;
+	}
+
+	:global(.card-stat-tooltip) {
+		background: rgba(0, 0, 0, 0.85);
+		color: #e2e8f0;
+		font-size: 0.875rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		max-width: 15rem;
+		line-height: 1.25;
+		box-shadow:
+			0 10px 15px -3px rgba(0, 0, 0, 0.1),
+			0 4px 6px -2px rgba(0, 0, 0, 0.05);
+		z-index: 50;
+	}
+
+	:global(.card-stat-tooltip-arrow) {
+		fill: rgba(0, 0, 0, 0.85);
 	}
 </style>

@@ -19,6 +19,11 @@ export const CHANGELOG: ChangelogEntry[] = [
 			{
 				category: 'fixed',
 				description: 'Fixed stats comparison not showing after a version-triggered data reset'
+			},
+			{
+				category: 'new',
+				description:
+					'Added interactive hover/tap tooltips to stats on upgrade cards showing descriptions'
 			}
 		]
 	},

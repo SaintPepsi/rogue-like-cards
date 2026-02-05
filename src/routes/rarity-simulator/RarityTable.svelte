@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Upgrade } from '$lib/types';
 	import UpgradeCard from '$lib/components/UpgradeCard.svelte';
+	import { Tooltip } from 'bits-ui';
 
 	interface Props {
 		weights: Record<string, number>;
@@ -64,16 +65,18 @@
 </table>
 
 {#if cards.length > 0}
-	<div class="card-preview">
-		{#each cards as card (card.id)}
-			<UpgradeCard
-				title={card.title}
-				rarity={card.rarity}
-				image={card.image}
-				modifiers={card.modifiers}
-			/>
-		{/each}
-	</div>
+	<Tooltip.Provider delayDuration={0} disableHoverableContent>
+		<div class="card-preview">
+			{#each cards as card (card.id)}
+				<UpgradeCard
+					title={card.title}
+					rarity={card.rarity}
+					image={card.image}
+					modifiers={card.modifiers}
+				/>
+			{/each}
+		</div>
+	</Tooltip.Provider>
 {/if}
 
 <style>
