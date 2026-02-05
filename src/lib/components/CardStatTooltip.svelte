@@ -18,9 +18,9 @@
 	<Tooltip.Root>
 		<Tooltip.Trigger>
 			{#snippet child({ props })}
-				<div {...props}>
+				<span {...props}>
 					{@render children()}
-				</div>
+				</span>
 			{/snippet}
 		</Tooltip.Trigger>
 		<Tooltip.Portal>
