@@ -5,6 +5,7 @@
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
+	import Autoclicker from './Autoclicker.svelte';
 	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
 
 	type Props = {
@@ -80,6 +81,7 @@
 				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
 			{/each}
 		</div>
+		<Autoclicker />
 		<div class="health-bar" class:boss-bar={isBoss}>
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>

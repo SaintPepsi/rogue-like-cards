@@ -66,6 +66,10 @@ function createGameState() {
 	// Game loop (rAF + timer registry)
 	const gameLoop = createGameLoop();
 
+	// DECISION: 100ms interval = ~10 clicks per second for autoclicker
+	// Why: Matches the user request for "about 10 clicks per second" testing aid
+	const AUTOCLICKER_INTERVAL_MS = 100;
+
 	// Frenzy module (tap-frenzy stacks + timer-based decay)
 	// Uses gameLoop.timers so frenzy decay timers are ticked by the game loop's rAF
 	const frenzy = createFrenzy(statPipeline, gameLoop.timers);
@@ -778,6 +782,27 @@ function createGameState() {
 			gameLoop.pointerDown();
 		},
 		pointerUp: () => gameLoop.pointerUp(),
+
+		// DECISION: Autoclicker uses game loop timer, not setInterval
+		// Why: setInterval queues callbacks when tab is inactive, causing burst on focus.
+		// Game loop caps deltaMs to 200ms (gameLoop.svelte.ts:62) preventing bursts.
+		// DECISION: Autoclicker calls gameState.pointerDown() directly (DRY principle)
+		// Why: Don't duplicate logic - pointerDown() already handles frenzy + gameLoop interaction.
+		startAutoclicker: () => {
+			if (gameLoop.timers.has('autoclicker')) return;
+			gameLoop.timers.register('autoclicker', {
+				remaining: AUTOCLICKER_INTERVAL_MS,
+				repeat: AUTOCLICKER_INTERVAL_MS,
+				onExpire: () => {
+					gameState.pointerDown();
+				}
+			});
+		},
+		stopAutoclicker: () => {
+			gameLoop.timers.remove('autoclicker');
+			gameLoop.pointerUp();
+		},
+
 		selectUpgrade,
 		selectLegendaryUpgrade,
 		openNextUpgrade,
