@@ -58,7 +58,7 @@ Use **game loop timers** instead of `setInterval` or `setTimeout` for any recurr
 // Start a repeating timer
 gameLoop.timers.register('timer_name', {
 	remaining: INTERVAL_MS,
-	repeat: INTERVAL_MS,  // Makes it repeat every INTERVAL_MS
+	repeat: INTERVAL_MS, // Makes it repeat every INTERVAL_MS
 	onExpire: () => {
 		// Your logic here
 	}
@@ -103,6 +103,7 @@ gameLoop.timers.register('one_shot', {
 ### Implementation details
 
 The timer registry (`src/lib/engine/timerRegistry.ts`) provides:
+
 - `register(name, timer)` — Add or replace a timer
 - `remove(name)` — Remove a timer
 - `has(name)` — Check if a timer exists
