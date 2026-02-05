@@ -22,7 +22,8 @@ export const CHANGELOG: ChangelogEntry[] = [
 			},
 			{
 				category: 'new',
-				description: 'Added interactive hover/tap tooltips to stats on upgrade cards showing descriptions'
+				description:
+					'Added interactive hover/tap tooltips to stats on upgrade cards showing descriptions'
 			}
 		]
 	},

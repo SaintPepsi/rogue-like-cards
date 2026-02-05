@@ -89,11 +89,7 @@
 								</div>
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
-								<Tooltip.Content
-									class="card-stat-tooltip"
-									side="top"
-									sideOffset={8}
-								>
+								<Tooltip.Content class="card-stat-tooltip" side="top" sideOffset={8}>
 									{description}
 									<Tooltip.Arrow class="card-stat-tooltip-arrow" />
 								</Tooltip.Content>
@@ -265,7 +261,9 @@
 		border-radius: 0.375rem;
 		max-width: 15rem;
 		line-height: 1.25;
-		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 10px 15px -3px rgba(0, 0, 0, 0.1),
+			0 4px 6px -2px rgba(0, 0, 0, 0.05);
 		z-index: 50;
 	}
 
