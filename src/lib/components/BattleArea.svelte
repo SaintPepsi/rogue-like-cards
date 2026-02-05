@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
 	import type { HitInfo, GoldDrop } from '$lib/types';
 	import { formatNumber } from '$lib/format';
-	import { codes } from '$lib/stores/codes.svelte';
-	import { gameState } from '$lib/stores/gameState.svelte';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
+	import Autoclicker from './Autoclicker.svelte';
 	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
 
 	type Props = {
@@ -41,23 +39,6 @@
 		onPointerUp,
 		frenzyStacks
 	}: Props = $props();
-
-	let autoclickerActive = $state(false);
-
-	// DECISION: Use game loop timer instead of setInterval
-	// Why: setInterval queues callbacks when tab is inactive, causing bursts on focus.
-	// Game loop's timer registry already handles this via deltaMs capping.
-	$effect(() => {
-		if (autoclickerActive) {
-			gameState.startAutoclicker();
-		} else {
-			gameState.stopAutoclicker();
-		}
-
-		return () => {
-			gameState.stopAutoclicker();
-		};
-	});
 </script>
 
 <div class="battle-area">
@@ -100,14 +81,7 @@
 				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
 			{/each}
 		</div>
-		{#if codes.autoclickerUnlocked}
-			<Button.Root
-				class="autoclicker-btn {autoclickerActive ? 'active' : ''}"
-				onclick={() => (autoclickerActive = !autoclickerActive)}
-			>
-				{autoclickerActive ? 'Auto: ON' : 'Auto: OFF'}
-			</Button.Root>
-		{/if}
+		<Autoclicker />
 		<div class="health-bar" class:boss-bar={isBoss}>
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>
@@ -370,42 +344,5 @@
 		color: rgba(255, 255, 255, 0.5);
 		font-size: 0.9rem;
 		margin: 8px 0 0;
-	}
-
-	:global(.autoclicker-btn) {
-		padding: 6px 16px !important;
-		border-radius: 8px !important;
-		font-size: 0.85rem !important;
-		font-weight: 600 !important;
-		cursor: pointer !important;
-		transition:
-			background 0.15s,
-			border-color 0.15s,
-			color 0.15s !important;
-		background: rgba(255, 255, 255, 0.05) !important;
-		border: 1px solid rgba(255, 255, 255, 0.15) !important;
-		color: rgba(255, 255, 255, 0.6) !important;
-	}
-
-	:global(.autoclicker-btn:hover) {
-		background: rgba(255, 255, 255, 0.1) !important;
-		color: white !important;
-	}
-
-	:global(.autoclicker-btn.active) {
-		background: rgba(74, 222, 128, 0.2) !important;
-		border-color: rgba(74, 222, 128, 0.4) !important;
-		color: #4ade80 !important;
-		animation: autoclicker-pulse 1.5s ease-in-out infinite !important;
-	}
-
-	@keyframes autoclicker-pulse {
-		0%,
-		100% {
-			box-shadow: 0 0 4px rgba(74, 222, 128, 0.2);
-		}
-		50% {
-			box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
-		}
 	}
 </style>

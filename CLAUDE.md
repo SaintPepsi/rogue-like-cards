@@ -145,18 +145,43 @@ When creating custom UI patterns:
 - Use Svelte 5 snippets to avoid duplicating rendering logic
 - Ensure new components match existing design patterns
 
+### Component extraction guidelines
+
+Extract components to keep files focused and maintainable:
+
+- **When to extract:**
+  - Files exceed ~400 lines
+  - Components have multiple distinct responsibilities
+  - Logic can be reused in multiple places
+  - A section of the component has its own state management and lifecycle
+
+- **What to extract:**
+  - Self-contained UI widgets (buttons, controls, displays)
+  - Logic blocks with their own reactive state (`$state`, `$effect`)
+  - Sections with distinct styling that can be scoped separately
+  - Features that could be tested or developed independently
+
+- **How to extract:**
+  - Create a new `.svelte` file in `src/lib/components/`
+  - Move all related state, effects, and markup to the new component
+  - Keep related styles within the component (scoped or global as needed)
+  - Pass only necessary props; avoid prop drilling
+  - Import and use the new component in place of inline code
+
 ### Anti-patterns (do not use)
 
 - **Reimplementing existing components from scratch** — Always check if something similar exists first
 - **Duplicating rendering logic** — Use `{#snippet}` blocks to define once, render multiple times
 - **Ignoring existing patterns** — New modals/forms should match the structure of existing ones
 - **Creating custom primitives** — Use `bits-ui` for buttons, dialogs, tooltips, etc.
+- **Keeping unrelated logic together** — If a component does multiple unrelated things, split it up
 
 ### Canonical examples
 
 - **Card rendering:** `LevelUpModal` and `LegendarySelectionModal` both use `CardCarousel`, `useCardFlip`, `useCardSelect` hooks
 - **Modals:** All modals follow the same overlay + content structure with consistent animations
 - **Buttons:** Use `bits-ui`'s `Button.Root` component, not raw `<button>` elements
+- **Autoclicker:** Extracted from `BattleArea.svelte` into dedicated `Autoclicker.svelte` component (lines 103-110 → separate component with own state and effects)
 
 ## Design Document Management
 

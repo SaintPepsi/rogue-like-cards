@@ -786,14 +786,17 @@ function createGameState() {
 		// DECISION: Autoclicker uses game loop timer, not setInterval
 		// Why: setInterval queues callbacks when tab is inactive, causing burst on focus.
 		// Game loop caps deltaMs to 200ms (gameLoop.svelte.ts:62) preventing bursts.
-		// Autoclicker calls gameLoop.pointerDown() directly, not gameState.pointerDown(),
-		// to avoid stacking frenzy on automated clicks (frenzy should only stack on player taps).
+		// DECISION: Autoclicker calls frenzy.addStack() + gameLoop.pointerDown() to match manual taps
+		// Why: Should behave exactly like onPointerDown (add frenzy stacks on every automated click).
 		startAutoclicker: () => {
 			if (gameLoop.timers.has('autoclicker')) return;
 			gameLoop.timers.register('autoclicker', {
 				remaining: AUTOCLICKER_INTERVAL_MS,
 				repeat: AUTOCLICKER_INTERVAL_MS,
-				onExpire: () => gameLoop.pointerDown()
+				onExpire: () => {
+					frenzy.addStack();
+					gameLoop.pointerDown();
+				}
 			});
 		},
 		stopAutoclicker: () => {
