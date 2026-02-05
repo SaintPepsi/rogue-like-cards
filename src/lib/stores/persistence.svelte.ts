@@ -28,6 +28,7 @@ export interface SessionSaveData {
 	hasSelectedStartingLegendary?: boolean;
 	startingStats?: PlayerStats;
 	endingStats?: PlayerStats;
+	autoPickUpgrades?: boolean;
 }
 
 export interface PersistentSaveData {

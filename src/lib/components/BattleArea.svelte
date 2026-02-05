@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { HitInfo, GoldDrop } from '$lib/types';
+	import type { HitInfo, GoldDrop, Toast } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
 	import Autoclicker from './Autoclicker.svelte';
+	import AutoPickToggle from './AutoPickToggle.svelte';
 	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
 
 	type Props = {
@@ -22,6 +23,7 @@
 		onPointerDown: () => void;
 		onPointerUp: () => void;
 		frenzyStacks: number;
+		toasts: Toast[];
 	};
 
 	let {
@@ -37,7 +39,8 @@
 		poisonStacks,
 		onPointerDown,
 		onPointerUp,
-		frenzyStacks
+		frenzyStacks,
+		toasts
 	}: Props = $props();
 </script>
 
@@ -81,7 +84,13 @@
 				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
 			{/each}
 		</div>
-		<Autoclicker />
+		<div class="toggle-row">
+			<Autoclicker />
+			<AutoPickToggle />
+		</div>
+		{#each toasts as toast (toast.id)}
+			<div class="toast-message">{toast.message}</div>
+		{/each}
 		<div class="health-bar" class:boss-bar={isBoss}>
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>
@@ -309,6 +318,39 @@
 		}
 		50% {
 			box-shadow: 0 0 14px rgba(251, 146, 60, 0.8);
+		}
+	}
+
+	.toggle-row {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+	}
+
+	.toast-message {
+		font-size: 0.8rem;
+		color: rgba(255, 255, 255, 0.9);
+		background: rgba(0, 0, 0, 0.6);
+		padding: 4px 12px;
+		border-radius: 6px;
+		animation: toast-fade 2s ease-out forwards;
+		pointer-events: none;
+	}
+
+	@keyframes toast-fade {
+		0% {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+		15% {
+			opacity: 1;
+			transform: translateY(0);
+		}
+		75% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
 		}
 	}
 

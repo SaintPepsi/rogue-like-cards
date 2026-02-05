@@ -1,10 +1,12 @@
-import type { HitInfo, HitType, GoldDrop } from '$lib/types';
+import type { HitInfo, HitType, GoldDrop, Toast } from '$lib/types';
 
 // DECISION: Durations tuned to feel snappy without overlapping too much during rapid combat.
 // 700ms for hits — long enough to read the number, short enough to not clutter during multi-strike.
 // 1200ms for gold — slightly longer so players notice the reward before it fades.
 const HIT_DISPLAY_MS = 700;
 const GOLD_DROP_DISPLAY_MS = 1200;
+
+const TOAST_DISPLAY_MS = 2000;
 
 // PERFORMANCE: Cap on-screen hits to prevent DOM thrashing during high attack-speed builds.
 // Low-priority hits (normal, crit) are dropped when at capacity; high-priority hits
@@ -18,6 +20,8 @@ export function createUIEffects() {
 	let hitId = $state(0);
 	let goldDrops = $state<GoldDrop[]>([]);
 	let goldDropId = $state(0);
+	let toasts = $state<Toast[]>([]);
+	let toastId = $state(0);
 
 	function nextHitId(): number {
 		return ++hitId;
@@ -48,11 +52,22 @@ export function createUIEffects() {
 		}, GOLD_DROP_DISPLAY_MS);
 	}
 
+	function addToast(message: string) {
+		toastId++;
+		toasts = [...toasts, { id: toastId, message }];
+		const id = toastId;
+		setTimeout(() => {
+			toasts = toasts.filter((t) => t.id !== id);
+		}, TOAST_DISPLAY_MS);
+	}
+
 	function reset() {
 		hits = [];
 		goldDrops = [];
+		toasts = [];
 		hitId = 0;
 		goldDropId = 0;
+		toastId = 0;
 	}
 
 	return {
@@ -62,9 +77,13 @@ export function createUIEffects() {
 		get goldDrops() {
 			return goldDrops;
 		},
+		get toasts() {
+			return toasts;
+		},
 		nextHitId,
 		addHits,
 		addGoldDrop,
+		addToast,
 		reset
 	};
 }
