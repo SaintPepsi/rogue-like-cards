@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getModifierDisplay, getModifierDisplayWithTotal } from '$lib/data/upgrades';
 	import type { PlayerStats, StatModifier } from '$lib/types';
-	import { AspectRatio } from 'bits-ui';
-	import CardStatTooltip from './CardStatTooltip.svelte';
+	import { AspectRatio, Tooltip } from 'bits-ui';
+	import { statRegistry } from '$lib/engine/stats';
 	// Import rarity gem images
 	import commonGem from '$lib/assets/images/rarity/common.png';
 	import epicGem from '$lib/assets/images/rarity/epic.png';
@@ -70,8 +70,40 @@
 	{#if displayStats.length > 0}
 		<ul class="stats">
 			{#each displayStats as stat, i (i)}
-				<li>
-					<CardStatTooltip statKey={stat.stat}>
+				{@const statInfo = statRegistry.find((s) => s.key === stat.stat)}
+				{@const description = statInfo?.description}
+				{#if description}
+					<Tooltip.Root>
+						<Tooltip.Trigger>
+							{#snippet child({ props })}
+								<li {...props}>
+									<span class="stat-icon">{stat.icon}</span>
+									<div class="stat-text">
+										<span class="stat-label">{stat.label}</span>
+										<span class="stat-change">
+											<span class="stat-value">{stat.value}</span>
+											{#if 'total' in stat && stat.total}
+												<span class="stat-arrow">→</span>
+												<span class="stat-total">{stat.total}</span>
+											{/if}
+										</span>
+									</div>
+								</li>
+							{/snippet}
+						</Tooltip.Trigger>
+						<Tooltip.Portal>
+							<Tooltip.Content
+								class="card-stat-tooltip"
+								side="top"
+								sideOffset={8}
+							>
+								{description}
+								<Tooltip.Arrow class="card-stat-tooltip-arrow" />
+							</Tooltip.Content>
+						</Tooltip.Portal>
+					</Tooltip.Root>
+				{:else}
+					<li>
 						<span class="stat-icon">{stat.icon}</span>
 						<div class="stat-text">
 							<span class="stat-label">{stat.label}</span>
@@ -83,8 +115,8 @@
 								{/if}
 							</span>
 						</div>
-					</CardStatTooltip>
-				</li>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 	{/if}
@@ -210,5 +242,21 @@
 			color: #fbbf24;
 			font-weight: 400;
 		}
+	}
+
+	:global(.card-stat-tooltip) {
+		background: rgba(0, 0, 0, 0.85);
+		color: #e2e8f0;
+		font-size: 0.875rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		max-width: 15rem;
+		line-height: 1.25;
+		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+		z-index: 50;
+	}
+
+	:global(.card-stat-tooltip-arrow) {
+		fill: rgba(0, 0, 0, 0.85);
 	}
 </style>
