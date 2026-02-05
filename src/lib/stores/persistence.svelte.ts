@@ -33,6 +33,8 @@ export interface SessionSaveData {
 export interface PersistentSaveData {
 	gold: number;
 	purchasedUpgradeCounts: Record<string, number>;
+	lifetimePickCounts?: Record<string, number>;
+	unlockedUpgradeIds?: string[];
 	executeCapBonus: number;
 	shopChoiceIds?: string[];
 	rerollCost?: number;
@@ -95,6 +97,8 @@ export function createPersistence(sessionKey: string, persistentKey: string) {
 				return {
 					gold: parsed.gold ?? 0,
 					purchasedUpgradeCounts: parsed.purchasedUpgradeCounts ?? {},
+					lifetimePickCounts: parsed.lifetimePickCounts ?? {},
+					unlockedUpgradeIds: parsed.unlockedUpgradeIds ?? [],
 					executeCapBonus: parsed.executeCapBonus ?? 0,
 					shopChoiceIds: parsed.shopChoiceIds,
 					rerollCost: parsed.rerollCost,

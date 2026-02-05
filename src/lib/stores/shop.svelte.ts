@@ -1,4 +1,4 @@
-import { SvelteMap } from 'svelte/reactivity';
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import type { PlayerStats, Upgrade } from '$lib/types';
 import {
 	allUpgrades,
@@ -16,6 +16,8 @@ import type { createPersistence } from './persistence.svelte';
 export function createShop(persistence: ReturnType<typeof createPersistence>) {
 	let persistentGold = $state(0);
 	let purchasedUpgradeCounts = new SvelteMap<string, number>();
+	let lifetimePickCounts = new SvelteMap<string, number>();
+	let unlockedUpgradeIds = new SvelteSet<string>();
 	let executeCapBonus = $state(0);
 	let showShop = $state(false);
 	let shopChoices = $state<Upgrade[]>([]);
@@ -75,7 +77,7 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 			executeCapBonus += EXECUTE_CAP_BONUS_PER_TIER[upgrade.id] ?? 0.005;
 		} else {
 			const prev = purchasedUpgradeCounts.get(upgrade.id) ?? 0;
-			purchasedUpgradeCounts = new SvelteMap([...purchasedUpgradeCounts, [upgrade.id, prev + 1]]);
+			purchasedUpgradeCounts.set(upgrade.id, prev + 1);
 		}
 
 		save();
@@ -101,6 +103,8 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		persistence.savePersistent({
 			gold: persistentGold,
 			purchasedUpgradeCounts: Object.fromEntries(purchasedUpgradeCounts),
+			lifetimePickCounts: Object.fromEntries(lifetimePickCounts),
+			unlockedUpgradeIds: [...unlockedUpgradeIds],
 			executeCapBonus,
 			shopChoiceIds: shopChoices.map((u) => u.id),
 			rerollCost,
@@ -114,6 +118,8 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		if (!data) return;
 		persistentGold = data.gold || 0;
 		purchasedUpgradeCounts = new SvelteMap(Object.entries(data.purchasedUpgradeCounts || {}));
+		lifetimePickCounts = new SvelteMap(Object.entries(data.lifetimePickCounts || {}));
+		unlockedUpgradeIds = new SvelteSet(data.unlockedUpgradeIds || []);
 		executeCapBonus = data.executeCapBonus || 0;
 		rerollCost = data.rerollCost ?? 1;
 
@@ -140,9 +146,19 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		return ids;
 	}
 
+	function mergeRunPickCounts(runCounts: SvelteMap<string, number> | Map<string, number>) {
+		for (const [id, count] of runCounts) {
+			const prev = lifetimePickCounts.get(id) ?? 0;
+			lifetimePickCounts.set(id, prev + count);
+		}
+		save();
+	}
+
 	function fullReset() {
 		persistentGold = 0;
 		purchasedUpgradeCounts = new SvelteMap();
+		lifetimePickCounts = new SvelteMap();
+		unlockedUpgradeIds = new SvelteSet();
 		executeCapBonus = 0;
 		shopChoices = [];
 		rerollCost = 1;
@@ -151,6 +167,15 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 
 	function resetShopUI() {
 		showShop = false;
+	}
+
+	function addUnlockedUpgrade(upgradeId: string) {
+		unlockedUpgradeIds.add(upgradeId);
+		save();
+	}
+
+	function isUpgradeUnlocked(upgradeId: string): boolean {
+		return unlockedUpgradeIds.has(upgradeId);
 	}
 
 	return {
@@ -162,6 +187,12 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		},
 		get purchasedUpgradeCounts() {
 			return purchasedUpgradeCounts;
+		},
+		get lifetimePickCounts() {
+			return lifetimePickCounts;
+		},
+		get unlockedUpgradeIds() {
+			return unlockedUpgradeIds;
 		},
 		get executeCapBonus() {
 			return executeCapBonus;
@@ -190,6 +221,9 @@ export function createShop(persistence: ReturnType<typeof createPersistence>) {
 		buy,
 		reroll,
 		depositGold,
+		mergeRunPickCounts,
+		addUnlockedUpgrade,
+		isUpgradeUnlocked,
 		save,
 		load,
 		fullReset,

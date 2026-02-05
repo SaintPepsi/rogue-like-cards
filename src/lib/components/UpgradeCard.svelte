@@ -17,6 +17,9 @@
 		rarity?: Rarity;
 		modifiers?: StatModifier[];
 		currentStats?: Partial<PlayerStats>;
+		shopPurchases?: number;
+		runPicks?: number;
+		lifetimePicks?: number;
 	};
 
 	let {
@@ -24,7 +27,10 @@
 		image = 'https://picsum.photos/400/300',
 		rarity = 'common',
 		modifiers = [],
-		currentStats
+		currentStats,
+		shopPurchases = 0,
+		runPicks = 0,
+		lifetimePicks = 0
 	}: Props = $props();
 
 	let displayStats = $derived(
@@ -51,9 +57,37 @@
 
 	let colors = $derived(rarityColors[rarity]);
 	let gemImage = $derived(rarityGems[rarity]);
+	const showStatsBar = $derived(shopPurchases > 0 || runPicks > 0 || lifetimePicks > 0);
 </script>
 
 <div class="UpgradeCard" style:--glow-color={colors.glow} style:--border-color={colors.border}>
+	{#if showStatsBar}
+		<div class="stats-badges">
+			<div class="badges-left">
+				{#if shopPurchases > 0}
+					<div class="stat-badge shop" title="Shop purchases">
+						<span class="badge-icon">🛒</span>
+						<span class="badge-count">{shopPurchases}</span>
+					</div>
+				{/if}
+			</div>
+			<div class="badges-right">
+				{#if runPicks > 0}
+					<div class="stat-badge run" title="Picks this run">
+						<span class="badge-icon">▶</span>
+						<span class="badge-count">{runPicks}</span>
+					</div>
+				{/if}
+				{#if lifetimePicks > 0}
+					<div class="stat-badge lifetime" title="Total lifetime picks">
+						<span class="badge-icon">🏆</span>
+						<span class="badge-count">{lifetimePicks}</span>
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
+
 	<div class="image-container">
 		<AspectRatio.Root ratio={4 / 3}>
 			<div class="image-bg">
@@ -88,6 +122,7 @@
 
 <style lang="scss">
 	.UpgradeCard {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		border: 2px solid var(--border-color);
@@ -206,5 +241,59 @@
 			color: #fbbf24;
 			font-weight: 400;
 		}
+	}
+
+	.stats-badges {
+		position: absolute;
+		top: 8px;
+		left: 8px;
+		right: 8px;
+		display: flex;
+		justify-content: space-between;
+		pointer-events: none;
+		z-index: 10;
+	}
+
+	.badges-left,
+	.badges-right {
+		display: flex;
+		gap: 4px;
+	}
+
+	.stat-badge {
+		display: flex;
+		align-items: center;
+		gap: 3px;
+		padding: 3px 8px;
+		border-radius: 12px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		pointer-events: auto;
+
+		.badge-icon {
+			font-size: 0.85rem;
+		}
+
+		.badge-count {
+			line-height: 1;
+		}
+	}
+
+	.stat-badge.shop {
+		background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(139, 92, 246, 0.25));
+		border: 1px solid rgba(168, 85, 247, 0.4);
+		color: #d8b4fe;
+	}
+
+	.stat-badge.run {
+		background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.25));
+		border: 1px solid rgba(34, 197, 94, 0.4);
+		color: #86efac;
+	}
+
+	.stat-badge.lifetime {
+		background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.25));
+		border: 1px solid rgba(251, 191, 36, 0.4);
+		color: #fde68a;
 	}
 </style>
