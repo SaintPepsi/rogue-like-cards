@@ -46,6 +46,71 @@ function addItem(data: Omit<Item, 'id'>) {
 - **Hit numbers:** `addHits()` in `gameState.svelte.ts`, rendered in `BattleArea.svelte`.
 - **Gold drops:** `addGoldDrop()` in `gameState.svelte.ts`, rendered in `BattleArea.svelte`.
 
+## Game Loop Timers
+
+Use **game loop timers** instead of `setInterval` or `setTimeout` for any recurring game logic (autoclickers, ability cooldowns, periodic effects, etc.).
+
+### The pattern
+
+**Register a timer** in `gameState.svelte.ts`:
+
+```ts
+// Start a repeating timer
+gameLoop.timers.register('timer_name', {
+	remaining: INTERVAL_MS,
+	repeat: INTERVAL_MS,  // Makes it repeat every INTERVAL_MS
+	onExpire: () => {
+		// Your logic here
+	}
+});
+
+// Stop the timer
+gameLoop.timers.remove('timer_name');
+```
+
+**One-shot timer** (no `repeat` field):
+
+```ts
+gameLoop.timers.register('one_shot', {
+	remaining: DELAY_MS,
+	onExpire: () => {
+		// Runs once after DELAY_MS
+	}
+});
+```
+
+### Why
+
+- **No tab-away bursts.** `setInterval` queues callbacks when the tab is inactive. Browsers batch-execute them on tab focus, causing a burst of accumulated calls.
+- **Game loop integration.** The game loop uses `requestAnimationFrame`, which pauses when the tab is inactive.
+- **DeltaMs capping.** The game loop caps `deltaMs` to 200ms (see `gameLoop.svelte.ts:62`) to prevent burst behavior even if the user tabs away for a long time.
+- **Consistent timing.** All game mechanics use the same clock, ensuring synchronized behavior.
+
+### Anti-patterns (do not use)
+
+- `setInterval` or `setTimeout` for game logic (causes tab-away bursts and desync from game clock).
+- Component-local timers that aren't cleaned up on unmount.
+- Timers that don't account for pause state (game loop timers automatically respect pause).
+
+### Canonical examples
+
+- **Boss countdown:** `startBossTimer()` / `stopBossTimer()` in `gameLoop.svelte.ts` (lines 128-151)
+- **System tick:** Registered in `gameLoop.svelte.ts:89-94` (repeats every 1000ms)
+- **Attack cooldown:** `fireAttack()` in `gameLoop.svelte.ts:44-52` (one-shot timer that re-registers itself)
+- **Autoclicker:** `startAutoclicker()` / `stopAutoclicker()` in `gameState.svelte.ts:786-802` (repeating timer)
+- **Frenzy decay:** Managed in `frenzy.svelte.ts` via `gameLoop.timers`
+
+### Implementation details
+
+The timer registry (`src/lib/engine/timerRegistry.ts`) provides:
+- `register(name, timer)` — Add or replace a timer
+- `remove(name)` — Remove a timer
+- `has(name)` — Check if a timer exists
+- `tick(deltaMs)` — Called by game loop's `requestAnimationFrame` to advance all timers
+- `clear()` — Remove all timers (used on reset)
+
+Timers automatically handle overflow (if a timer expires by more than its interval, the overflow is carried forward to the next iteration).
+
 ## Code Style
 
 - Do not use `while` loops. They are poor engineering. Use iteration with bounded limits (e.g. `for` loops with a max iteration count) or recursive approaches instead.
