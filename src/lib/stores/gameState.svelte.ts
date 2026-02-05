@@ -38,7 +38,6 @@ function createGameState() {
 	const pipeline = createPipelineRunner(allSystems);
 
 	let effects = $state<Effect[]>([]);
-	let unlockedUpgrades = $state<Set<string>>(new Set());
 	let gold = $state(0);
 	let runPickCounts = new SvelteMap<string, number>();
 
@@ -343,7 +342,7 @@ function createGameState() {
 		if (upgrade.onAcquire) upgrade.onAcquire();
 
 		// Track unlocked upgrades for collection
-		unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+		shop.addUnlockedUpgrade(upgrade.id);
 
 		// Track run pick statistics
 		const currentCount = runPickCounts.get(upgrade.id) ?? 0;
@@ -382,7 +381,7 @@ function createGameState() {
 			if (upgrade.onAcquire) upgrade.onAcquire();
 
 			// Track unlocked upgrades for collection
-			unlockedUpgrades = new Set([...unlockedUpgrades, upgrade.id]);
+			shop.addUnlockedUpgrade(upgrade.id);
 
 			// Track special effects — same pattern as selectUpgrade
 			if (upgrade.modifiers.length > 0) {
@@ -456,7 +455,7 @@ function createGameState() {
 	function saveGame() {
 		persistence.saveSession({
 			effects: [...effects],
-			unlockedUpgradeIds: [...unlockedUpgrades],
+			unlockedUpgradeIds: [...shop.unlockedUpgradeIds],
 			xp: leveling.xp,
 			level: leveling.level,
 			gold,
@@ -493,10 +492,18 @@ function createGameState() {
 		}
 
 		effects = [...data.effects];
-		unlockedUpgrades = new Set(data.unlockedUpgradeIds);
+		// Unlocked upgrades are now managed by shop store (persistent),
+		// but we need to add session upgrades and shop upgrades if they're not already unlocked
+		for (const id of data.unlockedUpgradeIds) {
+			if (!shop.isUpgradeUnlocked(id)) {
+				shop.addUnlockedUpgrade(id);
+			}
+		}
 		// Also mark shop upgrades as unlocked
 		for (const id of shopIds) {
-			unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+			if (!shop.isUpgradeUnlocked(id)) {
+				shop.addUnlockedUpgrade(id);
+			}
 		}
 
 		leveling.restore({
@@ -561,7 +568,8 @@ function createGameState() {
 		pipeline.reset();
 
 		effects = [];
-		unlockedUpgrades = new Set();
+		// DECISION: unlockedUpgrades is now persistent (managed by shop store)
+		// and should NOT be reset when starting a new run
 		gold = 0;
 		runPickCounts = new SvelteMap();
 		// DECISION: hasCompletedFirstRun is a persistent meta-progression flag (stored in PersistentSaveData)
@@ -613,7 +621,9 @@ function createGameState() {
 		if (shopIds.length === 0) return;
 		statPipeline.setAcquiredUpgrades(shopIds);
 		for (const id of shopIds) {
-			unlockedUpgrades = new Set([...unlockedUpgrades, id]);
+			if (!shop.isUpgradeUnlocked(id)) {
+				shop.addUnlockedUpgrade(id);
+			}
 		}
 	}
 
@@ -746,7 +756,7 @@ function createGameState() {
 			return leveling.hasActiveEvent;
 		},
 		get unlockedUpgrades() {
-			return unlockedUpgrades;
+			return shop.unlockedUpgradeIds;
 		},
 		get persistentGold() {
 			return shop.persistentGold;
