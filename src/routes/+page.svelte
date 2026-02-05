@@ -2,6 +2,7 @@
 	import { Button } from 'bits-ui';
 	import { onMount, untrack } from 'svelte';
 	import { gameState } from '$lib/stores/gameState.svelte';
+	import { codes } from '$lib/stores/codes.svelte';
 	import type { Upgrade } from '$lib/types';
 	import { formatNumber } from '$lib/format';
 	import { VERSION } from '$lib/version';
@@ -128,6 +129,7 @@
 	}
 
 	onMount(() => {
+		codes.load();
 		gameState.init();
 	});
 

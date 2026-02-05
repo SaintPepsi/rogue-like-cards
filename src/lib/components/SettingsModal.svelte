@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
 	import { audioManager } from '$lib/audio';
+	import { codes } from '$lib/stores/codes.svelte';
+
 	type Props = {
 		show: boolean;
 		onClose: () => void;
@@ -11,6 +13,9 @@
 	let { show, onClose, onOpenChangelog, onReset }: Props = $props();
 
 	let showResetConfirm = $state(false);
+	let codeInput = $state('');
+	let codeMessage = $state('');
+	let codeSuccess = $state(false);
 
 	function handleReset() {
 		if (!showResetConfirm) {
@@ -24,12 +29,27 @@
 
 	function handleClose() {
 		showResetConfirm = false;
+		codeInput = '';
+		codeMessage = '';
 		onClose();
 	}
 
 	function handleChangelog() {
 		onClose();
 		onOpenChangelog();
+	}
+
+	function handleCodeSubmit() {
+		if (!codeInput.trim()) return;
+		const accepted = codes.submitCode(codeInput);
+		if (accepted) {
+			codeMessage = 'Code activated!';
+			codeSuccess = true;
+			codeInput = '';
+		} else {
+			codeMessage = 'Invalid code.';
+			codeSuccess = false;
+		}
 	}
 </script>
 
@@ -120,6 +140,25 @@
 					<span class="settings-label">Changelog</span>
 					<span class="settings-arrow">›</span>
 				</Button.Root>
+
+				<div class="settings-divider"></div>
+
+				<div class="codes-section">
+					<span class="codes-title">Codes</span>
+					<div class="codes-input-row">
+						<input
+							class="codes-input"
+							type="text"
+							placeholder="Enter code..."
+							bind:value={codeInput}
+							onkeydown={(e) => e.key === 'Enter' && handleCodeSubmit()}
+						/>
+						<Button.Root class="codes-redeem-btn" onclick={handleCodeSubmit}>Redeem</Button.Root>
+					</div>
+					{#if codeMessage}
+						<span class="code-message" class:success={codeSuccess}>{codeMessage}</span>
+					{/if}
+				</div>
 
 				<div class="settings-divider"></div>
 
@@ -299,5 +338,75 @@
 		font-weight: 600;
 		color: white;
 		flex-shrink: 0;
+	}
+
+	.codes-section {
+		padding: 4px 4px 8px;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.codes-title {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: rgba(255, 255, 255, 0.5);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 0 4px;
+	}
+
+	.codes-input-row {
+		display: flex;
+		gap: 8px;
+		padding: 0 4px;
+	}
+
+	.codes-input {
+		flex: 1;
+		padding: 8px 12px;
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 8px;
+		color: white;
+		font-size: 0.9rem;
+		outline: none;
+		transition: border-color 0.15s;
+	}
+
+	.codes-input::placeholder {
+		color: rgba(255, 255, 255, 0.3);
+	}
+
+	.codes-input:focus {
+		border-color: rgba(139, 92, 246, 0.5);
+	}
+
+	:global(.codes-redeem-btn) {
+		padding: 8px 16px !important;
+		background: rgba(139, 92, 246, 0.2) !important;
+		border: 1px solid rgba(139, 92, 246, 0.3) !important;
+		border-radius: 8px !important;
+		color: #a78bfa !important;
+		font-size: 0.85rem !important;
+		font-weight: 600 !important;
+		cursor: pointer !important;
+		transition: background 0.15s !important;
+		white-space: nowrap !important;
+	}
+
+	:global(.codes-redeem-btn:hover) {
+		background: rgba(139, 92, 246, 0.35) !important;
+		color: white !important;
+	}
+
+	.code-message {
+		font-size: 0.8rem;
+		color: #f87171;
+		padding: 0 4px;
+	}
+
+	.code-message.success {
+		color: #4ade80;
 	}
 </style>

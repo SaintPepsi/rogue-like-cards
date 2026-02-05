@@ -1,11 +1,18 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
+	import { Button } from 'bits-ui';
 	import type { HitInfo, GoldDrop } from '$lib/types';
 	import { formatNumber } from '$lib/format';
+	import { codes } from '$lib/stores/codes.svelte';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
 	import HitNumber from './hits/HitNumber.svelte';
 	import frenzyGlint from '$lib/assets/images/frenzy-glint.png';
+
+	// DECISION: 100ms interval = ~10 clicks per second for autoclicker
+	// Why: Matches the user request for "about 10 clicks per second" testing aid
+	const AUTOCLICKER_INTERVAL_MS = 100;
 
 	type Props = {
 		isBoss: boolean;
@@ -38,6 +45,26 @@
 		onPointerUp,
 		frenzyStacks
 	}: Props = $props();
+
+	let autoclickerActive = $state(false);
+
+	// Manage autoclicker interval reactively via $effect cleanup
+	// Reads only autoclickerActive — callbacks are untracked to avoid re-runs on prop identity changes
+	$effect(() => {
+		if (!autoclickerActive) return;
+
+		const down = untrack(() => onPointerDown);
+		const up = untrack(() => onPointerUp);
+
+		const intervalId = setInterval(() => {
+			down();
+		}, AUTOCLICKER_INTERVAL_MS);
+
+		return () => {
+			clearInterval(intervalId);
+			up();
+		};
+	});
 </script>
 
 <div class="battle-area">
@@ -80,6 +107,14 @@
 				<HitNumber damage={hit.damage} type={hit.type} index={hit.index} />
 			{/each}
 		</div>
+		{#if codes.autoclickerUnlocked}
+			<Button.Root
+				class="autoclicker-btn {autoclickerActive ? 'active' : ''}"
+				onclick={() => (autoclickerActive = !autoclickerActive)}
+			>
+				{autoclickerActive ? 'Auto: ON' : 'Auto: OFF'}
+			</Button.Root>
+		{/if}
 		<div class="health-bar" class:boss-bar={isBoss}>
 			<div class="health-fill" style:width="{(enemyHealth / enemyMaxHealth) * 100}%"></div>
 		</div>
@@ -342,5 +377,42 @@
 		color: rgba(255, 255, 255, 0.5);
 		font-size: 0.9rem;
 		margin: 8px 0 0;
+	}
+
+	:global(.autoclicker-btn) {
+		padding: 6px 16px !important;
+		border-radius: 8px !important;
+		font-size: 0.85rem !important;
+		font-weight: 600 !important;
+		cursor: pointer !important;
+		transition:
+			background 0.15s,
+			border-color 0.15s,
+			color 0.15s !important;
+		background: rgba(255, 255, 255, 0.05) !important;
+		border: 1px solid rgba(255, 255, 255, 0.15) !important;
+		color: rgba(255, 255, 255, 0.6) !important;
+	}
+
+	:global(.autoclicker-btn:hover) {
+		background: rgba(255, 255, 255, 0.1) !important;
+		color: white !important;
+	}
+
+	:global(.autoclicker-btn.active) {
+		background: rgba(74, 222, 128, 0.2) !important;
+		border-color: rgba(74, 222, 128, 0.4) !important;
+		color: #4ade80 !important;
+		animation: autoclicker-pulse 1.5s ease-in-out infinite !important;
+	}
+
+	@keyframes autoclicker-pulse {
+		0%,
+		100% {
+			box-shadow: 0 0 4px rgba(74, 222, 128, 0.2);
+		}
+		50% {
+			box-shadow: 0 0 10px rgba(74, 222, 128, 0.4);
+		}
 	}
 </style>
