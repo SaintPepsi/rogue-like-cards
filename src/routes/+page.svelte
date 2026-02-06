@@ -249,6 +249,7 @@
 				onPointerDown={gameState.pointerDown}
 				onPointerUp={gameState.pointerUp}
 				frenzyStacks={gameState.frenzyStacks}
+				attackCounts={gameState.attackCounts}
 			/>
 		</div>
 	</div>
@@ -293,6 +294,7 @@
 		startingStats={gameState.startingStats}
 		endingStats={gameState.endingStats}
 		wasDefeatNatural={gameState.wasDefeatNatural}
+		attackCounts={gameState.attackCounts}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
 	/>

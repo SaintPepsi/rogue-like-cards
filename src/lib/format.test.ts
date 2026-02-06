@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest';
-import { formatNumber } from './format';
+import { formatNumber, formatAttackType } from './format';
 
 describe('formatNumber', () => {
 	describe('small numbers (< 1000)', () => {
@@ -174,5 +174,51 @@ describe('formatNumber', () => {
 			const result = formatNumber(3.36e21);
 			expect(result).toBe('3.36Sx');
 		});
+	});
+});
+
+/**
+ * formatAttackType Tests
+ *
+ * Tests for the attack type display label formatting function.
+ * This function will be used in BattleArea and GameOverModal to display
+ * human-readable labels for attack categories.
+ *
+ * These tests are written BEFORE the function exists (TDD) and should FAIL initially.
+ */
+describe('formatAttackType', () => {
+	test('formats normal as "Normal Hits"', () => {
+		// Test 5.1: Format normal
+		expect(formatAttackType('normal')).toBe('Normal Hits');
+	});
+
+	test('formats crit as "Critical Hits"', () => {
+		// Test 5.2: Format crit
+		expect(formatAttackType('crit')).toBe('Critical Hits');
+	});
+
+	test('formats execute as "Executes"', () => {
+		// Test 5.3: Format execute
+		expect(formatAttackType('execute')).toBe('Executes');
+	});
+
+	test('formats poison as "Poison Ticks"', () => {
+		// Test 5.4: Format poison
+		expect(formatAttackType('poison')).toBe('Poison Ticks');
+	});
+
+	test('formats poisonCrit as "Poison Crits"', () => {
+		// Test 5.5: Format poisonCrit
+		expect(formatAttackType('poisonCrit')).toBe('Poison Crits');
+	});
+
+	test('returns unknown type as passthrough', () => {
+		// Test 5.6: Format unknown type
+		expect(formatAttackType('unknown')).toBe('unknown');
+	});
+
+	test('handles empty string by returning it', () => {
+		// Edge case: empty string
+		expect(formatAttackType('')).toBe('');
 	});
 });

@@ -60,6 +60,9 @@ function createGameState() {
 	// which Svelte can't track, so we sync this after every pipeline mutation.
 	let poisonStackCount = $state(0);
 
+	// Attack category counters - track hits by type for run statistics
+	let attackCounts = $state<Record<string, number>>({});
+
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
@@ -181,6 +184,14 @@ function createGameState() {
 		poisonStackCount = state?.stacks?.length ?? 0;
 	}
 
+	function incrementAttackCount(type: string) {
+		attackCounts = { ...attackCounts, [type]: (attackCounts[type] ?? 0) + 1 };
+	}
+
+	function resetAttackCounts() {
+		attackCounts = {};
+	}
+
 	function dealDamage(damage: number, hits: HitInfo[]) {
 		enemy.takeDamage(damage);
 		ui.addHits(hits);
@@ -227,6 +238,11 @@ function createGameState() {
 			};
 		});
 
+		// Increment attack counts for run statistics
+		for (const hit of newHits) {
+			incrementAttackCount(hit.type);
+		}
+
 		enemy.setOverkillDamage(result.overkillDamageOut);
 		dealDamage(result.totalDamage, newHits);
 		syncPoisonStacks();
@@ -241,10 +257,12 @@ function createGameState() {
 		for (const tick of tickResults) {
 			if (tick.damage <= 0) continue;
 
+			const hitType = (tick.hitType ?? 'poison') as HitType;
+			incrementAttackCount(hitType);
 			dealDamage(tick.damage, [
 				{
 					damage: tick.damage,
-					type: (tick.hitType ?? 'poison') as HitType,
+					type: hitType,
 					id: ui.nextHitId(),
 					index: 0
 				}
@@ -469,7 +487,8 @@ function createGameState() {
 			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
 			hasSelectedStartingLegendary,
 			startingStats: startingStats ?? undefined,
-			endingStats: endingStats ?? undefined
+			endingStats: endingStats ?? undefined,
+			attackCounts: { ...attackCounts }
 		});
 	}
 
@@ -533,6 +552,9 @@ function createGameState() {
 		startingStats = data.startingStats ?? null;
 		endingStats = data.endingStats ?? null;
 
+		// Restore attack counts
+		attackCounts = data.attackCounts ?? {};
+
 		return true;
 	}
 
@@ -563,6 +585,7 @@ function createGameState() {
 		// It is only reset in fullReset() which clears all persistent data.
 		hasSelectedStartingLegendary = false; // Reset for new run
 		ui.reset();
+		resetAttackCounts();
 		leveling.reset();
 		showGameOver = false;
 		shop.resetShopUI();
@@ -772,6 +795,9 @@ function createGameState() {
 		get endingStats() {
 			return endingStats;
 		},
+		get attackCounts() {
+			return attackCounts;
+		},
 
 		// Actions
 		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
@@ -809,6 +835,8 @@ function createGameState() {
 		resetGame,
 		fullReset,
 		giveUp,
+		incrementAttackCount,
+		resetAttackCounts,
 		init,
 		openShop: () => {
 			showGameOver = false;

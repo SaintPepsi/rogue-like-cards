@@ -13,6 +13,7 @@ const baseProps = {
 	startingStats: null,
 	endingStats: null,
 	wasDefeatNatural: true,
+	attackCounts: {},
 	onReset: noop,
 	onOpenShop: noop
 };

@@ -28,6 +28,7 @@ export interface SessionSaveData {
 	hasSelectedStartingLegendary?: boolean;
 	startingStats?: PlayerStats;
 	endingStats?: PlayerStats;
+	attackCounts?: Record<string, number>;
 }
 
 export interface PersistentSaveData {

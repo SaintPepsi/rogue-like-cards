@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HitInfo, GoldDrop } from '$lib/types';
-	import { formatNumber } from '$lib/format';
+	import type { HitInfo, GoldDrop, AttackCounts } from '$lib/types';
+	import { formatNumber, formatAttackType } from '$lib/format';
 	import enemySprite from '$lib/assets/images/enemy.png';
 	import chestSprite from '$lib/assets/images/chest-closed.png';
 	import mimicSprite from '$lib/assets/images/mimic-closed.png';
@@ -22,6 +22,7 @@
 		onPointerDown: () => void;
 		onPointerUp: () => void;
 		frenzyStacks: number;
+		attackCounts: AttackCounts;
 	};
 
 	let {
@@ -37,8 +38,25 @@
 		poisonStacks,
 		onPointerDown,
 		onPointerUp,
-		frenzyStacks
+		frenzyStacks,
+		attackCounts
 	}: Props = $props();
+
+	// Order for display consistency
+	const ATTACK_TYPE_ORDER = ['normal', 'crit', 'execute', 'poison', 'poisonCrit'];
+
+	function getSortedAttackCounts(counts: AttackCounts): [string, number][] {
+		return Object.entries(counts)
+			.filter(([, count]) => count > 0)
+			.sort(([a], [b]) => {
+				const aIndex = ATTACK_TYPE_ORDER.indexOf(a);
+				const bIndex = ATTACK_TYPE_ORDER.indexOf(b);
+				// Unknown types go to end
+				const aSort = aIndex === -1 ? 999 : aIndex;
+				const bSort = bIndex === -1 ? 999 : bIndex;
+				return aSort - bSort;
+			});
+	}
 </script>
 
 <div class="battle-area">
@@ -97,6 +115,17 @@
 				<span class="gold-drop-popup">+{drop.amount}g</span>
 			{/each}
 		</p>
+		{#if Object.keys(attackCounts).length > 0}
+			{@const sortedCounts = getSortedAttackCounts(attackCounts)}
+			{#if sortedCounts.length > 0}
+				<div class="attack-counts">
+					<p class="breakdown-header">Attack Breakdown</p>
+					{#each sortedCounts as [type, count] (type)}
+						<p class="attack-count {type}">{formatAttackType(type)}: {formatNumber(count)}</p>
+					{/each}
+				</div>
+			{/if}
+		{/if}
 	</div>
 </div>
 
@@ -344,5 +373,39 @@
 		color: rgba(255, 255, 255, 0.5);
 		font-size: 0.9rem;
 		margin: 8px 0 0;
+	}
+
+	.attack-counts {
+		margin-top: 12px;
+		padding-top: 12px;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.breakdown-header {
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.5);
+		margin: 0 0 4px;
+	}
+
+	.attack-count {
+		font-size: 0.95rem;
+		color: rgba(255, 255, 255, 0.8);
+		margin: 2px 0;
+	}
+
+	.attack-count.crit {
+		color: #fbbf24;
+	}
+
+	.attack-count.execute {
+		color: #ef4444;
+	}
+
+	.attack-count.poison {
+		color: #22c55e;
+	}
+
+	.attack-count.poisonCrit {
+		color: #84cc16;
 	}
 </style>

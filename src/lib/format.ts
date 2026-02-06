@@ -103,6 +103,20 @@ const SUFFIXES = [
 	'Ce'
 ];
 
+// DECISION: Attack type labels are defined here as a shared format function
+// Why: Used in BattleArea.svelte and GameOverModal.svelte - DRY principle
+const ATTACK_TYPE_LABELS: Record<string, string> = {
+	normal: 'Normal Hits',
+	crit: 'Critical Hits',
+	execute: 'Executes',
+	poison: 'Poison Ticks',
+	poisonCrit: 'Poison Crits'
+};
+
+export function formatAttackType(type: string): string {
+	return ATTACK_TYPE_LABELS[type] ?? type;
+}
+
 export function formatNumber(n: number): string {
 	if (!isFinite(n)) return '∞';
 	if (n < 1000) {
