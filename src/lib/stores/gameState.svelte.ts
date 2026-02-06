@@ -122,6 +122,46 @@ function createGameState() {
 		};
 	}
 
+	// DECISION: Shop stats calculator - shows base + shop-bought upgrades only
+	// Why: Shop cards should preview what your starting stats will be on the next run,
+	// not include temporary run upgrades that will be lost. This helps players make
+	// informed purchasing decisions based on their persistent progression.
+	function getShopOnlyStats(): PlayerStats {
+		// Create a fresh stat pipeline with only shop upgrades
+		const tempPipeline = createStatPipeline();
+		tempPipeline.setAcquiredUpgrades(shop.purchasedUpgradeIds);
+
+		return {
+			damage: tempPipeline.get('damage'),
+			critChance: tempPipeline.get('critChance'),
+			critMultiplier: tempPipeline.get('critMultiplier'),
+			xpMultiplier: tempPipeline.get('xpMultiplier'),
+			damageMultiplier: tempPipeline.get('damageMultiplier'),
+			poison: tempPipeline.get('poison'),
+			poisonCritChance: tempPipeline.get('poisonCritChance'),
+			poisonMaxStacks: tempPipeline.get('poisonMaxStacks'),
+			poisonDuration: tempPipeline.get('poisonDuration'),
+			multiStrike: tempPipeline.get('multiStrike'),
+			overkill: tempPipeline.get('overkill') > 0,
+			executeChance: tempPipeline.get('executeChance'),
+			bonusBossTime: tempPipeline.get('bonusBossTime'),
+			greed: tempPipeline.get('greed'),
+			luckyChance: tempPipeline.get('luckyChance'),
+			chestChance: tempPipeline.get('chestChance'),
+			bossChestChance: tempPipeline.get('bossChestChance'),
+			goldMultiplier: tempPipeline.get('goldMultiplier'),
+			goldDropChance: tempPipeline.get('goldDropChance'),
+			goldPerKill: tempPipeline.get('goldPerKill'),
+			attackSpeed: tempPipeline.get('attackSpeed'),
+			attackSpeedBonus: tempPipeline.get('attackSpeedBonus'),
+			tapFrenzyBonus: tempPipeline.get('tapFrenzyBonus'),
+			tapFrenzyDuration: tempPipeline.get('tapFrenzyDuration'),
+			tapFrenzyDurationBonus: tempPipeline.get('tapFrenzyDurationBonus'),
+			tapFrenzyStackMultiplier: tempPipeline.get('tapFrenzyStackMultiplier'),
+			executeCap: shop.getExecuteCapValue()
+		};
+	}
+
 	function upgradeContext() {
 		return {
 			luckyChance: statPipeline.get('luckyChance'),
@@ -673,6 +713,9 @@ function createGameState() {
 		// Getters for state
 		get playerStats() {
 			return getEffectiveStats();
+		},
+		get shopOnlyStats() {
+			return getShopOnlyStats();
 		},
 		get effects() {
 			return effects;
