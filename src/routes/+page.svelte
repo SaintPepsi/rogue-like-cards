@@ -296,6 +296,7 @@
 		wasDefeatNatural={gameState.wasDefeatNatural}
 		onReset={gameState.resetGame}
 		onOpenShop={gameState.openShop}
+		attackCounts={gameState.attackCounts}
 	/>
 
 	<ShopModal

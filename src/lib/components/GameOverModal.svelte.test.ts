@@ -14,7 +14,8 @@ const baseProps = {
 	endingStats: null,
 	wasDefeatNatural: true,
 	onReset: noop,
-	onOpenShop: noop
+	onOpenShop: noop,
+	attackCounts: { normal: 0, crit: 0, execute: 0, poison: 0 }
 };
 
 describe('GameOverModal', () => {

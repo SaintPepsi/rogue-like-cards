@@ -16,6 +16,12 @@
 		wasDefeatNatural: boolean;
 		onReset: () => void;
 		onOpenShop: () => void;
+		attackCounts: {
+			normal: number;
+			crit: number;
+			execute: number;
+			poison: number;
+		};
 	};
 
 	let {
@@ -29,7 +35,8 @@
 		endingStats,
 		wasDefeatNatural,
 		onReset,
-		onOpenShop
+		onOpenShop,
+		attackCounts
 	}: Props = $props();
 
 	function getChangedStats(start: PlayerStats, end: PlayerStats) {
@@ -57,6 +64,14 @@
 				<p>Level: <strong>{level}</strong></p>
 				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
 				<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
+			</div>
+
+			<div class="attack-breakdown">
+				<h3>Attack Breakdown</h3>
+				<p class="attack-stat normal">Normal: {formatNumber(attackCounts.normal)}</p>
+				<p class="attack-stat crit">Crit: {formatNumber(attackCounts.crit)}</p>
+				<p class="attack-stat execute">Execute: {formatNumber(attackCounts.execute)}</p>
+				<p class="attack-stat poison">Poison: {formatNumber(attackCounts.poison)}</p>
 			</div>
 
 			<!-- Stats progression section -->
@@ -198,5 +213,41 @@
 		color: #fbbf24;
 		font-weight: bold;
 		font-family: monospace;
+	}
+
+	.attack-breakdown {
+		background: rgba(0, 0, 0, 0.3);
+		padding: 16px;
+		border-radius: 8px;
+		margin: 16px 0;
+		text-align: left;
+	}
+
+	.attack-breakdown h3 {
+		color: #60a5fa;
+		margin: 0 0 12px;
+		font-size: 1.1rem;
+		text-align: center;
+	}
+
+	.attack-stat {
+		margin: 6px 0;
+		font-size: 0.95rem;
+	}
+
+	.attack-stat.normal {
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.attack-stat.crit {
+		color: #fbbf24;
+	}
+
+	.attack-stat.execute {
+		color: #ef4444;
+	}
+
+	.attack-stat.poison {
+		color: #22c55e;
 	}
 </style>
