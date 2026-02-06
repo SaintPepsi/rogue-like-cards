@@ -46,3 +46,21 @@ describe('gameState - attackCounts', () => {
 		});
 	});
 });
+
+describe('attack counting', () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+		gameState.init();
+		gameState.resetGame();
+	});
+
+	it('increments normal count for hit type', () => {
+		const initialNormal = gameState.attackCounts.normal;
+		// Trigger an attack - the pipeline will produce at least one hit
+		gameState.pointerDown();
+		gameState.pointerUp();
+
+		// Give time for attack to process
+		expect(gameState.attackCounts.normal).toBeGreaterThan(initialNormal);
+	});
+});

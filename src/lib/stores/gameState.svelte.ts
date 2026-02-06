@@ -261,6 +261,14 @@ function createGameState() {
 			};
 		});
 
+		// Increment attack counts by category
+		for (const hit of result.hits) {
+			const category = mapHitType(hit.type);
+			if (category !== null) {
+				attackCounts = { ...attackCounts, [category]: attackCounts[category] + 1 };
+			}
+		}
+
 		enemy.setOverkillDamage(result.overkillDamageOut);
 		dealDamage(result.totalDamage, newHits);
 		syncPoisonStacks();
