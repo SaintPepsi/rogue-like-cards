@@ -75,6 +75,25 @@ function createGameState() {
 		poison: 0
 	});
 
+	function mapHitType(type: string): keyof AttackCounts | null {
+		switch (type) {
+			case 'hit':
+			case 'normal':
+				return 'normal';
+			case 'criticalHit':
+			case 'crit':
+				return 'crit';
+			case 'executeHit':
+			case 'execute':
+				return 'execute';
+			case 'poison':
+			case 'poisonCrit':
+				return 'poison';
+			default:
+				return null;
+		}
+	}
+
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
