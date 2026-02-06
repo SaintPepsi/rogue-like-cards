@@ -159,3 +159,26 @@ describe('attackCounts restoration', () => {
 		expect(gameState.attackCounts).toEqual({ normal: 0, crit: 0, execute: 0, poison: 0 });
 	});
 });
+
+describe('attackCounts reset', () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+		gameState.init();
+		gameState.resetGame(); // Ensure fresh game state with enemy spawned
+	});
+
+	it('resets attackCounts to zeros on resetGame()', () => {
+		// Trigger some attacks to increment counters
+		gameState.pointerDown();
+		gameState.pointerUp();
+
+		// Verify counters are non-zero (at least normal should increment)
+		expect(gameState.attackCounts.normal).toBeGreaterThan(0);
+
+		// Reset the game
+		gameState.resetGame();
+
+		// Verify all counters are back to zero
+		expect(gameState.attackCounts).toEqual({ normal: 0, crit: 0, execute: 0, poison: 0 });
+	});
+});

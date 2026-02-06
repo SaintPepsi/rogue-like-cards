@@ -609,6 +609,7 @@ function createGameState() {
 		effects = [];
 		unlockedUpgrades = new Set();
 		gold = 0;
+		attackCounts = { normal: 0, crit: 0, execute: 0, poison: 0 };
 		// DECISION: hasCompletedFirstRun is a persistent meta-progression flag (stored in PersistentSaveData)
 		// that tracks whether the player has ever completed a run. It should NOT be reset here since
 		// resetGame() is for starting a new run (preserving meta-progression), not for clearing all progress.
