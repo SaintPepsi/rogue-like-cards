@@ -582,6 +582,9 @@ function createGameState() {
 		startingStats = data.startingStats ?? null;
 		endingStats = data.endingStats ?? null;
 
+		// Restore attack counts (default to zeros for legacy saves)
+		attackCounts = data.attackCounts ?? { normal: 0, crit: 0, execute: 0, poison: 0 };
+
 		return true;
 	}
 

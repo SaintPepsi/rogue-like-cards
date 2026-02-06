@@ -98,3 +98,64 @@ describe('attackCounts persistence', () => {
 		expect(parsed.attackCounts).toEqual({ normal: 10, crit: 5, execute: 2, poison: 3 });
 	});
 });
+
+describe('attackCounts restoration', () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+	});
+
+	it('restores attackCounts from session storage', () => {
+		// Set up saved data with attackCounts
+		const savedData = {
+			unlockedUpgradeIds: [],
+			effects: [],
+			xp: 0,
+			level: 1,
+			gold: 0,
+			stage: 1,
+			waveKills: 0,
+			enemiesKilled: 0,
+			enemyHealth: 100,
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			upgradeQueue: [],
+			activeEvent: null,
+			timestamp: Date.now(),
+			attackCounts: { normal: 10, crit: 5, execute: 2, poison: 3 }
+		};
+		localStorage.setItem('roguelike-cards-save', JSON.stringify(savedData));
+
+		gameState.init();
+
+		expect(gameState.attackCounts).toEqual({ normal: 10, crit: 5, execute: 2, poison: 3 });
+	});
+
+	it('defaults to zeros when loading save without attackCounts', () => {
+		// Set up saved data WITHOUT attackCounts (legacy save)
+		const savedData = {
+			unlockedUpgradeIds: [],
+			effects: [],
+			xp: 0,
+			level: 1,
+			gold: 0,
+			stage: 1,
+			waveKills: 0,
+			enemiesKilled: 0,
+			enemyHealth: 100,
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			upgradeQueue: [],
+			activeEvent: null,
+			timestamp: Date.now()
+		};
+		localStorage.setItem('roguelike-cards-save', JSON.stringify(savedData));
+
+		gameState.init();
+
+		expect(gameState.attackCounts).toEqual({ normal: 0, crit: 0, execute: 0, poison: 0 });
+	});
+});
