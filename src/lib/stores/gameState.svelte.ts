@@ -122,6 +122,20 @@ function createGameState() {
 		};
 	}
 
+	// DECISION: Shop cards should show stats from base + shop-bought upgrades only,
+	// not including run upgrades. This shows the player what their starting stats
+	// will be on the next run after purchasing the card.
+	function getShopOnlyStats(): PlayerStats {
+		const currentAcquiredIds = statPipeline.acquiredUpgradeIds;
+		const shopIds = shop.purchasedUpgradeIds;
+
+		statPipeline.setAcquiredUpgrades(shopIds);
+		const stats = getEffectiveStats();
+		statPipeline.setAcquiredUpgrades(currentAcquiredIds);
+
+		return stats;
+	}
+
 	function upgradeContext() {
 		return {
 			luckyChance: statPipeline.get('luckyChance'),
@@ -673,6 +687,9 @@ function createGameState() {
 		// Getters for state
 		get playerStats() {
 			return getEffectiveStats();
+		},
+		get shopOnlyStats() {
+			return getShopOnlyStats();
 		},
 		get effects() {
 			return effects;
