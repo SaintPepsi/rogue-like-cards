@@ -3,7 +3,16 @@
 	import { codes } from '$lib/stores/codes.svelte';
 	import { gameState } from '$lib/stores/gameState.svelte';
 
-	let autoclickerActive = $state(false);
+	// DECISION: Autoclicker state lives in gameState, not component-local state
+	// Why: Needs to persist across run resets. When resetGame() clears timers,
+	// gameState checks autoclickerActive and restarts the timer if it was on.
+	function toggleAutoclicker() {
+		if (gameState.autoclickerActive) {
+			gameState.stopAutoclicker();
+		} else {
+			gameState.startAutoclicker();
+		}
+	}
 
 	// DECISION: Use game loop timer instead of setInterval
 	// Why: setInterval queues callbacks when tab is inactive, causing bursts on focus.
@@ -11,12 +20,7 @@
 	// DECISION: Call gameState.pointerDown() (not gameLoop.pointerDown()) to add frenzy stacks
 	// Why: Autoclicker should behave exactly like manual taps, including frenzy stacking.
 	$effect(() => {
-		if (autoclickerActive) {
-			gameState.startAutoclicker();
-		} else {
-			gameState.stopAutoclicker();
-		}
-
+		// Cleanup on component unmount
 		return () => {
 			gameState.stopAutoclicker();
 		};
@@ -25,10 +29,10 @@
 
 {#if codes.autoclickerUnlocked}
 	<Button.Root
-		class="autoclicker-btn {autoclickerActive ? 'active' : ''}"
-		onclick={() => (autoclickerActive = !autoclickerActive)}
+		class="autoclicker-btn {gameState.autoclickerActive ? 'active' : ''}"
+		onclick={toggleAutoclicker}
 	>
-		{autoclickerActive ? 'Auto: ON' : 'Auto: OFF'}
+		{gameState.autoclickerActive ? 'Auto: ON' : 'Auto: OFF'}
 	</Button.Root>
 {/if}
 

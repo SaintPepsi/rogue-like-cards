@@ -70,6 +70,9 @@ function createGameState() {
 	// Why: Matches the user request for "about 10 clicks per second" testing aid
 	const AUTOCLICKER_INTERVAL_MS = 100;
 
+	// Autoclicker state — persists across run resets
+	let autoclickerActive = $state(false);
+
 	// Frenzy module (tap-frenzy stacks + timer-based decay)
 	// Uses gameLoop.timers so frenzy decay timers are ticked by the game loop's rAF
 	const frenzy = createFrenzy(statPipeline, gameLoop.timers);
@@ -578,6 +581,20 @@ function createGameState() {
 
 		gameLoop.start(buildGameLoopCallbacks());
 
+		// DECISION: Restart autoclicker if it was active before reset
+		// Why: gameLoop.reset() clears all timers (including autoclicker), but the user's
+		// toggle state should persist across runs. If autoclickerActive is true, the timer
+		// was removed but the intent to auto-click remains.
+		if (autoclickerActive) {
+			gameLoop.timers.register('autoclicker', {
+				remaining: AUTOCLICKER_INTERVAL_MS,
+				repeat: AUTOCLICKER_INTERVAL_MS,
+				onExpire: () => {
+					gameState.pointerDown();
+				}
+			});
+		}
+
 		// Show legendary selection only if the previous run ended with a natural death
 		// (tracked by showLegendaryOnNextReset flag) AND user hasn't already selected
 		if (showLegendaryOnNextReset && !hasSelectedStartingLegendary) {
@@ -772,6 +789,9 @@ function createGameState() {
 		get endingStats() {
 			return endingStats;
 		},
+		get autoclickerActive() {
+			return autoclickerActive;
+		},
 
 		// Actions
 		// DECISION: Frenzy stack added here (input boundary) not inside gameLoop
@@ -790,6 +810,7 @@ function createGameState() {
 		// Why: Don't duplicate logic - pointerDown() already handles frenzy + gameLoop interaction.
 		startAutoclicker: () => {
 			if (gameLoop.timers.has('autoclicker')) return;
+			autoclickerActive = true;
 			gameLoop.timers.register('autoclicker', {
 				remaining: AUTOCLICKER_INTERVAL_MS,
 				repeat: AUTOCLICKER_INTERVAL_MS,
@@ -799,6 +820,7 @@ function createGameState() {
 			});
 		},
 		stopAutoclicker: () => {
+			autoclickerActive = false;
 			gameLoop.timers.remove('autoclicker');
 			gameLoop.pointerUp();
 		},
