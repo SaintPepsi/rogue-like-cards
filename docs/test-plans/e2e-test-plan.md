@@ -323,7 +323,7 @@ await expect(attackStatsInModal).toBeVisible();
 - `seedRandom(page, seed)` - Deterministic RNG
 - `__test__.triggerBossExpired(isNaturalDeath)` - Force game over
 
-### New Helpers (may be needed)
+### New Helpers (optional)
 
 Consider exposing on `window.gameState.__test__`:
 
@@ -332,12 +332,14 @@ __test__: {
   // Existing
   triggerBossExpired: (isNaturalDeath: boolean) => void;
 
-  // New for attack counter testing
+  // New for attack counter testing (OPTIONAL - can verify via UI selectors instead)
   getAttackCounts: () => Record<string, number>;
   setAttackCounts: (counts: Record<string, number>) => void;
   forceNextAttackType: (type: HitType) => void; // Optional: for deterministic type testing
 }
 ```
+
+**Note:** These helpers are optional. Attack counts can be verified through UI selectors (`.attack-count.{type}`) since the feature displays counts in the DOM. Direct state access is only needed for edge case testing where UI verification is insufficient.
 
 ### Helper Function for Tests
 

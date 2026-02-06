@@ -398,7 +398,7 @@ function getSortedAttackCounts(counts: AttackCounts): [string, number][] {
 	</p>
 	{@const sortedCounts = getSortedAttackCounts(attackCounts)}
 	{#if sortedCounts.length > 0}
-		<div class="attack-breakdown">
+		<div class="attack-counts">
 			<p class="breakdown-header">Attack Breakdown</p>
 			{#each sortedCounts as [type, count] (type)}
 				<p class="attack-count {type}">{formatAttackType(type)}: {formatNumber(count)}</p>
@@ -415,7 +415,7 @@ function getSortedAttackCounts(counts: AttackCounts): [string, number][] {
 **Add:**
 
 ```css
-.attack-breakdown {
+.attack-counts {
 	margin-top: 12px;
 	padding-top: 12px;
 	border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -568,7 +568,7 @@ function getSortedAttackCounts(counts: AttackCounts): [string, number][] {
 <!-- Attack breakdown section -->
 {@const sortedCounts = getSortedAttackCounts(attackCounts)}
 {#if sortedCounts.length > 0}
-	<div class="attack-breakdown">
+	<div class="attack-counts">
 		<h3>Attack Breakdown</h3>
 		{#each sortedCounts as [type, count] (type)}
 			<div class="attack-row">
@@ -587,14 +587,14 @@ function getSortedAttackCounts(counts: AttackCounts): [string, number][] {
 **Add:**
 
 ```css
-.attack-breakdown {
+.attack-counts {
 	background: rgba(0, 0, 0, 0.3);
 	padding: 16px;
 	border-radius: 8px;
 	margin: 16px 0;
 }
 
-.attack-breakdown h3 {
+.attack-counts h3 {
 	color: #60a5fa;
 	margin: 0 0 12px;
 	font-size: 1.2rem;
