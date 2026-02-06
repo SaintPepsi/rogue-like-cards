@@ -305,7 +305,7 @@
 		rerollCost={gameState.rerollCost}
 		getPrice={gameState.getCardPrice}
 		onBuy={gameState.buyUpgrade}
-		currentStats={gameState.playerStats}
+		currentStats={gameState.shopOnlyStats}
 		onReroll={gameState.rerollShop}
 		onPlayAgain={gameState.resetGame}
 	/>
