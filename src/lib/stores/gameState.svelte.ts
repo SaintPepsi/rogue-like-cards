@@ -60,6 +60,21 @@ function createGameState() {
 	// which Svelte can't track, so we sync this after every pipeline mutation.
 	let poisonStackCount = $state(0);
 
+	// Attack counts per category (reset each run)
+	type AttackCounts = {
+		normal: number;
+		crit: number;
+		execute: number;
+		poison: number;
+	};
+
+	let attackCounts = $state<AttackCounts>({
+		normal: 0,
+		crit: 0,
+		execute: 0,
+		poison: 0
+	});
+
 	// UI effects (hits + gold drops)
 	const ui = createUIEffects();
 
@@ -698,6 +713,9 @@ function createGameState() {
 		},
 		get wasDefeatNatural() {
 			return wasDefeatNatural;
+		},
+		get attackCounts() {
+			return attackCounts;
 		},
 		get showLegendarySelection() {
 			return showLegendarySelection;
