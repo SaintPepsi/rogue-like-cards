@@ -75,3 +75,8 @@ export type GoldDrop = {
 	id: number;
 	amount: number;
 };
+
+// DECISION: Use Record<string, number> keyed by HitType string rather than fixed object
+// Why: Future-proofs for new attack types without code changes. The existing HitType union
+// can grow without requiring changes to the counter structure.
+export type AttackCounts = Record<string, number>;

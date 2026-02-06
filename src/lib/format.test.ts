@@ -1,5 +1,4 @@
 import { describe, test, expect } from 'vitest';
-// @ts-expect-error - TDD: formatAttackType doesn't exist yet
 import { formatNumber, formatAttackType } from './format';
 
 describe('formatNumber', () => {

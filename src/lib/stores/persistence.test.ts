@@ -128,7 +128,6 @@ describe('persistence - attackCounts', () => {
 		);
 
 		const loaded = persistence.loadSession();
-		// @ts-expect-error - TDD: attackCounts field doesn't exist on SessionSaveData yet
 		expect(loaded?.attackCounts).toEqual(attackCounts);
 	});
 
@@ -157,7 +156,6 @@ describe('persistence - attackCounts', () => {
 
 		const loaded = persistence.loadSession();
 		// Should default to empty object or undefined (implementation decides)
-		// @ts-expect-error - TDD: attackCounts field doesn't exist on SessionSaveData yet
 		expect(loaded?.attackCounts ?? {}).toEqual({});
 	});
 
@@ -183,7 +181,6 @@ describe('persistence - attackCounts', () => {
 		persistence.saveSession(createSessionWithAttackCounts(attackCounts));
 
 		const loaded = persistence.loadSession();
-		// @ts-expect-error - TDD: attackCounts field doesn't exist on SessionSaveData yet
 		expect(loaded?.attackCounts).toEqual(attackCounts);
 	});
 

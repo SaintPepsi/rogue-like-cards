@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { statRegistry } from '$lib/engine/stats';
-	import { formatNumber } from '$lib/format';
-	import type { PlayerStats } from '$lib/types';
+	import { formatNumber, formatAttackType } from '$lib/format';
+	import type { PlayerStats, AttackCounts } from '$lib/types';
 	import { Button } from 'bits-ui';
 
 	type Props = {
@@ -14,6 +14,7 @@
 		startingStats: PlayerStats | null;
 		endingStats: PlayerStats | null;
 		wasDefeatNatural: boolean;
+		attackCounts: AttackCounts;
 		onReset: () => void;
 		onOpenShop: () => void;
 	};
@@ -28,6 +29,7 @@
 		startingStats,
 		endingStats,
 		wasDefeatNatural,
+		attackCounts,
 		onReset,
 		onOpenShop
 	}: Props = $props();
@@ -45,6 +47,20 @@
 				formatEnd: entry.format(end[entry.key])
 			}));
 	}
+
+	const ATTACK_TYPE_ORDER = ['normal', 'crit', 'execute', 'poison', 'poisonCrit'];
+
+	function getSortedAttackCounts(counts: AttackCounts): [string, number][] {
+		return Object.entries(counts)
+			.filter(([, count]) => count > 0)
+			.sort(([a], [b]) => {
+				const aIndex = ATTACK_TYPE_ORDER.indexOf(a);
+				const bIndex = ATTACK_TYPE_ORDER.indexOf(b);
+				const aSort = aIndex === -1 ? 999 : aIndex;
+				const bSort = bIndex === -1 ? 999 : bIndex;
+				return aSort - bSort;
+			});
+	}
 </script>
 
 {#if show}
@@ -58,6 +74,22 @@
 				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
 				<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
 			</div>
+
+			<!-- Attack breakdown section -->
+			{#if Object.keys(attackCounts).length > 0}
+				{@const sortedCounts = getSortedAttackCounts(attackCounts)}
+				{#if sortedCounts.length > 0}
+					<div class="attack-counts">
+						<h3>Attack Breakdown</h3>
+						{#each sortedCounts as [type, count] (type)}
+							<div class="attack-row">
+								<span class="attack-label {type}">{formatAttackType(type)}</span>
+								<span class="attack-value">{formatNumber(count)}</span>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			{/if}
 
 			<!-- Stats progression section -->
 			{#if startingStats && endingStats}
@@ -196,6 +228,53 @@
 
 	.stat-change {
 		color: #fbbf24;
+		font-weight: bold;
+		font-family: monospace;
+	}
+
+	.attack-counts {
+		background: rgba(0, 0, 0, 0.3);
+		padding: 16px;
+		border-radius: 8px;
+		margin: 16px 0;
+	}
+
+	.attack-counts h3 {
+		color: #60a5fa;
+		margin: 0 0 12px;
+		font-size: 1.2rem;
+		text-align: center;
+	}
+
+	.attack-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin: 4px 0;
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.attack-label {
+		font-weight: 500;
+	}
+
+	.attack-label.crit {
+		color: #fbbf24;
+	}
+
+	.attack-label.execute {
+		color: #ef4444;
+	}
+
+	.attack-label.poison {
+		color: #22c55e;
+	}
+
+	.attack-label.poisonCrit {
+		color: #84cc16;
+	}
+
+	.attack-value {
 		font-weight: bold;
 		font-family: monospace;
 	}
