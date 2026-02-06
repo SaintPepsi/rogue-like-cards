@@ -52,35 +52,39 @@
 		<div class="modal game-over">
 			<h2>Game Over</h2>
 			<p>{wasDefeatNatural ? 'The boss defeated you!' : 'You gave up!'}</p>
-			<div class="game-over-stats">
-				<p>Stage Reached: <strong>{stage}</strong></p>
-				<p>Level: <strong>{level}</strong></p>
-				<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
-				<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
+
+			<div class="modal-content">
+				<div class="game-over-stats">
+					<p>Stage Reached: <strong>{stage}</strong></p>
+					<p>Level: <strong>{level}</strong></p>
+					<p>Enemies Killed: <strong>{formatNumber(enemiesKilled)}</strong></p>
+					<p>Gold Earned: <strong class="gold-amount">{formatNumber(goldEarned)}</strong></p>
+				</div>
+
+				<!-- Stats progression section -->
+				{#if startingStats && endingStats}
+					{@const changedStats = getChangedStats(startingStats, endingStats)}
+					{#if changedStats.length > 0}
+						<div class="stats-comparison">
+							<h3>Run Progression</h3>
+							{#each changedStats as stat (stat.key)}
+								<div class="stat-row">
+									<span class="stat-icon">{stat.icon}</span>
+									<span class="stat-label">{stat.label}</span>
+									<span class="stat-change">
+										{stat.formatStart} → {stat.formatEnd}
+									</span>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				{/if}
+
+				<p class="gold-display">
+					Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span>
+				</p>
 			</div>
 
-			<!-- Stats progression section -->
-			{#if startingStats && endingStats}
-				{@const changedStats = getChangedStats(startingStats, endingStats)}
-				{#if changedStats.length > 0}
-					<div class="stats-comparison">
-						<h3>Run Progression</h3>
-						{#each changedStats as stat (stat.key)}
-							<div class="stat-row">
-								<span class="stat-icon">{stat.icon}</span>
-								<span class="stat-label">{stat.label}</span>
-								<span class="stat-change">
-									{stat.formatStart} → {stat.formatEnd}
-								</span>
-							</div>
-						{/each}
-					</div>
-				{/if}
-			{/if}
-
-			<p class="gold-display">
-				Total Gold: <span class="gold-amount">{formatNumber(totalGold)}</span>
-			</p>
 			<div class="button-row">
 				<Button.Root
 					class="px-6 py-3 bg-linear-to-r from-[#fbbf24] to-[#f59e0b] border-none rounded-lg text-[#1a1a2e] text-[1.1rem] font-bold cursor-pointer transition-[transform,box-shadow] duration-200 hover:scale-105 hover:shadow-[0_4px_20px_rgba(251,191,36,0.4)]"
@@ -112,6 +116,9 @@
 		border-radius: 16px;
 		text-align: center;
 		max-width: 90vw;
+		max-height: 90vh;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.modal.game-over h2 {
@@ -123,6 +130,15 @@
 	.modal p {
 		margin: 0 0 16px;
 		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.modal-content {
+		flex: 1;
+		overflow-y: auto;
+		overflow-x: hidden;
+		margin-bottom: 16px;
+		/* Add padding to ensure scrollbar doesn't overlap content */
+		padding-right: 4px;
 	}
 
 	.game-over-stats {
@@ -157,6 +173,7 @@
 		display: flex;
 		justify-content: center;
 		gap: 12px;
+		flex-shrink: 0;
 	}
 
 	.stats-comparison {
@@ -164,8 +181,6 @@
 		padding: 16px;
 		border-radius: 8px;
 		margin: 16px 0;
-		max-height: 300px;
-		overflow-y: auto;
 	}
 
 	.stats-comparison h3 {
