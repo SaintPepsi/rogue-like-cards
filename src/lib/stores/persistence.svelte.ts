@@ -28,6 +28,12 @@ export interface SessionSaveData {
 	hasSelectedStartingLegendary?: boolean;
 	startingStats?: PlayerStats;
 	endingStats?: PlayerStats;
+	attackCounts?: {
+		normal: number;
+		crit: number;
+		execute: number;
+		poison: number;
+	};
 }
 
 export interface PersistentSaveData {

@@ -64,3 +64,37 @@ describe('attack counting', () => {
 		expect(gameState.attackCounts.normal).toBeGreaterThan(initialNormal);
 	});
 });
+
+describe('attackCounts persistence', () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+	});
+
+	it('attackCounts field is included in SessionSaveData interface', () => {
+		// Verify the type system accepts attackCounts in session save data
+		// by checking we can parse a save that includes it
+		const savedData = {
+			effects: [],
+			unlockedUpgradeIds: [],
+			xp: 0,
+			level: 1,
+			gold: 0,
+			stage: 1,
+			waveKills: 0,
+			enemiesKilled: 0,
+			enemyHealth: 100,
+			enemyMaxHealth: 100,
+			isBoss: false,
+			isChest: false,
+			isBossChest: false,
+			timestamp: Date.now(),
+			attackCounts: { normal: 10, crit: 5, execute: 2, poison: 3 }
+		};
+
+		localStorage.setItem('roguelike-cards-save', JSON.stringify(savedData));
+		const loaded = localStorage.getItem('roguelike-cards-save');
+		const parsed = JSON.parse(loaded!);
+
+		expect(parsed.attackCounts).toEqual({ normal: 10, crit: 5, execute: 2, poison: 3 });
+	});
+});

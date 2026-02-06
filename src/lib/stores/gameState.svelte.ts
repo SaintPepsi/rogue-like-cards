@@ -517,7 +517,8 @@ function createGameState() {
 			legendaryChoiceIds: legendaryChoices.map((u) => u.id),
 			hasSelectedStartingLegendary,
 			startingStats: startingStats ?? undefined,
-			endingStats: endingStats ?? undefined
+			endingStats: endingStats ?? undefined,
+			attackCounts
 		});
 	}
 
