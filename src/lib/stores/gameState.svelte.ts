@@ -291,6 +291,12 @@ function createGameState() {
 					index: 0
 				}
 			]);
+
+			// Increment poison attack count
+			const category = mapHitType(tick.hitType ?? 'poison');
+			if (category !== null) {
+				attackCounts = { ...attackCounts, [category]: attackCounts[category] + 1 };
+			}
 		}
 		syncPoisonStacks();
 	}
