@@ -16,7 +16,8 @@ const baseProps = {
 	poisonStacks: 0,
 	onPointerDown: noop,
 	onPointerUp: noop,
-	frenzyStacks: 0
+	frenzyStacks: 0,
+	attackCounts: { normal: 0, crit: 0, execute: 0, poison: 0 }
 };
 
 describe('BattleArea', () => {

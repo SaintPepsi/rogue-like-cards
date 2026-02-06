@@ -22,6 +22,12 @@
 		onPointerDown: () => void;
 		onPointerUp: () => void;
 		frenzyStacks: number;
+		attackCounts: {
+			normal: number;
+			crit: number;
+			execute: number;
+			poison: number;
+		};
 	};
 
 	let {
@@ -37,7 +43,8 @@
 		poisonStacks,
 		onPointerDown,
 		onPointerUp,
-		frenzyStacks
+		frenzyStacks,
+		attackCounts
 	}: Props = $props();
 </script>
 
@@ -97,6 +104,12 @@
 				<span class="gold-drop-popup">+{drop.amount}g</span>
 			{/each}
 		</p>
+		<div class="attack-breakdown">
+			<p class="attack-stat normal">Normal: {formatNumber(attackCounts.normal)}</p>
+			<p class="attack-stat crit">Crit: {formatNumber(attackCounts.crit)}</p>
+			<p class="attack-stat execute">Execute: {formatNumber(attackCounts.execute)}</p>
+			<p class="attack-stat poison">Poison: {formatNumber(attackCounts.poison)}</p>
+		</div>
 	</div>
 </div>
 
@@ -344,5 +357,32 @@
 		color: rgba(255, 255, 255, 0.5);
 		font-size: 0.9rem;
 		margin: 8px 0 0;
+	}
+
+	.attack-breakdown {
+		margin-top: 12px;
+		padding-top: 12px;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.attack-stat {
+		font-size: 0.9rem;
+		margin: 4px 0;
+	}
+
+	.attack-stat.normal {
+		color: rgba(255, 255, 255, 0.7);
+	}
+
+	.attack-stat.crit {
+		color: #fbbf24;
+	}
+
+	.attack-stat.execute {
+		color: #ef4444;
+	}
+
+	.attack-stat.poison {
+		color: #22c55e;
 	}
 </style>

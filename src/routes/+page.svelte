@@ -249,6 +249,7 @@
 				onPointerDown={gameState.pointerDown}
 				onPointerUp={gameState.pointerUp}
 				frenzyStacks={gameState.frenzyStacks}
+				attackCounts={gameState.attackCounts}
 			/>
 		</div>
 	</div>
